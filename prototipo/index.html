@@ -1,0 +1,1166 @@
+<title>MY Skin AI</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Marcellus&family=Manrope:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500&display=swap">
+<style>
+:root {
+  --bg: #FAFAF8;
+  --surface: #FFFFFF;
+  --surface-2: #F4F2EE;
+  --ink: #1D1D1F;
+  --ink-2: #4F4B45;
+  --muted: #7C776F;
+  --line: #E6E2DA;
+  --gold: #B08D52;
+  --gold-ink: #7F6231;
+  --gold-soft: #F3ECDF;
+  --on-gold: #FFFFFF;
+  --good: #2F7D55;
+  --good-soft: #E6F2EB;
+  --warn: #9A6412;
+  --warn-soft: #FBF0DC;
+  --bad: #A63A33;
+  --bad-soft: #F8E5E3;
+  --shadow: 0 1px 2px rgba(29, 29, 31, .05), 0 8px 24px rgba(29, 29, 31, .05);
+  --display: "Marcellus", "Cormorant Garamond", Georgia, serif;
+  --body: "Manrope", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --bg: #111111;
+    --surface: #1A1A1A;
+    --surface-2: #222120;
+    --ink: #EEEBE6;
+    --ink-2: #C4BEB4;
+    --muted: #938C82;
+    --line: #2E2C29;
+    --gold: #CFAE72;
+    --gold-ink: #DDC18E;
+    --gold-soft: #2A2419;
+    --on-gold: #17130C;
+    --good: #6CC495;
+    --good-soft: #17271E;
+    --warn: #E3AE55;
+    --warn-soft: #2B2114;
+    --bad: #E8847C;
+    --bad-soft: #2E1A18;
+    --shadow: 0 1px 2px rgba(0, 0, 0, .4);
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #111111;
+  --surface: #1A1A1A;
+  --surface-2: #222120;
+  --ink: #EEEBE6;
+  --ink-2: #C4BEB4;
+  --muted: #938C82;
+  --line: #2E2C29;
+  --gold: #CFAE72;
+  --gold-ink: #DDC18E;
+  --gold-soft: #2A2419;
+  --on-gold: #17130C;
+  --good: #6CC495;
+  --good-soft: #17271E;
+  --warn: #E3AE55;
+  --warn-soft: #2B2114;
+  --bad: #E8847C;
+  --bad-soft: #2E1A18;
+  --shadow: 0 1px 2px rgba(0, 0, 0, .4);
+}
+
+* { box-sizing: border-box; }
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--body);
+  font-size: 15px;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+}
+h1, h2, h3 { margin: 0; text-wrap: balance; font-weight: 400; }
+h1, h2 { font-family: var(--display); letter-spacing: .01em; }
+h1 { font-size: 30px; line-height: 1.15; }
+h2 { font-size: 23px; line-height: 1.2; }
+h3 { font-family: var(--body); font-size: 13px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+p { margin: 0; }
+a { color: var(--gold-ink); }
+button, input, select, textarea { font: inherit; color: inherit; }
+:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
+.num { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+
+/* Header */
+.top {
+  position: sticky; top: env(safe-area-inset-top, 0px); z-index: 20;
+  background: color-mix(in srgb, var(--bg) 92%, transparent);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--line);
+}
+.top-in { max-width: 1040px; margin: 0 auto; padding-inline: 16px; }
+.brandrow { display: flex; align-items: center; gap: 12px; padding-block: 12px 8px; flex-wrap: wrap; }
+.brand { display: flex; align-items: center; gap: 10px; margin-right: auto; }
+.brand svg { flex: none; }
+.brand b { font-family: var(--display); font-weight: 400; font-size: 21px; letter-spacing: .02em; }
+.brand b span { color: var(--gold-ink); }
+.who { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--muted); }
+.who select { min-width: 0; max-width: 58vw; }
+.tabs { display: flex; gap: 4px; overflow-x: auto; scrollbar-width: none; padding-bottom: 8px; }
+.tabs::-webkit-scrollbar { display: none; }
+.tab {
+  border: 0; background: none; padding: 7px 12px; border-radius: 999px; white-space: nowrap;
+  color: var(--ink-2); font-weight: 500; font-size: 14px; cursor: pointer;
+}
+.tab:hover { background: var(--surface-2); }
+.tab[aria-current="page"] { background: var(--ink); color: var(--bg); }
+
+/* Layout */
+.wrap { max-width: 1040px; margin: 0 auto; padding-inline: 16px; padding-block: 20px 64px; display: grid; gap: 16px; }
+.grid2 { display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(min(100%, 340px), 1fr)); align-items: start; }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 20px; display: grid; gap: 14px; box-shadow: var(--shadow); min-width: 0; }
+.card.flat { box-shadow: none; background: transparent; border-style: dashed; }
+.stack { display: grid; gap: 10px; }
+.row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.between { justify-content: space-between; }
+.lede { color: var(--ink-2); max-width: 62ch; }
+.muted { color: var(--muted); }
+.small { font-size: 13px; }
+.divider { height: 1px; background: var(--line); }
+
+/* Controls */
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  border: 1px solid var(--line); background: var(--surface); color: var(--ink);
+  padding: 9px 16px; border-radius: 10px; font-weight: 600; font-size: 14px; cursor: pointer; text-decoration: none;
+}
+.btn:hover { border-color: var(--gold); }
+.btn.primary { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+.btn.primary:hover { background: var(--gold); border-color: var(--gold); color: var(--on-gold); }
+.btn.gold { background: var(--gold); color: var(--on-gold); border-color: var(--gold); }
+.btn.danger { color: var(--bad); }
+.btn.danger.solid { background: var(--bad); color: var(--surface); border-color: var(--bad); }
+.btn.ghost { border-color: transparent; background: transparent; padding-inline: 8px; }
+.btn[disabled] { opacity: .45; cursor: not-allowed; }
+.btn.sm { padding: 6px 12px; font-size: 13px; }
+label.f { display: grid; gap: 5px; font-size: 13px; font-weight: 600; color: var(--ink-2); }
+input[type="text"], input[type="number"], input[type="date"], select, textarea {
+  width: 100%; background: var(--surface); border: 1px solid var(--line); border-radius: 9px; padding: 9px 11px; font-size: 15px; font-weight: 400;
+}
+textarea { resize: vertical; min-height: 70px; }
+.fields { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(min(100%, 150px), 1fr)); }
+.seg { display: inline-flex; border: 1px solid var(--line); border-radius: 10px; padding: 3px; gap: 3px; flex-wrap: wrap; background: var(--surface-2); }
+.seg button { border: 0; background: none; padding: 6px 12px; border-radius: 7px; cursor: pointer; font-size: 13px; font-weight: 600; color: var(--ink-2); }
+.seg button[aria-pressed="true"] { background: var(--surface); color: var(--ink); box-shadow: var(--shadow); }
+.checks { display: flex; flex-wrap: wrap; gap: 8px; }
+.pill-check { display: inline-flex; align-items: center; gap: 6px; border: 1px solid var(--line); border-radius: 999px; padding: 5px 12px; font-size: 13px; cursor: pointer; font-weight: 500; }
+.pill-check:has(input:checked) { border-color: var(--gold); background: var(--gold-soft); }
+.pill-check input { accent-color: var(--gold); margin: 0; }
+
+/* Chips */
+.chip { display: inline-flex; align-items: center; gap: 6px; padding: 3px 10px; border-radius: 999px; font-size: 12px; font-weight: 600; background: var(--surface-2); color: var(--ink-2); white-space: nowrap; }
+.chip.good { background: var(--good-soft); color: var(--good); }
+.chip.warn { background: var(--warn-soft); color: var(--warn); }
+.chip.bad { background: var(--bad-soft); color: var(--bad); }
+.chip.gold { background: var(--gold-soft); color: var(--gold-ink); }
+.dot { width: 8px; height: 8px; border-radius: 50%; background: currentColor; flex: none; }
+
+/* Notices */
+.notice { display: flex; gap: 12px; padding: 12px 14px; border-radius: 12px; font-size: 14px; background: var(--surface-2); color: var(--ink-2); align-items: flex-start; }
+.notice .ico { flex: none; width: 22px; height: 22px; border-radius: 50%; display: grid; place-items: center; font-weight: 700; font-size: 13px; background: var(--ink-2); color: var(--surface); }
+.notice.warn { background: var(--warn-soft); color: var(--ink); }
+.notice.warn .ico { background: var(--warn); color: var(--surface); }
+.notice.bad { background: var(--bad-soft); color: var(--ink); }
+.notice.bad .ico { background: var(--bad); color: var(--surface); }
+.notice ul { margin: 4px 0 0; padding-left: 18px; }
+
+/* Score */
+.hero { display: grid; grid-template-columns: auto 1fr; gap: 20px; align-items: center; }
+@media (max-width: 480px) { .hero { grid-template-columns: 1fr; justify-items: start; } }
+.ring-v { font-family: var(--mono); font-size: 34px; fill: var(--ink); font-weight: 500; }
+.ring-l { font-size: 11px; fill: var(--muted); letter-spacing: .08em; text-transform: uppercase; }
+.bars { display: grid; gap: 9px; }
+.bar { display: grid; grid-template-columns: minmax(0, 11em) 1fr 2.6em; gap: 10px; align-items: center; font-size: 13.5px; }
+.bar.wd { grid-template-columns: minmax(0, 11em) 1fr 2.6em 3.6em; }
+.bar .lbl { color: var(--ink-2); overflow-wrap: anywhere; }
+.bar .track { height: 6px; border-radius: 3px; background: var(--surface-2); overflow: hidden; }
+.bar .fill { height: 100%; border-radius: 3px; background: var(--gold); }
+.bar .v { text-align: right; }
+.bar.na .v { color: var(--muted); }
+.obs { font-size: 13px; color: var(--muted); grid-column: 1 / -1; margin-top: -4px; }
+.delta { font-family: var(--mono); font-size: 12.5px; }
+.delta.up { color: var(--good); }
+.delta.down { color: var(--bad); }
+
+/* Photos */
+.photo { width: 100%; max-width: 100%; aspect-ratio: 3 / 4; object-fit: cover; border-radius: 12px; background: var(--surface-2); display: block; }
+.ph { width: 100%; aspect-ratio: 3 / 4; border-radius: 12px; background: var(--surface-2); display: grid; place-items: center; color: var(--muted); font-size: 13px; text-align: center; padding: 16px; }
+.thumb { width: 56px; height: 72px; border-radius: 8px; object-fit: cover; background: var(--surface-2); flex: none; }
+.thumb.ph { width: 56px; height: 72px; aspect-ratio: auto; padding: 4px; font-size: 10px; }
+.drop {
+  display: grid; place-items: center; gap: 8px; text-align: center; min-height: 190px; padding: 20px;
+  border: 1.5px dashed var(--line); border-radius: 14px; cursor: pointer; background: var(--surface-2); color: var(--ink-2);
+}
+.drop:hover, .drop.over { border-color: var(--gold); background: var(--gold-soft); }
+.drop strong { color: var(--ink); }
+.preview { display: grid; grid-template-columns: minmax(0, 200px) 1fr; gap: 14px; align-items: start; }
+@media (max-width: 480px) { .preview { grid-template-columns: 1fr; } }
+.qlist { display: grid; gap: 8px; margin: 0; padding: 0; list-style: none; }
+.qlist li { display: grid; grid-template-columns: auto 1fr auto; gap: 10px; align-items: start; font-size: 14px; }
+.qlist .tip { grid-column: 2 / -1; font-size: 12.5px; color: var(--muted); margin-top: -6px; }
+
+.compare { position: relative; width: 100%; max-width: 420px; aspect-ratio: 3 / 4; border-radius: 12px; overflow: hidden; background: var(--surface-2); }
+.compare img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.compare .after { clip-path: inset(0 0 0 var(--cut, 50%)); }
+.compare .handle { position: absolute; top: 0; bottom: 0; left: var(--cut, 50%); width: 2px; background: var(--surface); box-shadow: 0 0 0 1px rgba(0,0,0,.2); }
+.compare .tag { position: absolute; top: 10px; padding: 2px 8px; border-radius: 6px; font-size: 11.5px; font-weight: 600; background: rgba(0,0,0,.55); color: #fff; }
+.compare .tag.l { left: 10px; } .compare .tag.r { right: 10px; }
+input[type="range"] { width: 100%; max-width: 420px; accent-color: var(--gold); }
+
+/* Lists */
+.list { display: grid; gap: 0; }
+.item { display: flex; gap: 14px; align-items: center; padding: 12px 0; border-top: 1px solid var(--line); cursor: pointer; background: none; border-left: 0; border-right: 0; border-bottom: 0; text-align: left; width: 100%; }
+.item:first-child { border-top: 0; }
+.item:hover .item-t { color: var(--gold-ink); }
+.item-b { flex: 1; min-width: 0; display: grid; gap: 2px; }
+.item-t { font-weight: 600; }
+.score-s { font-family: var(--mono); font-size: 22px; }
+
+/* Chart */
+.chart { position: relative; width: 100%; }
+.chart svg { display: block; width: 100%; height: auto; overflow: visible; }
+.chart .grid { stroke: var(--line); stroke-width: 1; }
+.chart .ax { fill: var(--muted); font-size: 11px; font-family: var(--mono); }
+.chart .ln { fill: none; stroke: var(--gold); stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; }
+.chart .ar { fill: var(--gold); opacity: .12; }
+.chart .pt { fill: var(--surface); stroke: var(--gold); stroke-width: 2; }
+.chart .pt.end { fill: var(--gold); }
+.chart .lab { fill: var(--ink); font-size: 12px; font-family: var(--mono); font-weight: 500; }
+.chart .cross { stroke: var(--muted); stroke-width: 1; stroke-dasharray: 3 3; }
+.tip-box { position: absolute; pointer-events: none; background: var(--ink); color: var(--bg); padding: 6px 10px; border-radius: 8px; font-size: 12.5px; white-space: nowrap; transform: translate(-50%, calc(-100% - 12px)); }
+.tbl-wrap { overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; font-size: 14px; }
+th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--line); }
+th { font-size: 12px; font-weight: 600; color: var(--muted); letter-spacing: .06em; text-transform: uppercase; }
+td.r, th.r { text-align: right; }
+
+/* Routine */
+.steps { display: grid; gap: 0; margin: 0; padding: 0; list-style: none; }
+.step { display: grid; grid-template-columns: auto 1fr; gap: 12px; padding: 12px 0; border-top: 1px solid var(--line); }
+.step:first-child { border-top: 0; }
+.step input { width: 20px; height: 20px; accent-color: var(--gold); margin: 2px 0 0; }
+.step.done .step-t { text-decoration: line-through; color: var(--muted); }
+.step-t { font-weight: 600; }
+.week { display: flex; gap: 6px; }
+.day { display: grid; gap: 4px; justify-items: center; font-size: 11px; color: var(--muted); }
+.day i { width: 26px; height: 26px; border-radius: 50%; border: 1.5px solid var(--line); display: block; }
+.day i.part { border-color: var(--gold); background: var(--gold-soft); }
+.day i.full { border-color: var(--gold); background: var(--gold); }
+
+/* Products */
+.prod { display: grid; gap: 12px; }
+.prod-h { display: flex; gap: 10px; align-items: flex-start; justify-content: space-between; flex-wrap: wrap; }
+.prod-n { font-weight: 700; font-size: 16px; }
+.split { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr)); }
+.box { border-radius: 10px; padding: 12px; display: grid; gap: 6px; font-size: 14px; }
+.box.rec { background: var(--gold-soft); }
+.box.price { background: var(--surface-2); }
+.box h3 { font-size: 11.5px; }
+.price-v { font-family: var(--mono); font-size: 19px; }
+.links { display: flex; flex-wrap: wrap; gap: 6px; }
+.links a { font-size: 13px; font-weight: 600; text-decoration: none; border: 1px solid var(--line); border-radius: 8px; padding: 5px 10px; background: var(--surface); color: var(--ink); }
+.links a:hover { border-color: var(--gold); color: var(--gold-ink); }
+
+/* Misc */
+.busy { display: grid; gap: 8px; padding: 14px; border-radius: 12px; background: var(--gold-soft); }
+.busy .bar-anim { height: 3px; border-radius: 2px; background: linear-gradient(90deg, transparent, var(--gold), transparent); background-size: 200% 100%; animation: sweep 1.6s linear infinite; }
+@keyframes sweep { from { background-position: 100% 0; } to { background-position: -100% 0; } }
+@media (prefers-reduced-motion: reduce) { .busy .bar-anim { animation: none; background: var(--gold); } }
+.toast { position: fixed; left: 50%; bottom: calc(18px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); background: var(--ink); color: var(--bg); padding: 10px 16px; border-radius: 10px; font-size: 14px; z-index: 50; max-width: calc(100% - 32px); box-shadow: var(--shadow); }
+.guide { margin: 0; padding-left: 20px; display: grid; gap: 4px; font-size: 14px; color: var(--ink-2); }
+.foot { font-size: 12.5px; color: var(--muted); text-align: center; padding-top: 8px; }
+.empty { text-align: center; justify-items: center; padding-block: 36px; }
+.empty p { max-width: 46ch; }
+</style>
+
+<div id="hdr"></div>
+<main id="main" class="wrap"></main>
+<div id="toast" class="toast" hidden></div>
+
+<script>
+(() => {
+"use strict";
+
+// ---------- Constants ----------
+const CATS = [
+  ["textura", "Textura"],
+  ["uniformidade", "Uniformidade do tom"],
+  ["manchas", "Manchas"],
+  ["linhas", "Linhas e rugas"],
+  ["hidratacao", "Hidratação aparente"],
+  ["firmeza", "Firmeza aparente"],
+  ["vermelhidao", "Vermelhidão"],
+  ["oleosidade", "Oleosidade e poros"],
+];
+const OBJETIVOS = ["Uniformizar o tom", "Reduzir manchas", "Hidratação", "Linhas finas", "Acne e oleosidade", "Firmeza", "Vermelhidão", "Poros"];
+const TIPOS = ["Não sei", "Normal", "Seca", "Oleosa", "Mista", "Sensível"];
+const FOTOTIPOS = ["Não informado", "I · muito clara, sempre queima", "II · clara, queima fácil", "III · média, às vezes queima", "IV · morena clara, raramente queima", "V · morena escura", "VI · negra"];
+const REGIOES = { frontal: "Rosto frontal", esquerdo: "Lado esquerdo", direito: "Lado direito" };
+const TABS = [["inicio", "Início"], ["nova", "Nova análise"], ["evolucao", "Evolução"], ["rotina", "Rotina"], ["produtos", "Produtos"], ["perfis", "Familiares"]];
+const GUIA = [
+  "Rosto limpo, sem maquiagem e sem creme há pelo menos 30 minutos.",
+  "De frente para uma janela, com luz do dia indireta. Sem sol direto e sem flash.",
+  "Cabelo preso, sem óculos, expressão neutra.",
+  "Celular na altura dos olhos, a uns 30 a 40 cm do rosto.",
+  "O rosto inteiro na foto, ocupando boa parte da imagem.",
+  "Sem filtros e sem modo beleza ou retrato.",
+  "No WhatsApp, envie como documento para não perder qualidade.",
+  "Nas próximas fotos: mesmo lugar, mesmo horário, mesma posição.",
+];
+const ERR = {
+  not_granted: "O uso do Claude não foi autorizado nesta página. Recarregue a página e autorize.",
+  sampling_disabled: "O Claude não está disponível para esta conta.",
+  rate_limited: "Limite de uso atingido. Tente de novo em alguns minutos.",
+  image_rejected: "A imagem não foi aceita. Use uma foto JPG ou PNG.",
+  refused: "O Claude não analisou esta imagem. Tente outra foto, só do rosto.",
+  invalid_json: "A resposta veio incompleta. Toque em Analisar de novo.",
+  empty_completion: "A resposta veio vazia. Toque em Analisar de novo.",
+  session_expired: "Sua sessão expirou. Entre de novo no claude.ai.",
+  images_unavailable: "Esta visualização não permite enviar imagens ao Claude.",
+  prompt_too_large: "Dados demais para uma análise. Encurte as observações.",
+  image_too_big: "A foto é grande demais. Use uma foto com menos de 20 MB.",
+};
+
+// ---------- State ----------
+const S = {
+  profiles: [], analyses: [], checks: {},
+  pid: null, tab: "inicio", detailId: null, period: "tudo",
+  db: null, assets: null, sample: null, imgMax: 0, runtime: "loading",
+  loaded: { p: false, a: false },
+  draft: null, busy: null, confirm: null, editProfile: null, cmp: { a: null, b: null, cut: 50 },
+};
+const localUrls = {};
+
+// ---------- Helpers ----------
+const $ = (s, r = document) => r.querySelector(s);
+const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const newId = () => (crypto.randomUUID ? crypto.randomUUID() : String(Math.random()).slice(2) + Date.now()).replace(/-/g, "").slice(0, 20);
+const pad = (n) => String(n).padStart(2, "0");
+const today = () => { const d = new Date(); return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`; };
+const fmt = (s) => { if (!s) return "—"; const [y, m, d] = s.split("-"); return `${d}/${m}/${y}`; };
+const fmtS = (s) => { if (!s) return "—"; const [, m, d] = s.split("-"); return `${d}/${m}`; };
+const dayMs = (s) => new Date(s + "T12:00:00").getTime();
+const daysBetween = (a, b) => Math.round((dayMs(b) - dayMs(a)) / 86400000);
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+const brl = (v) => Number(v).toLocaleString("pt-BR", { style: "currency", currency: "BRL", maximumFractionDigits: 0 });
+const lsGet = (k) => { try { return localStorage.getItem(k); } catch { return null; } };
+const lsSet = (k, v) => { try { localStorage.setItem(k, v); } catch {} };
+
+const profile = (id) => S.profiles.find((p) => p.id === id) || null;
+const analysesOf = (pid) => S.analyses.filter((a) => a.profileId === pid)
+  .sort((a, b) => (a.data + (a.criadoEm || "")).localeCompare(b.data + (b.criadoEm || "")));
+const validOf = (pid) => analysesOf(pid).filter((a) => a.skinScore != null);
+const latest = (pid) => { const l = validOf(pid); return l[l.length - 1] || null; };
+const photoSrc = (a) => a?.fotoId ? "/_blob/" + a.fotoId : (localUrls[a?.id] || null);
+
+function toast(msg) {
+  const t = $("#toast"); t.textContent = msg; t.hidden = false;
+  clearTimeout(toast.t); toast.t = setTimeout(() => { t.hidden = true; }, 4200);
+}
+
+function computeScore(res) {
+  const v = CATS.map(([k]) => res?.notas?.[k]?.nota).filter((n) => Number.isFinite(n));
+  return v.length ? Math.round(v.reduce((s, n) => s + n, 0) / v.length) : null;
+}
+function catScore(a, k) { const n = a?.resultado?.notas?.[k]?.nota; return Number.isFinite(n) ? n : null; }
+
+// ---------- Store (db or in-memory fallback) ----------
+function upsertLocal(col, id, data) {
+  if (col === "checks") { S.checks[id] = data; return; }
+  const arr = S[col]; const i = arr.findIndex((x) => x.id === id); const row = { id, ...data };
+  if (i >= 0) arr[i] = row; else arr.push(row);
+}
+async function putDoc(col, id, data) {
+  if (S.db) await S.db.collection(col).doc(id).set(data);
+  else { upsertLocal(col, id, data); onData(); }
+}
+async function delDoc(col, id) {
+  if (S.db) await S.db.collection(col).doc(id).delete();
+  else { if (col === "checks") delete S.checks[id]; else S[col] = S[col].filter((x) => x.id !== id); onData(); }
+}
+let writeChain = Promise.resolve();
+const queued = (fn) => (writeChain = writeChain.then(fn).catch((e) => toast("Não foi possível salvar: " + (e?.message || e?.code || "erro"))));
+
+function pickProfile() {
+  if (S.pid && profile(S.pid)) return;
+  const saved = lsGet("msa.pid");
+  const sorted = [...S.profiles].sort((a, b) => (a.criadoEm || "").localeCompare(b.criadoEm || ""));
+  S.pid = (saved && profile(saved)) ? saved : (sorted.find((p) => !p.demo) || sorted[0])?.id || null;
+}
+
+function onData() {
+  pickProfile();
+  renderHeader();
+  if (S.tab === "nova" || S.editProfile) return;
+  renderMain();
+}
+
+// ---------- Rendering: header ----------
+const LOGO = `<svg width="30" height="30" viewBox="0 0 30 30" aria-hidden="true"><polyline points="5,23 9,8 15,17 21,8 25,23" fill="none" stroke="var(--ink)" stroke-width="1.6" stroke-linejoin="round"/><line x1="9" y1="8" x2="21" y2="8" stroke="var(--gold)" stroke-width="1" stroke-dasharray="2 2"/><line x1="5" y1="23" x2="15" y2="17" stroke="var(--gold)" stroke-width="1" stroke-dasharray="2 2"/><line x1="25" y1="23" x2="15" y2="17" stroke="var(--gold)" stroke-width="1" stroke-dasharray="2 2"/>${[[5,23],[9,8],[15,17],[21,8],[25,23]].map(([x,y])=>`<circle cx="${x}" cy="${y}" r="2.3" fill="var(--gold)"/>`).join("")}</svg>`;
+
+function renderHeader() {
+  const opts = S.profiles.length
+    ? [...S.profiles].sort((a, b) => (a.nome || "").localeCompare(b.nome || "")).map((p) => `<option value="${esc(p.id)}"${p.id === S.pid ? " selected" : ""}>${esc(p.nome)}${p.demo ? " (exemplo)" : ""}</option>`).join("")
+    : `<option>Nenhum familiar</option>`;
+  const cur = S.tab === "detalhe" ? "evolucao" : S.tab;
+  $("#hdr").innerHTML = `<header class="top"><div class="top-in">
+    <div class="brandrow">
+      <div class="brand">${LOGO}<b>MY Skin <span>AI</span></b></div>
+      <label class="who" for="pid">Pessoa <select id="pid"${S.profiles.length ? "" : " disabled"}>${opts}</select></label>
+    </div>
+    <nav class="tabs" aria-label="Seções">${TABS.map(([k, l]) => `<button class="tab" data-act="tab:${k}"${k === cur ? ' aria-current="page"' : ""}>${l}</button>`).join("")}</nav>
+  </div></header>`;
+}
+
+// ---------- Rendering: main ----------
+function renderMain() {
+  const views = { inicio: vInicio, nova: vNova, evolucao: vEvolucao, detalhe: vDetalhe, rotina: vRotina, produtos: vProdutos, perfis: vPerfis };
+  $("#main").innerHTML = banner() + (views[S.tab] || vInicio)() + `<p class="foot">Protótipo para avaliação de viabilidade. Avaliação visual automatizada com fins cosméticos: não é diagnóstico médico.</p>`;
+  afterRender();
+}
+function render() { renderHeader(); renderMain(); }
+
+function banner() {
+  if (S.runtime === "loading") return `<div class="notice"><span class="ico">…</span><div>Carregando seus dados…</div></div>`;
+  const out = [];
+  if (!S.db) out.push(`<div class="notice warn"><span class="ico">!</span><div><b>Modo de demonstração local.</b> Nada fica salvo ao recarregar. Abra o protótipo pelo link do claude.ai para guardar familiares, fotos e análises.</div></div>`);
+  if (!S.sample) out.push(`<div class="notice warn"><span class="ico">!</span><div><b>Análise por IA indisponível nesta visualização.</b> Abra pelo claude.ai, com sua conta conectada, para analisar fotos.</div></div>`);
+  return out.join("");
+}
+
+function ring(v, size = 136) {
+  const r = 56, c = 2 * Math.PI * r, f = v == null ? 0 : clamp(v, 0, 100) / 100;
+  return `<svg viewBox="0 0 136 136" width="${size}" height="${size}" role="img" aria-label="Skin Score ${v ?? "sem nota"} de 100">
+    <circle cx="68" cy="68" r="${r}" fill="none" stroke="var(--surface-2)" stroke-width="9"/>
+    <circle cx="68" cy="68" r="${r}" fill="none" stroke="var(--gold)" stroke-width="9" stroke-linecap="round" stroke-dasharray="${(c * f).toFixed(1)} ${c.toFixed(1)}" transform="rotate(-90 68 68)"/>
+    <text x="68" y="74" text-anchor="middle" class="ring-v">${v ?? "—"}</text>
+    <text x="68" y="95" text-anchor="middle" class="ring-l">Skin Score</text></svg>`;
+}
+
+function deltaHtml(cur, prev) {
+  if (cur == null || prev == null) return "";
+  const d = cur - prev;
+  if (d === 0) return `<span class="delta">±0</span>`;
+  return `<span class="delta ${d > 0 ? "up" : "down"}">${d > 0 ? "▲ +" : "▼ "}${d}</span>`;
+}
+
+function barsHtml(a, prev, withObs) {
+  return `<div class="bars">${CATS.map(([k, l]) => {
+    const v = catScore(a, k), pv = prev ? catScore(prev, k) : null;
+    const obs = withObs ? a.resultado?.notas?.[k]?.obs : "";
+    return `<div class="bar${v == null ? " na" : ""}${prev ? " wd" : ""}"><span class="lbl">${l}</span><span class="track"><span class="fill" style="width:${v ?? 0}%"></span></span><span class="v num">${v ?? "—"}</span>${prev ? `<span class="v">${deltaHtml(v, pv)}</span>` : ""}${obs ? `<span class="obs">${esc(obs)}</span>` : ""}</div>`;
+  }).join("")}</div>`;
+}
+
+function confChip(a) {
+  const c = a?.resultado?.confianca;
+  const map = { alta: ["good", "Confiança alta"], media: ["warn", "Confiança média"], "média": ["warn", "Confiança média"], baixa: ["bad", "Confiança baixa"] };
+  const [cls, l] = map[c] || ["", "Confiança não informada"];
+  return `<span class="chip ${cls}"><span class="dot"></span>${l}</span>`;
+}
+
+function photoHtml(a, cls = "photo") {
+  const src = photoSrc(a);
+  if (src) return `<img class="${cls}" src="${esc(src)}" alt="Foto de ${fmt(a.data)}" loading="lazy">`;
+  return `<span class="${cls === "thumb" ? "thumb ph" : "ph"}">${a?.demo ? "Exemplo sem foto" : "Sem foto"}</span>`;
+}
+
+function alertsHtml(a) {
+  const al = a?.resultado?.alertas || [];
+  if (!al.length) return "";
+  return `<div class="notice bad"><span class="ico">!</span><div><b>Vale mostrar a um dermatologista</b><ul>${al.map((x) => `<li>${esc(x)}</li>`).join("")}</ul></div></div>`;
+}
+
+function needProfile() {
+  return `<section class="card empty"><h2>Comece cadastrando um familiar</h2><p class="lede">Cada pessoa tem seu histórico de fotos, Skin Score, rotina e produtos.</p><button class="btn primary" data-act="p-new">Cadastrar familiar</button></section>`;
+}
+
+// ----- Início
+function vInicio() {
+  const p = profile(S.pid);
+  if (!p) return needProfile();
+  const list = validOf(p.id);
+  const last = list[list.length - 1], prev = list[list.length - 2];
+  if (!last) {
+    return `<section class="card empty"><h2>${esc(p.nome)} ainda não tem análises</h2><p class="lede">Peça uma foto do rosto seguindo o guia e suba aqui. A primeira análise vira a linha de base para acompanhar a evolução.</p><div class="row"><button class="btn primary" data-act="tab:nova">Nova análise</button><button class="btn" data-act="tab:perfis">Ver guia de foto</button></div></section>`;
+  }
+  const since = daysBetween(last.data, today());
+  const r = last.resultado || {};
+  return `
+  <section class="grid2">
+    <div class="card">
+      <div class="row between"><h3>Última análise · ${fmt(last.data)}</h3>${p.demo ? `<span class="chip gold">Exemplo</span>` : ""}</div>
+      <div class="hero">${ring(last.skinScore)}
+        <div class="stack">
+          <h1>${esc(p.nome)}</h1>
+          <div class="row">${confChip(last)}${prev ? `<span class="chip">${deltaHtml(last.skinScore, prev.skinScore)} desde ${fmtS(prev.data)}</span>` : `<span class="chip">Linha de base</span>`}</div>
+          <p class="lede small">${esc(r.resumo || "")}</p>
+        </div>
+      </div>
+      ${barsHtml(last, null, false)}
+      <div class="row"><button class="btn" data-act="detail:${esc(last.id)}">Ver análise completa</button><button class="btn primary" data-act="tab:nova">Nova análise</button></div>
+    </div>
+    <div class="stack">
+      ${alertsHtml(last)}
+      <div class="card">
+        <h3>Próxima foto</h3>
+        <p>${since >= 15 ? `<b>Já passaram ${since} dias.</b> Hora de pedir uma foto nova para ${esc(p.nome)}.` : `Última foto há ${since} ${since === 1 ? "dia" : "dias"}. Sugestão: nova foto a cada 15 dias, nas mesmas condições.`}</p>
+        <div class="row small muted">${list.length} ${list.length === 1 ? "análise registrada" : "análises registradas"}</div>
+      </div>
+      <div class="card">
+        <h3>Pontos fortes</h3>
+        <ul class="guide">${(r.pontos_fortes || []).map((x) => `<li>${esc(x)}</li>`).join("") || "<li>—</li>"}</ul>
+        <h3>Pontos de atenção</h3>
+        <ul class="guide">${(r.pontos_atencao || []).map((x) => `<li>${esc(x)}</li>`).join("") || "<li>—</li>"}</ul>
+      </div>
+    </div>
+  </section>`;
+}
+
+// ----- Nova análise
+function ensureDraft() {
+  if (!S.draft || S.draft.pid !== S.pid) {
+    if (S.draft?.url) URL.revokeObjectURL(S.draft.url);
+    S.draft = { pid: S.pid, data: today(), regiao: "frontal", blob: null, url: null, q: null, force: false, ctx: { sono: "", agua: "", sol: "", ciclo: "", estresse: "", produtos: "" } };
+  }
+  return S.draft;
+}
+
+function qualityHtml(q) {
+  const icon = { ok: ["good", "✓"], warn: ["warn", "!"], bad: ["bad", "✕"] };
+  return `<ul class="qlist">${q.items.map((it) => `<li><span class="chip ${icon[it.s][0]}" aria-label="${it.s}">${icon[it.s][1]}</span><span>${esc(it.k)}</span><span class="num small muted">${esc(it.v)}</span>${it.s !== "ok" ? `<span class="tip">${esc(it.tip)}</span>` : ""}</li>`).join("")}</ul>`;
+}
+
+function vNova() {
+  const p = profile(S.pid);
+  if (!p) return needProfile();
+  const d = ensureDraft();
+  const busy = !!S.busy;
+  const bad = d.q?.level === "bad";
+  const canRun = d.blob && S.sample && S.imgMax > 0 && p.consentimento && !busy && (!bad || d.force);
+  const ctx = d.ctx;
+  return `
+  <section class="grid2">
+    <div class="card">
+      <div class="stack"><h2>Nova análise</h2><p class="lede small">Para <b>${esc(p.nome)}</b>. Use a data em que a foto foi tirada.</p></div>
+      ${!p.consentimento ? `<div class="notice bad"><span class="ico">!</span><div>Registre no cadastro que ${esc(p.nome)} autorizou o uso das fotos antes de analisar. <button class="btn sm" data-act="p-edit:${esc(p.id)}">Abrir cadastro</button></div></div>` : ""}
+      <div class="fields">
+        <label class="f" for="d-data">Data da foto<input type="date" id="d-data" data-d="data" value="${esc(d.data)}" max="${today()}"${busy ? " disabled" : ""}></label>
+        <div class="f">Região<div class="seg" role="group" aria-label="Região">${Object.entries(REGIOES).map(([k, l]) => `<button data-act="reg:${k}" aria-pressed="${d.regiao === k}"${busy ? " disabled" : ""}>${l}</button>`).join("")}</div></div>
+      </div>
+      ${d.url ? `<div class="preview"><img class="photo" src="${esc(d.url)}" alt="Foto selecionada"><div class="stack"><h3>Qualidade da foto</h3>${qualityHtml(d.q)}<div class="row"><label class="btn sm" for="file">Trocar foto</label></div></div></div>`
+        : `<label class="drop" for="file" id="drop"><svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="1.5" aria-hidden="true"><rect x="3" y="5" width="18" height="15" rx="3"/><circle cx="12" cy="12.5" r="3.5"/><path d="M8.5 5l1.5-2h4l1.5 2"/></svg><strong>Escolha ou arraste a foto</strong><span class="small">JPG, PNG ou WebP. A foto é reduzida e sem metadados antes de ser salva.</span></label>`}
+      <input type="file" id="file" accept="image/jpeg,image/png,image/webp" hidden>
+    </div>
+    <div class="card">
+      <h3>Contexto do dia (opcional)</h3>
+      <p class="small muted">Ajuda a interpretar mudanças entre fotos.</p>
+      <div class="fields">
+        <label class="f" for="c-sono">Sono (horas)<input type="number" min="0" max="14" id="c-sono" data-ctx="sono" value="${esc(ctx.sono)}"></label>
+        <label class="f" for="c-agua">Água (copos)<input type="number" min="0" max="20" id="c-agua" data-ctx="agua" value="${esc(ctx.agua)}"></label>
+        <label class="f" for="c-sol">Sol na semana<select id="c-sol" data-ctx="sol">${["", "Pouco", "Moderado", "Muito"].map((o) => `<option${o === ctx.sol ? " selected" : ""} value="${o}">${o || "—"}</option>`).join("")}</select></label>
+        <label class="f" for="c-estresse">Estresse<select id="c-estresse" data-ctx="estresse">${["", "Baixo", "Médio", "Alto"].map((o) => `<option${o === ctx.estresse ? " selected" : ""} value="${o}">${o || "—"}</option>`).join("")}</select></label>
+        <label class="f" for="c-ciclo">Ciclo menstrual<select id="c-ciclo" data-ctx="ciclo">${["", "Não se aplica", "Menstruação", "Fase folicular", "Ovulação", "Pré-menstrual"].map((o) => `<option${o === ctx.ciclo ? " selected" : ""} value="${o}">${o || "—"}</option>`).join("")}</select></label>
+      </div>
+      <label class="f" for="c-produtos">Produtos em uso hoje<textarea id="c-produtos" data-ctx="produtos" placeholder="Ex.: sabonete Cetaphil, protetor Episol, hidratante Neutrogena Hydro Boost">${esc(ctx.produtos)}</textarea></label>
+      ${bad && !busy ? `<div class="notice bad"><span class="ico">!</span><div>A foto tem problemas que podem distorcer o resultado. O ideal é pedir outra. <label class="pill-check" style="margin-top:6px"><input type="checkbox" id="force" data-act="force"${d.force ? " checked" : ""}> Analisar mesmo assim</label></div></div>` : ""}
+      ${S.sample && S.imgMax === 0 ? `<div class="notice warn"><span class="ico">!</span><div>${ERR.images_unavailable}</div></div>` : ""}
+      <div id="busy">${busyHtml()}</div>
+      <div class="row"><button class="btn primary" data-act="analisar"${canRun ? "" : " disabled"}>Analisar com IA</button>${d.url && !busy ? `<button class="btn ghost" data-act="clear-photo">Descartar foto</button>` : ""}</div>
+      <p class="small muted">A foto é enviada ao Claude pela sua conta do claude.ai. Leva de 30 a 90 segundos.</p>
+    </div>
+  </section>`;
+}
+
+function busyHtml() {
+  if (!S.busy) return "";
+  return `<div class="busy" role="status"><div class="row between"><b>${esc(S.busy.msg)}</b><span class="num small muted">${S.busy.secs}s</span></div><div class="bar-anim"></div><div><button class="btn sm" data-act="parar">Parar</button></div></div>`;
+}
+function updateBusy() { const b = $("#busy"); if (b) b.innerHTML = busyHtml(); }
+
+// ----- Evolução
+function vEvolucao() {
+  const p = profile(S.pid);
+  if (!p) return needProfile();
+  const all = analysesOf(p.id);
+  const valid = all.filter((a) => a.skinScore != null);
+  if (!all.length) return `<section class="card empty"><h2>Sem histórico ainda</h2><p class="lede">A evolução aparece a partir da primeira análise de ${esc(p.nome)}.</p><button class="btn primary" data-act="tab:nova">Nova análise</button></section>`;
+  const lastDate = valid.length ? valid[valid.length - 1].data : today();
+  const inPeriod = S.period === "tudo" ? valid : valid.filter((a) => daysBetween(a.data, lastDate) <= Number(S.period));
+  const first = inPeriod[0], last = inPeriod[inPeriod.length - 1];
+  const withPhoto = all.filter((a) => photoSrc(a));
+  if (!S.cmp.a || !withPhoto.find((a) => a.id === S.cmp.a)) S.cmp.a = withPhoto[0]?.id || null;
+  if (!S.cmp.b || !withPhoto.find((a) => a.id === S.cmp.b)) S.cmp.b = withPhoto[withPhoto.length - 1]?.id || null;
+  const A = all.find((a) => a.id === S.cmp.a), B = all.find((a) => a.id === S.cmp.b);
+  const optList = (sel) => withPhoto.map((a) => `<option value="${esc(a.id)}"${a.id === sel ? " selected" : ""}>${fmt(a.data)} · ${REGIOES[a.regiao] || ""}${a.skinScore != null ? " · " + a.skinScore : ""}</option>`).join("");
+  return `
+  <section class="card">
+    <div class="row between"><h2>Evolução de ${esc(p.nome)}</h2>
+      <div class="seg" role="group" aria-label="Período">${[["15", "15 dias"], ["30", "30"], ["60", "60"], ["90", "90"], ["tudo", "Tudo"]].map(([k, l]) => `<button data-act="period:${k}" aria-pressed="${S.period === k}">${l}</button>`).join("")}</div>
+    </div>
+    ${inPeriod.length ? `<div class="row small muted">Skin Score · ${inPeriod.length} ${inPeriod.length === 1 ? "análise" : "análises"} de ${fmt(first.data)} a ${fmt(last.data)}</div>
+    <div class="chart" id="chart"></div>` : `<p class="muted">Nenhuma análise neste período.</p>`}
+    ${inPeriod.length > 1 ? `<div class="tbl-wrap"><table><thead><tr><th>Indicador</th><th class="r">${fmtS(first.data)}</th><th class="r">${fmtS(last.data)}</th><th class="r">Variação</th></tr></thead><tbody>
+      <tr><td><b>Skin Score</b></td><td class="r num">${first.skinScore}</td><td class="r num">${last.skinScore}</td><td class="r">${deltaHtml(last.skinScore, first.skinScore)}</td></tr>
+      ${CATS.map(([k, l]) => { const a = catScore(first, k), b = catScore(last, k); return `<tr><td>${l}</td><td class="r num">${a ?? "—"}</td><td class="r num">${b ?? "—"}</td><td class="r">${deltaHtml(b, a) || "—"}</td></tr>`; }).join("")}
+    </tbody></table></div>
+    <p class="small muted">Diferenças de até 5 pontos podem vir da luz ou do ângulo da foto, não da pele.</p>` : ""}
+  </section>
+  <section class="grid2">
+    <div class="card">
+      <h3>Antes e depois</h3>
+      ${withPhoto.length >= 2 ? `<div class="fields">
+        <label class="f" for="cmp-a">Antes<select id="cmp-a" data-cmp="a">${optList(S.cmp.a)}</select></label>
+        <label class="f" for="cmp-b">Depois<select id="cmp-b" data-cmp="b">${optList(S.cmp.b)}</select></label>
+      </div>
+      <div class="compare" id="cmpbox" style="--cut:${S.cmp.cut}%"><img src="${esc(photoSrc(A))}" alt="Antes, ${fmt(A.data)}"><img class="after" src="${esc(photoSrc(B))}" alt="Depois, ${fmt(B.data)}"><span class="handle"></span><span class="tag l">${fmtS(A.data)}</span><span class="tag r">${fmtS(B.data)}</span></div>
+      <label class="f" for="cmp-range">Arraste para comparar<input type="range" id="cmp-range" min="0" max="100" value="${S.cmp.cut}"></label>`
+      : `<p class="muted">A comparação aparece quando houver duas ou mais análises com foto.</p>`}
+    </div>
+    <div class="card">
+      <h3>Todas as análises</h3>
+      <div class="list">${[...all].reverse().map((a) => `<button class="item" data-act="detail:${esc(a.id)}">${photoHtml(a, "thumb")}<span class="item-b"><span class="item-t">${fmt(a.data)}</span><span class="small muted">${REGIOES[a.regiao] || ""}${a.demo ? " · exemplo" : ""}${a.skinScore == null ? " · foto insuficiente" : ""}</span></span><span class="score-s">${a.skinScore ?? "—"}</span></button>`).join("")}</div>
+    </div>
+  </section>`;
+}
+
+function drawChart() {
+  const box = $("#chart"); if (!box) return;
+  const p = profile(S.pid); if (!p) return;
+  const valid = validOf(p.id);
+  const lastDate = valid.length ? valid[valid.length - 1].data : today();
+  const pts = (S.period === "tudo" ? valid : valid.filter((a) => daysBetween(a.data, lastDate) <= Number(S.period)))
+    .map((a) => ({ t: dayMs(a.data), v: a.skinScore, d: a.data, id: a.id }));
+  if (!pts.length) return;
+  const W = Math.max(280, box.clientWidth || 600), H = 230, L = 34, R = 22, T = 26, B = 28;
+  const t0 = pts[0].t, t1 = pts[pts.length - 1].t, span = t1 - t0;
+  const x = (t) => pts.length === 1 || !span ? L + (W - L - R) / 2 : L + ((t - t0) / span) * (W - L - R);
+  const y = (v) => T + (1 - v / 100) * (H - T - B);
+  const grid = [0, 25, 50, 75, 100].map((v) => `<line class="grid" x1="${L}" x2="${W - R}" y1="${y(v)}" y2="${y(v)}"/><text class="ax" x="${L - 8}" y="${y(v) + 4}" text-anchor="end">${v}</text>`).join("");
+  const xl = [pts[0], ...(pts.length > 2 ? [pts[Math.floor(pts.length / 2)]] : []), ...(pts.length > 1 ? [pts[pts.length - 1]] : [])]
+    .map((q, i, arr) => `<text class="ax" x="${x(q.t)}" y="${H - 6}" text-anchor="${arr.length > 1 && i === 0 ? "start" : arr.length > 1 && i === arr.length - 1 ? "end" : "middle"}">${fmtS(q.d)}</text>`).join("");
+  const line = pts.map((q, i) => `${i ? "L" : "M"}${x(q.t).toFixed(1)},${y(q.v).toFixed(1)}`).join(" ");
+  const area = pts.length > 1 ? `<path class="ar" d="${line} L${x(pts[pts.length - 1].t).toFixed(1)},${y(0)} L${x(pts[0].t).toFixed(1)},${y(0)} Z"/>` : "";
+  const end = pts[pts.length - 1];
+  box.innerHTML = `<svg viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" role="img" aria-label="Skin Score ao longo do tempo">
+    ${grid}${xl}${area}<path class="ln" d="${line}"/>
+    <line class="cross" id="cross" y1="${T}" y2="${H - B}" x1="-10" x2="-10" visibility="hidden"/>
+    ${pts.map((q, i) => `<circle class="pt${i === pts.length - 1 ? " end" : ""}" cx="${x(q.t)}" cy="${y(q.v)}" r="${i === pts.length - 1 ? 5.5 : 4.5}"/>`).join("")}
+    <text class="lab" x="${x(end.t)}" y="${y(end.v) - 12}" text-anchor="${pts.length > 1 ? "end" : "middle"}">${end.v}</text>
+  </svg><div class="tip-box" id="tip" hidden></div>`;
+  const svg = box.querySelector("svg"), tip = $("#tip"), cross = $("#cross");
+  const move = (ev) => {
+    const r = svg.getBoundingClientRect(); const mx = ((ev.clientX - r.left) / r.width) * W;
+    let best = pts[0]; for (const q of pts) if (Math.abs(x(q.t) - mx) < Math.abs(x(best.t) - mx)) best = q;
+    cross.setAttribute("x1", x(best.t)); cross.setAttribute("x2", x(best.t)); cross.setAttribute("visibility", "visible");
+    tip.hidden = false; tip.style.left = (x(best.t) / W) * r.width + "px"; tip.style.top = (y(best.v) / H) * r.height + "px";
+    tip.textContent = `${fmt(best.d)} · Skin Score ${best.v}`;
+  };
+  svg.addEventListener("pointermove", move);
+  svg.addEventListener("pointerdown", move);
+  svg.addEventListener("pointerleave", () => { tip.hidden = true; cross.setAttribute("visibility", "hidden"); });
+}
+
+// ----- Detalhe
+function vDetalhe() {
+  const a = S.analyses.find((x) => x.id === S.detailId);
+  if (!a) { S.tab = "evolucao"; return vEvolucao(); }
+  const p = profile(a.profileId);
+  const r = a.resultado || {};
+  const list = validOf(a.profileId);
+  const i = list.findIndex((x) => x.id === a.id);
+  const prev = i > 0 ? list[i - 1] : null;
+  const insuf = a.skinScore == null;
+  const q = a.qualidade;
+  const ctx = a.contexto || {};
+  const ctxItems = [["Sono", ctx.sono && ctx.sono + " h"], ["Água", ctx.agua && ctx.agua + " copos"], ["Sol", ctx.sol], ["Estresse", ctx.estresse], ["Ciclo", ctx.ciclo], ["Produtos", ctx.produtos]].filter(([, v]) => v);
+  const delAsk = S.confirm === "a:" + a.id;
+  return `
+  <div class="row"><button class="btn ghost" data-act="tab:evolucao">← Voltar</button></div>
+  <section class="grid2">
+    <div class="card">
+      <div class="row between"><h2>${esc(p?.nome || "")} · ${fmt(a.data)}</h2>${a.demo ? `<span class="chip gold">Exemplo</span>` : ""}</div>
+      <div class="row"><span class="chip">${REGIOES[a.regiao] || ""}</span>${confChip(a)}${r.filtro_suspeito ? `<span class="chip bad">Possível filtro na foto</span>` : ""}</div>
+      ${photoHtml(a)}
+      ${q?.items ? `<details><summary class="small muted">Qualidade medida da foto</summary><div style="margin-top:10px">${qualityHtml(q)}</div></details>` : ""}
+    </div>
+    <div class="stack">
+      ${insuf ? `<div class="notice bad"><span class="ico">!</span><div><b>Foto insuficiente para avaliar.</b><ul>${(r.problemas_foto || ["Motivo não informado"]).map((x) => `<li>${esc(x)}</li>`).join("")}</ul>Peça uma nova foto seguindo o guia.</div></div>` : `
+      <div class="card">
+        <div class="hero">${ring(a.skinScore)}<div class="stack"><p class="lede">${esc(r.resumo || "")}</p>${prev ? `<span class="chip">${deltaHtml(a.skinScore, prev.skinScore)} desde ${fmtS(prev.data)}</span>` : ""}</div></div>
+        ${barsHtml(a, prev, true)}
+      </div>`}
+      ${alertsHtml(a)}
+      ${r.comparacao ? `<div class="card"><h3>Comparação com a foto anterior</h3><p>${esc(r.comparacao)}</p></div>` : ""}
+      ${(r.problemas_foto || []).length && !insuf ? `<div class="notice warn"><span class="ico">!</span><div><b>Observações sobre a foto</b><ul>${r.problemas_foto.map((x) => `<li>${esc(x)}</li>`).join("")}</ul></div></div>` : ""}
+    </div>
+  </section>
+  ${!insuf ? `<section class="grid2">
+    <div class="card"><h3>Pontos fortes</h3><ul class="guide">${(r.pontos_fortes || []).map((x) => `<li>${esc(x)}</li>`).join("") || "<li>—</li>"}</ul>
+      <h3>Pontos de atenção</h3><ul class="guide">${(r.pontos_atencao || []).map((x) => `<li>${esc(x)}</li>`).join("") || "<li>—</li>"}</ul></div>
+    <div class="card"><h3>Ingredientes indicados</h3>${ingredientsHtml(r)}</div>
+  </section>` : ""}
+  <section class="card">
+    <div class="row between"><h3>Registro</h3></div>
+    <p class="small muted">${ctxItems.length ? ctxItems.map(([k, v]) => `<b>${k}:</b> ${esc(v)}`).join(" · ") : "Sem contexto informado."}</p>
+    <div class="row">${delAsk ? `<span class="small">Excluir esta análise e a foto? Não dá para desfazer.</span><button class="btn danger solid sm" data-act="a-del-yes:${esc(a.id)}">Excluir</button><button class="btn sm" data-act="cancel-confirm">Cancelar</button>` : `<button class="btn danger sm" data-act="a-del:${esc(a.id)}">Excluir análise</button>`}</div>
+  </section>`;
+}
+
+function ingredientsHtml(r) {
+  const ing = r.ingredientes || [];
+  if (!ing.length) return `<p class="muted">—</p>`;
+  return `<div class="list">${ing.map((g) => `<div class="item" style="cursor:default"><span class="item-b"><span class="item-t">${esc(g.nome)} ${g.faixa ? `<span class="chip">${esc(g.faixa)}</span>` : ""}</span><span class="small">${esc(g.para || "")}</span>${g.cuidado ? `<span class="small muted">Cuidado: ${esc(g.cuidado)}</span>` : ""}</span></div>`).join("")}</div>`;
+}
+
+// ----- Rotina
+function vRotina() {
+  const p = profile(S.pid);
+  if (!p) return needProfile();
+  const last = latest(p.id);
+  const rot = last?.resultado?.rotina;
+  if (!rot) return `<section class="card empty"><h2>Rotina ainda não definida</h2><p class="lede">A rotina de ${esc(p.nome)} é montada a partir da primeira análise válida.</p><button class="btn primary" data-act="tab:nova">Nova análise</button></section>`;
+  const t = today();
+  const doc = S.checks[p.id] || { dias: {} };
+  const done = new Set(doc.dias?.[t] || []);
+  const daily = [...(rot.manha || []).map((_, i) => "m" + i), ...(rot.noite || []).map((_, i) => "n" + i)];
+  const nDone = daily.filter((k) => done.has(k)).length;
+  const week = [...Array(7)].map((_, i) => { const d = new Date(); d.setDate(d.getDate() - (6 - i)); const s = `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`; const n = daily.filter((k) => (doc.dias?.[s] || []).includes(k)).length; return { s, n, lbl: "DSTQQSS"[d.getDay()] }; });
+  const block = (title, arr, pre, note) => `<div class="card"><div class="row between"><h3>${title}</h3>${note ? `<span class="small muted">${note}</span>` : ""}</div>${arr?.length ? `<ul class="steps">${arr.map((s, i) => { const k = pre + i; const on = done.has(k); return `<li class="step${on ? " done" : ""}"><input type="checkbox" id="st-${k}" data-act="chk:${k}"${on ? " checked" : ""}><label for="st-${k}"><span class="step-t">${esc(s.passo)}</span><br><span class="small">${esc(s.como || "")}</span>${s.por_que ? `<br><span class="small muted">${esc(s.por_que)}</span>` : ""}</label></li>`; }).join("")}</ul>` : `<p class="muted">—</p>`}</div>`;
+  return `
+  <section class="card">
+    <div class="row between"><div class="stack"><h2>Rotina de ${esc(p.nome)}</h2><p class="small muted">Baseada na análise de ${fmt(last.data)}${last.demo ? " (exemplo)" : ""}. Marque os passos feitos hoje.</p></div>
+    <div class="stack" style="justify-items:end"><span class="chip gold num">${nDone} de ${daily.length} hoje</span>
+    <div class="week" aria-label="Últimos 7 dias">${week.map((w) => `<span class="day"><i class="${w.n === 0 ? "" : w.n >= daily.length ? "full" : "part"}" title="${fmt(w.s)}: ${w.n} de ${daily.length}"></i>${w.lbl}</span>`).join("")}</div></div></div>
+  </section>
+  <section class="grid2">
+    ${block("Manhã", rot.manha, "m")}
+    ${block("Noite", rot.noite, "n")}
+  </section>
+  ${rot.semanal?.length ? `<section class="grid2">${block("Uma ou duas vezes por semana", rot.semanal, "s", "não conta no progresso diário")}<div class="card"><h3>Ingredientes e cuidados</h3>${ingredientsHtml(last.resultado)}</div></section>` : `<section class="card"><h3>Ingredientes e cuidados</h3>${ingredientsHtml(last.resultado)}</section>`}
+  <div class="notice"><span class="ico">i</span><div>Rotina educativa, gerada a partir de uma avaliação visual. Ao introduzir ativos novos, faça um de cada vez e teste antes numa pequena área. Pele sensível, gestação ou tratamentos em curso: confirme com um dermatologista.</div></div>`;
+}
+
+function toggleCheck(k) {
+  const pid = S.pid; const t = today();
+  const doc = JSON.parse(JSON.stringify(S.checks[pid] || { dias: {} }));
+  doc.dias = doc.dias || {};
+  const set = new Set(doc.dias[t] || []);
+  set.has(k) ? set.delete(k) : set.add(k);
+  doc.dias[t] = [...set];
+  const cut = new Date(); cut.setDate(cut.getDate() - 45);
+  const cutS = `${cut.getFullYear()}-${pad(cut.getMonth() + 1)}-${pad(cut.getDate())}`;
+  for (const d of Object.keys(doc.dias)) if (d < cutS) delete doc.dias[d];
+  if (S.db) S.checks[pid] = doc;
+  queued(() => putDoc("checks", pid, doc));
+  renderMain();
+}
+
+// ----- Produtos
+const LOJAS = (q) => [
+  ["Google Shopping", "https://www.google.com/search?tbm=shop&q=" + encodeURIComponent(q)],
+  ["Mercado Livre", "https://lista.mercadolivre.com.br/" + encodeURIComponent(q.trim().replace(/\s+/g, "-"))],
+  ["Amazon", "https://www.amazon.com.br/s?k=" + encodeURIComponent(q)],
+  ["Zoom", "https://www.zoom.com.br/search?q=" + encodeURIComponent(q)],
+];
+function perUnit(pr) {
+  const m = String(pr.unidade || "").match(/(\d+(?:[.,]\d+)?)\s*(ml|g)\b/i);
+  if (!m || !Number.isFinite(pr.preco_min) || !Number.isFinite(pr.preco_max)) return "";
+  const qty = parseFloat(m[1].replace(",", ".")); if (!qty) return "";
+  const mid = (pr.preco_min + pr.preco_max) / 2;
+  return `≈ ${(mid / qty).toLocaleString("pt-BR", { style: "currency", currency: "BRL", minimumFractionDigits: 2 })} por ${m[2].toLowerCase()}`;
+}
+function vProdutos() {
+  const p = profile(S.pid);
+  if (!p) return needProfile();
+  const last = latest(p.id);
+  const prods = last?.resultado?.produtos || [];
+  if (!prods.length) return `<section class="card empty"><h2>Sem produtos sugeridos ainda</h2><p class="lede">As sugestões saem da análise mais recente de ${esc(p.nome)}.</p><button class="btn primary" data-act="tab:nova">Nova análise</button></section>`;
+  const when = last.criadoEm ? fmt(last.criadoEm.slice(0, 10)) : fmt(last.data);
+  return `
+  <section class="card">
+    <h2>Produtos para ${esc(p.nome)}</h2>
+    <p class="lede small">Cada produto separa <b>por que foi indicado</b> (vem do perfil e da análise) da <b>informação de preço</b> (estimativa comercial). O app não vende nada e não recebe comissão.</p>
+  </section>
+  <section class="grid2">
+  ${prods.map((pr) => { const q = pr.termo_busca || pr.nome || pr.ingrediente_chave; const pu = perUnit(pr); return `
+    <article class="card prod">
+      <div class="prod-h"><div class="stack" style="gap:2px"><span class="small muted">${esc(pr.categoria || "")}</span><span class="prod-n">${esc(pr.nome || "")}</span></div>${pr.ingrediente_chave ? `<span class="chip gold">${esc(pr.ingrediente_chave)}</span>` : ""}</div>
+      <div class="split">
+        <div class="box rec"><h3>Recomendação</h3><span>${esc(pr.para || "")}</span>${pr.alternativa_economica ? `<span class="small"><b>Opção mais barata:</b> ${esc(pr.alternativa_economica)}</span>` : ""}</div>
+        <div class="box price"><h3>Preço estimado${pr.unidade ? " · " + esc(pr.unidade) : ""}</h3>${Number.isFinite(pr.preco_min) && Number.isFinite(pr.preco_max) ? `<span class="price-v">${brl(pr.preco_min)} a ${brl(pr.preco_max)}</span>` : `<span class="muted">Sem estimativa</span>`}${pu ? `<span class="small num muted">${pu}</span>` : ""}<span class="small muted">Estimativa da IA em ${when}. Preços mudam: confira nas lojas.</span></div>
+      </div>
+      <div class="stack" style="gap:6px"><span class="small muted">Pesquisar preço agora</span><div class="links">${LOJAS(q).map(([n, u]) => `<a href="${esc(u)}" target="_blank" rel="noopener">${n} ↗</a>`).join("")}</div></div>
+    </article>`; }).join("")}
+  </section>`;
+}
+
+// ----- Perfis
+function vPerfis() {
+  const ep = S.editProfile;
+  const cards = [...S.profiles].sort((a, b) => (a.nome || "").localeCompare(b.nome || "")).map((p) => {
+    const l = validOf(p.id), last = l[l.length - 1];
+    const ask = S.confirm === "p:" + p.id;
+    return `<div class="item" style="cursor:default"><span class="item-b"><span class="item-t">${esc(p.nome)}${p.demo ? ` <span class="chip gold">Exemplo</span>` : ""}${!p.consentimento ? ` <span class="chip bad">Sem consentimento</span>` : ""}</span><span class="small muted">${[p.idade && p.idade + " anos", p.tipoPele, `${analysesOf(p.id).length} análises`, last && "última " + fmtS(last.data)].filter(Boolean).map(esc).join(" · ")}</span></span>
+      ${ask ? `<span class="row"><span class="small">Excluir ${esc(p.nome)} e todas as fotos?</span><button class="btn danger solid sm" data-act="p-del-yes:${esc(p.id)}">Excluir</button><button class="btn sm" data-act="cancel-confirm">Cancelar</button></span>`
+        : `<span class="row"><button class="btn sm" data-act="p-edit:${esc(p.id)}">Editar</button><button class="btn sm danger" data-act="p-del:${esc(p.id)}">Excluir</button></span>`}</div>`;
+  }).join("");
+  return `
+  <section class="grid2">
+    <div class="stack">
+      ${ep ? profileForm(ep) : ""}
+      <div class="card">
+        <div class="row between"><h2>Familiares</h2>${ep ? "" : `<button class="btn primary sm" data-act="p-new">Adicionar</button>`}</div>
+        ${cards ? `<div class="list">${cards}</div>` : `<p class="muted">Ninguém cadastrado ainda.</p>`}
+      </div>
+    </div>
+    <div class="card">
+      <h3>Guia de foto para enviar à família</h3>
+      <ol class="guide">${GUIA.map((g) => `<li>${esc(g)}</li>`).join("")}</ol>
+      <div class="row"><button class="btn" data-act="copy-guide">Copiar texto do guia</button></div>
+      <div class="divider"></div>
+      <h3>Privacidade</h3>
+      <p class="small">Fotos e análises ficam guardadas só neste protótipo, que é privado. Cada foto é reduzida e perde os metadados (local, aparelho) antes de ser salva. Ao excluir um familiar, as fotos dele são apagadas.</p>
+    </div>
+  </section>`;
+}
+
+function profileForm(ep) {
+  const isNew = !ep.id;
+  return `<form class="card" id="pform" novalidate>
+    <h2>${isNew ? "Novo familiar" : "Editar " + esc(ep.nome)}</h2>
+    <div class="fields">
+      <label class="f" for="pf-nome">Nome<input type="text" id="pf-nome" data-pf="nome" value="${esc(ep.nome || "")}" required autocomplete="off"></label>
+      <label class="f" for="pf-idade">Idade<input type="number" id="pf-idade" data-pf="idade" min="1" max="110" value="${esc(ep.idade || "")}"></label>
+    </div>
+    <div class="fields">
+      <label class="f" for="pf-tipo">Tipo de pele (como a pessoa percebe)<select id="pf-tipo" data-pf="tipoPele">${TIPOS.map((t) => `<option${t === ep.tipoPele ? " selected" : ""}>${t}</option>`).join("")}</select></label>
+      <label class="f" for="pf-foto">Fototipo (Fitzpatrick)<select id="pf-foto" data-pf="fototipo">${FOTOTIPOS.map((t) => `<option${t === ep.fototipo ? " selected" : ""}>${t}</option>`).join("")}</select></label>
+    </div>
+    <div class="f">Objetivos<div class="checks">${OBJETIVOS.map((o, i) => `<label class="pill-check" for="pf-o${i}"><input type="checkbox" id="pf-o${i}" data-obj="${esc(o)}"${(ep.objetivos || []).includes(o) ? " checked" : ""}>${o}</label>`).join("")}</div></div>
+    <label class="f" for="pf-obs">Observações (alergias, gestação, tratamentos em curso)<textarea id="pf-obs" data-pf="obs">${esc(ep.obs || "")}</textarea></label>
+    <label class="pill-check" for="pf-cons"><input type="checkbox" id="pf-cons" data-pf="consentimento"${ep.consentimento ? " checked" : ""}>A pessoa autorizou o uso das fotos neste teste</label>
+    <p class="small muted" id="pf-err" hidden></p>
+    <div class="row"><button class="btn primary" type="submit">Salvar</button><button class="btn" type="button" data-act="p-cancel">Cancelar</button></div>
+  </form>`;
+}
+
+async function saveProfile() {
+  const ep = S.editProfile;
+  const err = $("#pf-err");
+  if (!ep.nome?.trim()) { err.hidden = false; err.textContent = "Informe o nome."; $("#pf-nome").focus(); return; }
+  const id = ep.id || newId();
+  const data = {
+    nome: ep.nome.trim(), idade: ep.idade ? Number(ep.idade) : null, tipoPele: ep.tipoPele || TIPOS[0], fototipo: ep.fototipo || FOTOTIPOS[0],
+    objetivos: ep.objetivos || [], obs: ep.obs || "", consentimento: !!ep.consentimento,
+    criadoEm: ep.criadoEm || new Date().toISOString(), ...(ep.demo ? { demo: true } : {}),
+  };
+  try {
+    await putDoc("profiles", id, data);
+    S.editProfile = null; S.pid = id; lsSet("msa.pid", id);
+    toast(`${data.nome} salvo.`); render();
+  } catch (e) { err.hidden = false; err.textContent = "Não foi possível salvar. Tente de novo."; }
+}
+
+async function deleteAnalysis(id) {
+  const a = S.analyses.find((x) => x.id === id); if (!a) return;
+  if (a.fotoId && S.assets) { try { await S.assets.delete(a.fotoId); } catch {} }
+  await delDoc("analyses", id);
+}
+async function deleteProfile(id) {
+  try {
+    for (const a of analysesOf(id)) await deleteAnalysis(a.id);
+    if (S.checks[id] || S.db) await delDoc("checks", id).catch(() => {});
+    await delDoc("profiles", id);
+    if (S.pid === id) { S.pid = null; pickProfile(); }
+    toast("Familiar excluído.");
+  } catch (e) { toast("Não foi possível excluir tudo. Tente de novo."); }
+  S.confirm = null; render();
+}
+
+// ---------- Image processing & quality ----------
+async function decode(file) {
+  try { return await createImageBitmap(file, { imageOrientation: "from-image" }); } catch {}
+  const url = URL.createObjectURL(file);
+  try {
+    const img = new Image(); img.src = url; await img.decode(); return img;
+  } finally { URL.revokeObjectURL(url); }
+}
+
+async function processImage(file) {
+  const bmp = await decode(file);
+  const W = bmp.width, H = bmp.height;
+  const sc = Math.min(1, 1600 / Math.max(W, H));
+  const cv = document.createElement("canvas"); cv.width = Math.round(W * sc); cv.height = Math.round(H * sc);
+  cv.getContext("2d").drawImage(bmp, 0, 0, cv.width, cv.height);
+  const blob = await new Promise((r) => cv.toBlob(r, "image/jpeg", 0.88));
+  const ms = Math.min(1, 384 / Math.max(W, H));
+  const m = document.createElement("canvas"); m.width = Math.max(8, Math.round(W * ms)); m.height = Math.max(8, Math.round(H * ms));
+  const mx = m.getContext("2d", { willReadFrequently: true }); mx.drawImage(bmp, 0, 0, m.width, m.height);
+  const { data } = mx.getImageData(0, 0, m.width, m.height);
+  return { blob, url: URL.createObjectURL(blob), q: measure(data, m.width, m.height, W, H) };
+}
+
+function measure(px, w, h, W, H) {
+  const lum = new Float32Array(w * h);
+  for (let i = 0; i < w * h; i++) lum[i] = 0.2126 * px[i * 4] + 0.7152 * px[i * 4 + 1] + 0.0722 * px[i * 4 + 2];
+  // central region, where the face usually is
+  const x0 = Math.floor(w * .25), x1 = Math.floor(w * .75), y0 = Math.floor(h * .2), y1 = Math.floor(h * .8);
+  let sum = 0, n = 0, hi = 0, lo = 0, rs = 0, gs = 0, bs = 0, left = 0, right = 0, nl = 0, nr = 0;
+  const xm = (x0 + x1) / 2;
+  for (let y = y0; y < y1; y++) for (let x = x0; x < x1; x++) {
+    const i = y * w + x, L = lum[i]; sum += L; n++;
+    if (L >= 250) hi++; if (L <= 8) lo++;
+    rs += px[i * 4]; gs += px[i * 4 + 1]; bs += px[i * 4 + 2];
+    if (x < xm) { left += L; nl++; } else { right += L; nr++; }
+  }
+  const mean = sum / n, hiPct = (hi / n) * 100, loPct = (lo / n) * 100;
+  const side = Math.abs(left / nl - right / nr);
+  const rb = (rs / n) / Math.max(1, bs / n);
+  // sharpness: variance of Laplacian
+  let ls = 0, ls2 = 0, ln = 0;
+  for (let y = 1; y < h - 1; y++) for (let x = 1; x < w - 1; x++) {
+    const i = y * w + x;
+    const v = lum[i - w] + lum[i + w] + lum[i - 1] + lum[i + 1] - 4 * lum[i];
+    ls += v; ls2 += v * v; ln++;
+  }
+  const lap = ls2 / ln - (ls / ln) ** 2;
+  const minSide = Math.min(W, H);
+  const items = [
+    { k: "Resolução", v: `${W}×${H}`, s: minSide < 480 ? "bad" : minSide < 900 ? "warn" : "ok", tip: "Peça a foto original, enviada como documento." },
+    { k: "Iluminação", v: `${Math.round(mean)}/255`, s: mean < 55 || mean > 225 ? "bad" : mean < 85 || mean > 200 ? "warn" : "ok", tip: mean < 85 ? "Foto escura. Peça uma foto de frente para a janela, de dia." : "Foto clara demais. Evite sol direto e flash." },
+    { k: "Áreas estouradas", v: `${hiPct.toFixed(1)}%`, s: hiPct > 12 ? "bad" : hiPct > 4 ? "warn" : "ok", tip: "Reflexo forte ou flash apagando a textura da pele." },
+    { k: "Sombra lateral", v: `${Math.round(side)}`, s: side > 55 ? "bad" : side > 30 ? "warn" : "ok", tip: "Um lado do rosto mais escuro. A luz deve vir de frente." },
+    { k: "Nitidez (estimada)", v: `${Math.round(lap)}`, s: lap < 12 ? "bad" : lap < 35 ? "warn" : "ok", tip: "Foto tremida ou fora de foco. Apoie o celular e toque no rosto para focar." },
+    { k: "Cor da luz", v: rb < 0.95 ? "fria" : rb > 2.1 ? "quente" : "neutra", s: rb < 0.9 || rb > 2.4 ? "warn" : "ok", tip: "Luz muito azulada ou amarelada altera a leitura de manchas e vermelhidão." },
+  ];
+  if (loPct > 25) items.push({ k: "Áreas muito escuras", v: `${loPct.toFixed(0)}%`, s: "warn", tip: "Parte do rosto sem luz." });
+  const level = items.some((i) => i.s === "bad") ? "bad" : items.filter((i) => i.s === "warn").length ? "warn" : "ok";
+  return { items, level, medidas: { brilho: Math.round(mean), estourado: +hiPct.toFixed(1), sombra: Math.round(side), nitidez: Math.round(lap), corRB: +rb.toFixed(2), largura: W, altura: H } };
+}
+
+async function onFile(file) {
+  if (!file) return;
+  if (!/^image\/(jpeg|png|webp)$/.test(file.type)) { toast("Use uma foto JPG, PNG ou WebP. Fotos HEIC do iPhone: envie como JPG."); return; }
+  if (file.size > 20 * 1024 * 1024) { toast(ERR.image_too_big); return; }
+  const d = ensureDraft();
+  try {
+    const r = await processImage(file);
+    if (d.url) URL.revokeObjectURL(d.url);
+    Object.assign(d, r, { force: false });
+    if (file.lastModified) {
+      const lm = new Date(file.lastModified); const s = `${lm.getFullYear()}-${pad(lm.getMonth() + 1)}-${pad(lm.getDate())}`;
+      if (s <= today() && s > "2000-01-01") d.data = s;
+    }
+  } catch { toast("Não foi possível abrir esta imagem."); }
+  renderMain();
+}
+
+// ---------- AI analysis ----------
+function buildPrompt(p, d, prev, prevHasImage) {
+  const ctx = Object.entries(d.ctx).filter(([, v]) => v).map(([k, v]) => `${k}: ${v}`).join("; ") || "não informado";
+  const prevNotes = prev ? CATS.map(([k, l]) => `${l} ${catScore(prev, k) ?? "—"}`).join(", ") : "";
+  return `Você é o motor de avaliação visual do protótipo MY Skin AI, um app de cuidados com a pele (uso cosmético, NÃO é diagnóstico médico). Responda em português do Brasil.
+
+IMAGEM 1: foto atual, região "${REGIOES[d.regiao]}", tirada em ${fmt(d.data)}.${prevHasImage ? `
+IMAGEM 2: foto anterior da mesma pessoa e região, tirada em ${fmt(prev.data)}.` : ""}
+
+PERFIL: idade ${p.idade || "não informada"}; tipo de pele percebido: ${p.tipoPele || "não sei"}; fototipo: ${p.fototipo || "não informado"}; objetivos: ${(p.objetivos || []).join(", ") || "não informados"}; observações: ${p.obs || "nenhuma"}.
+CONTEXTO DO DIA: ${ctx}.
+QUALIDADE MEDIDA NA FOTO (métricas automáticas): ${JSON.stringify(d.q.medidas)}.
+${prev ? `ANÁLISE ANTERIOR (${fmt(prev.data)}): ${prevNotes}.` : "Esta é a primeira análise desta pessoa."}
+
+ESCALA DAS NOTAS (0 a 100, sempre "maior = aparência melhor" naquela categoria):
+90-100 quase nenhum sinal visível; 75-89 sinais leves; 60-74 moderados; 40-59 evidentes; abaixo de 40 muito evidentes.
+Em manchas, linhas, vermelhidão e oleosidade, nota alta significa POUCO sinal. Não ajuste a escala pela idade; a idade serve só para contextualizar o texto. Use null quando a categoria não puder ser avaliada nesta foto.
+CONSISTÊNCIA: seja conservador. Diferença de luz, ângulo ou distância não é mudança da pele.${prev ? " Só altere uma nota em mais de 5 pontos em relação à análise anterior se a mudança for claramente visível apesar dessas diferenças." : ""}
+
+REGRAS:
+- Se a imagem não mostrar um rosto humano, ou a qualidade não permitir avaliar, use "qualidade_suficiente": false, todas as notas null, e explique em "problemas_foto".
+- Aponte sinais de filtro, "modo beleza" ou edição em "filtro_suspeito".
+- Não identifique a pessoa. Não nomeie doenças como certeza; use "aparência de".
+- Em "alertas", só quando houver algo que mereça dermatologista: pinta irregular ou que parece ter mudado, ferida que não cicatriza, lesão que sangra, inflamação intensa, acne nodular ou cística, descamação extensa. Caso contrário, lista vazia.
+- Não recomende medicamentos de prescrição (tretinoína, isotretinoína, hidroquinona, antibióticos, corticoides). Se parecer indicado, diga para conversar com um dermatologista.
+- Rotina simples: até 4 passos de manhã e até 4 à noite, com protetor solar de manhã. Não combine retinoide com ácidos esfoliantes na mesma noite. Respeite as observações do perfil (gestação, alergias).
+- Produtos: 4 a 6 itens de marcas vendidas no Brasil, ligados à rotina. Preço em reais é uma ESTIMATIVA do varejo brasileiro atual; dê a faixa (preco_min, preco_max) e o tamanho da embalagem. Inclua uma alternativa mais barata com ingrediente equivalente.
+
+Responda SOMENTE com um objeto JSON neste formato:
+{
+  "qualidade_suficiente": true,
+  "rosto_visivel": true,
+  "filtro_suspeito": false,
+  "problemas_foto": ["frases curtas sobre limitações da foto, se houver"],
+  "confianca": "alta" | "media" | "baixa",
+  "notas": {
+${CATS.map(([k]) => `    "${k}": { "nota": 0-100 ou null, "obs": "uma frase curta sobre o que se vê" }`).join(",\n")}
+  },
+  "resumo": "2 a 3 frases acolhedoras e objetivas",
+  "pontos_fortes": ["..."],
+  "pontos_atencao": ["..."],
+  "comparacao": ${prev ? '"o que mudou visivelmente desde a análise anterior, considerando a qualidade das fotos"' : "null"},
+  "alertas": [],
+  "rotina": {
+    "manha": [{ "passo": "Limpeza", "como": "produto/tipo e modo de uso", "por_que": "motivo ligado à análise" }],
+    "noite": [{ "passo": "...", "como": "...", "por_que": "..." }],
+    "semanal": [{ "passo": "...", "como": "...", "por_que": "..." }]
+  },
+  "ingredientes": [{ "nome": "Niacinamida", "faixa": "4-10%", "para": "...", "cuidado": "..." }],
+  "produtos": [{ "categoria": "Sérum", "nome": "Marca e produto", "ingrediente_chave": "...", "para": "por que combina com esta pessoa", "preco_min": 50, "preco_max": 80, "unidade": "30 ml", "alternativa_economica": "...", "termo_busca": "texto curto para buscar em lojas" }]
+}`;
+}
+
+function normalize(res) {
+  if (!res || typeof res !== "object") throw { code: "invalid_json" };
+  res.notas = res.notas && typeof res.notas === "object" ? res.notas : {};
+  for (const [k] of CATS) {
+    const n = res.notas[k] || {};
+    const v = Number(n.nota);
+    res.notas[k] = { nota: n.nota == null || !Number.isFinite(v) ? null : Math.round(clamp(v, 0, 100)), obs: n.obs ? String(n.obs) : "" };
+  }
+  if (res.qualidade_suficiente === false) for (const [k] of CATS) res.notas[k].nota = null;
+  for (const k of ["problemas_foto", "pontos_fortes", "pontos_atencao", "alertas", "ingredientes", "produtos"]) if (!Array.isArray(res[k])) res[k] = [];
+  res.produtos = res.produtos.map((p) => ({ ...p, preco_min: Number.isFinite(Number(p.preco_min)) ? Number(p.preco_min) : null, preco_max: Number.isFinite(Number(p.preco_max)) ? Number(p.preco_max) : null }));
+  res.confianca = String(res.confianca || "").toLowerCase().replace("é", "e");
+  return res;
+}
+
+async function analisar() {
+  const d = S.draft, p = profile(d.pid);
+  if (!d?.blob || !p || !S.sample || S.busy) return;
+  const prior = validOf(p.id).filter((a) => a.regiao === d.regiao && a.data <= d.data);
+  const prev = prior[prior.length - 1] || null;
+  const images = [d.blob];
+  let prevHasImage = false;
+  if (prev?.fotoId && S.imgMax >= 2) {
+    try { const r = await fetch("/_blob/" + prev.fotoId); if (r.ok) { images.push(await r.blob()); prevHasImage = true; } } catch {}
+  }
+  const ctl = new AbortController();
+  S.busy = { ctl, msg: "Enviando foto e aguardando o Claude…", secs: 0, timer: setInterval(() => { if (S.busy) { S.busy.secs++; updateBusy(); } }, 1000) };
+  renderMain();
+  let fotoId = null;
+  try {
+    const raw = await S.sample.json(buildPrompt(p, d, prev, prevHasImage), {
+      images, signal: ctl.signal, modelTier: "default",
+      onText: () => { if (S.busy && S.busy.msg[0] !== "R") { S.busy.msg = "Recebendo o resultado…"; updateBusy(); } },
+    });
+    const res = normalize(raw);
+    S.busy.msg = "Salvando…"; updateBusy();
+    const id = newId();
+    if (S.assets) {
+      try { fotoId = (await S.assets.upload(d.blob, { type: "image/jpeg" })).id; }
+      catch { toast("A foto não pôde ser guardada. A análise foi salva sem ela."); }
+    } else localUrls[id] = d.url;
+    const doc = {
+      profileId: p.id, data: d.data, regiao: d.regiao, fotoId,
+      qualidade: d.q, contexto: d.ctx, resultado: res, skinScore: computeScore(res),
+      comparadoCom: prev?.id || null, criadoEm: new Date().toISOString(),
+    };
+    await putDoc("analyses", id, doc);
+    clearInterval(S.busy.timer); S.busy = null;
+    if (!S.assets) d.url = null; // keep the blob URL alive for the local copy
+    S.draft = null; S.detailId = id; S.tab = "detalhe"; S.confirm = null;
+    window.scrollTo({ top: 0 });
+    render();
+  } catch (e) {
+    clearInterval(S.busy?.timer); S.busy = null;
+    if (fotoId && S.assets) S.assets.delete(fotoId).catch(() => {});
+    renderMain();
+    if (e?.code !== "cancelled") toast(ERR[e?.code] || "Falha temporária na análise. Tente de novo.");
+  }
+}
+
+// ---------- After render hooks ----------
+let ro;
+function afterRender() {
+  if ($("#chart")) {
+    drawChart();
+    ro?.disconnect(); ro = new ResizeObserver(() => { clearTimeout(ro.t); ro.t = setTimeout(drawChart, 80); }); ro.observe($("#chart"));
+  }
+  const drop = $("#drop");
+  if (drop) {
+    drop.addEventListener("dragover", (e) => { e.preventDefault(); drop.classList.add("over"); });
+    drop.addEventListener("dragleave", () => drop.classList.remove("over"));
+    drop.addEventListener("drop", (e) => { e.preventDefault(); drop.classList.remove("over"); onFile(e.dataTransfer.files?.[0]); });
+  }
+  const pf = $("#pform");
+  if (pf) pf.addEventListener("submit", (e) => { e.preventDefault(); saveProfile(); });
+}
+
+// ---------- Events ----------
+document.addEventListener("click", (e) => {
+  const el = e.target.closest("[data-act]"); if (!el) return;
+  const [act, arg] = el.dataset.act.split(/:(.*)/s);
+  switch (act) {
+    case "tab": S.tab = arg; S.confirm = null; if (arg !== "perfis") S.editProfile = null; render(); window.scrollTo({ top: 0 }); break;
+    case "detail": S.detailId = arg; S.tab = "detalhe"; S.confirm = null; render(); window.scrollTo({ top: 0 }); break;
+    case "period": S.period = arg; renderMain(); break;
+    case "reg": ensureDraft().regiao = arg; renderMain(); break;
+    case "force": S.draft.force = el.checked; renderMain(); break;
+    case "clear-photo": if (S.draft?.url) URL.revokeObjectURL(S.draft.url); Object.assign(S.draft, { blob: null, url: null, q: null, force: false }); renderMain(); break;
+    case "analisar": analisar(); break;
+    case "parar": S.busy?.ctl.abort(); break;
+    case "chk": toggleCheck(arg); break;
+    case "p-new": S.tab = "perfis"; S.editProfile = { tipoPele: TIPOS[0], fototipo: FOTOTIPOS[0], objetivos: [], consentimento: false }; render(); break;
+    case "p-edit": { const p = profile(arg); if (p) { S.tab = "perfis"; S.editProfile = JSON.parse(JSON.stringify(p)); render(); window.scrollTo({ top: 0 }); } break; }
+    case "p-cancel": S.editProfile = null; renderMain(); break;
+    case "p-del": case "a-del": S.confirm = (act === "p-del" ? "p:" : "a:") + arg; renderMain(); break;
+    case "cancel-confirm": S.confirm = null; renderMain(); break;
+    case "p-del-yes": deleteProfile(arg); break;
+    case "a-del-yes": deleteAnalysis(arg).then(() => { S.confirm = null; S.tab = "evolucao"; toast("Análise excluída."); render(); }).catch(() => toast("Não foi possível excluir. Tente de novo.")); break;
+    case "copy-guide": {
+      const text = "Como tirar a foto para o MY Skin AI:\n" + GUIA.map((g, i) => `${i + 1}. ${g}`).join("\n");
+      navigator.clipboard?.writeText(text).then(() => toast("Guia copiado. Cole no WhatsApp da família."), () => toast("Não deu para copiar. Selecione o texto do guia e copie."));
+      break;
+    }
+  }
+});
+
+document.addEventListener("change", (e) => {
+  const t = e.target;
+  if (t.id === "pid") { S.pid = t.value; lsSet("msa.pid", t.value); S.confirm = null; S.cmp = { a: null, b: null, cut: 50 }; if (S.tab === "detalhe") S.tab = "evolucao"; render(); return; }
+  if (t.id === "file") { onFile(t.files?.[0]); t.value = ""; return; }
+  if (t.dataset.cmp) { S.cmp[t.dataset.cmp] = t.value; renderMain(); return; }
+  handleField(t);
+});
+document.addEventListener("input", (e) => {
+  const t = e.target;
+  if (t.id === "cmp-range") { S.cmp.cut = Number(t.value); $("#cmpbox")?.style.setProperty("--cut", t.value + "%"); return; }
+  handleField(t);
+});
+function handleField(t) {
+  if (t.dataset.d && S.draft) S.draft[t.dataset.d] = t.value;
+  else if (t.dataset.ctx && S.draft) S.draft.ctx[t.dataset.ctx] = t.value;
+  else if (t.dataset.pf && S.editProfile) S.editProfile[t.dataset.pf] = t.type === "checkbox" ? t.checked : t.value;
+  else if (t.dataset.obj && S.editProfile) {
+    const set = new Set(S.editProfile.objetivos || []); t.checked ? set.add(t.dataset.obj) : set.delete(t.dataset.obj);
+    S.editProfile.objetivos = OBJETIVOS.filter((o) => set.has(o));
+  }
+}
+
+// ---------- Boot ----------
+render();
+(async () => {
+  const c = window.claude;
+  const use = (n) => (c?.use ? c.use(n).catch(() => null) : Promise.resolve(null));
+  const [db, assets, sample] = await Promise.all([use("db"), use("assets"), use("sample")]);
+  S.db = db; S.assets = assets; S.sample = sample;
+  if (sample) { try { S.imgMax = (await sample.limits())?.images?.maxCount || 0; } catch { S.imgMax = 0; } }
+  if (!db) { S.runtime = "local"; pickProfile(); render(); return; }
+  const ready = () => { if (S.loaded.p && S.loaded.a && S.runtime === "loading") { S.runtime = "db"; pickProfile(); render(); } else if (S.runtime === "db") onData(); };
+  const fail = (e) => { if (e?.code === "revoked") toast("O acesso aos dados foi encerrado nesta visualização."); else toast("Falha ao carregar dados. Recarregue a página."); };
+  db.collection("profiles").onSnapshot((q) => { S.profiles = q.docs.map((d) => ({ id: d.id, ...d.data() })); S.loaded.p = true; ready(); }, fail);
+  db.collection("analyses").onSnapshot((q) => { S.analyses = q.docs.map((d) => ({ id: d.id, ...d.data() })); S.loaded.a = true; ready(); }, fail);
+  db.collection("checks").onSnapshot((q) => { const m = {}; q.docs.forEach((d) => { m[d.id] = d.data(); }); S.checks = m; if (S.runtime === "db" && S.tab === "rotina") renderMain(); }, fail);
+})();
+})();
+</script>
