@@ -585,6 +585,20 @@ function recoveryNotice(pid, date, lead) {
   return `<div class="notice warn"><span class="ico">!</span><div><b>${lead} ${esc(ev.tipo.toLowerCase())} em ${fmt(ev.data)}.</b> Recuperação estimada até ${fmt(addDays(ev.data, ev.dias || 14))}. Nesse período, vermelhidão, inchaço ou descamação podem mudar as notas sem que a pele tenha piorado. Siga a orientação do profissional que fez o procedimento.</div></div>`;
 }
 
+// Every reason the analyse button is off, in words the person can act on.
+function blockers(p, extra = []) {
+  const r = [];
+  if (S.runtime === "loading") r.push("O app ainda está carregando. Aguarde alguns segundos.");
+  else if (!S.sample) r.push("A análise por IA não está disponível nesta visualização. Abra o link pelo navegador em claude.ai, com sua conta conectada, e autorize o uso do Claude quando a página pedir.");
+  else if (S.imgMax === 0) r.push("Esta visualização não permite enviar fotos ao Claude. Abra o link pelo navegador em claude.ai (computador ou celular), fora do app.");
+  if (p && !p.consentimento) r.push(`Falta registrar no cadastro que ${p.nome} autorizou o uso das fotos.`);
+  return r.concat(extra.filter(Boolean));
+}
+function whyHtml(why) {
+  if (!why.length) return "";
+  return `<div class="notice warn"><span class="ico">!</span><div><b>Por que o botão está desabilitado:</b><ul>${why.map((w) => `<li>${esc(w)}</li>`).join("")}</ul></div></div>`;
+}
+
 function needProfile() {
   return `<section class="card empty"><h2>Comece cadastrando um familiar</h2><p class="lede">Cada pessoa tem seu histórico de fotos, Skin Score, rotina e produtos.</p><button class="btn primary" data-act="p-new">Cadastrar familiar</button></section>`;
 }
@@ -668,7 +682,8 @@ function vNova() {
   const busy = !!S.busy;
   const bad = d.q?.level === "bad";
   const special = d.tipoFoto !== "comum";
-  const canRun = d.blob && S.sample && S.imgMax > 0 && p.consentimento && !busy && (!bad || d.force || special);
+  const why = blockers(p, [!d.blob && "Escolha uma foto.", d.blob && bad && !d.force && !special && "A foto tem problemas: troque a foto ou marque “Analisar mesmo assim”."]);
+  const canRun = !busy && !why.length;
   const ctx = d.ctx;
   return `
   <section class="grid2">
@@ -699,9 +714,9 @@ function vNova() {
       </div>
       <label class="f" for="c-produtos">Produtos em uso hoje<textarea id="c-produtos" data-ctx="produtos" placeholder="Ex.: sabonete Cetaphil, protetor Episol, hidratante Neutrogena Hydro Boost">${esc(ctx.produtos)}</textarea></label>
       ${bad && !busy && !special ? `<div class="notice bad"><span class="ico">!</span><div>A foto tem problemas que podem distorcer o resultado. O ideal é pedir outra. <label class="pill-check" style="margin-top:6px"><input type="checkbox" id="force" data-act="force"${d.force ? " checked" : ""}> Analisar mesmo assim</label></div></div>` : ""}
-      ${S.sample && S.imgMax === 0 ? `<div class="notice warn"><span class="ico">!</span><div>${ERR.images_unavailable}</div></div>` : ""}
       <div id="busy">${busyHtml()}</div>
       <div class="row"><button class="btn primary" data-act="analisar"${canRun ? "" : " disabled"}>Analisar com IA</button>${d.url && !busy ? `<button class="btn ghost" data-act="clear-photo">Descartar foto</button>` : ""}</div>
+      ${busy ? "" : whyHtml(why)}
       <p class="small muted">A foto é enviada ao Claude pela sua conta do claude.ai. Leva de 30 a 90 segundos. Quando houver foto anterior, ela vai junto para comparar e confirmar que é a mesma pessoa.</p>
     </div>
   </section>`;
@@ -1208,7 +1223,8 @@ function testDraftHtml(p) {
   const busy = !!S.busy;
   const filled = td.slots.filter((s) => s.blob);
   const sameN = filled.filter((s) => s.condicao === "mesma").length;
-  const canRun = S.sample && S.imgMax > 0 && p.consentimento && !busy && sameN >= 2;
+  const why = blockers(p, [sameN < 2 && `Adicione pelo menos 2 fotos com a mesma luz (agora: ${sameN}).`]);
+  const canRun = !busy && !why.length;
   return `<div class="stack">
     <div class="row between"><b>Novo teste para ${esc(p.nome)}</b><label class="btn sm" for="file-multi">Escolher várias fotos de uma vez</label></div>
     <input type="file" id="file-multi" accept="image/jpeg,image/png,image/webp" multiple hidden>
@@ -1221,7 +1237,8 @@ function testDraftHtml(p) {
     </div>`).join("")}</div>
     ${busy ? "" : `<div class="row"><button class="btn sm" data-act="slot-add:mesma">+ Foto com a mesma luz</button><button class="btn sm" data-act="slot-add:diferente">+ Foto com luz diferente</button></div>`}
     <div id="busy">${busyHtml()}</div>
-    <div class="row"><button class="btn primary" data-act="run-test"${canRun ? "" : " disabled"}>Analisar ${filled.length || ""} ${filled.length === 1 ? "foto" : "fotos"}</button><span class="small muted">São necessárias pelo menos 2 fotos com a mesma luz. Cada foto leva de 30 a 90 segundos.</span></div>
+    <div class="row"><button class="btn primary" data-act="run-test"${canRun ? "" : " disabled"}>Analisar ${filled.length || ""} ${filled.length === 1 ? "foto" : "fotos"}</button><span class="small muted">Cada foto leva de 30 a 90 segundos.</span></div>
+    ${busy ? "" : whyHtml(why)}
   </div>`;
 }
 
@@ -1576,7 +1593,7 @@ async function runAnalysis(p, d, { prev = null, teste = null, signal, onProgress
   if (tf !== "comum") prev = null;
   const images = [d.blob];
   let prevHasImage = false;
-  if (!teste && prev?.fotoId && S.imgMax >= 2) {
+  if (!teste && prev?.fotoId && (S.imgMax == null || S.imgMax >= 2)) {
     try { const r = await fetch("/_blob/" + prev.fotoId); if (r.ok) { images.push(await r.blob()); prevHasImage = true; } } catch {}
   }
   const ask = (withPrev) => S.sample.json(buildPrompt(p, d, teste ? null : prev, withPrev, !!teste), {
@@ -1586,7 +1603,7 @@ async function runAnalysis(p, d, { prev = null, teste = null, signal, onProgress
   try { raw = await ask(prevHasImage); }
   catch (e) {
     // A comparison between two faces can be declined; retry once with the current photo only.
-    if (e?.code === "refused" && prevHasImage) { prevHasImage = false; raw = await ask(false); }
+    if ((e?.code === "refused" || e?.code === "image_rejected") && prevHasImage) { prevHasImage = false; raw = await ask(false); }
     else throw e;
   }
   const res = normalize(raw);
@@ -1820,7 +1837,8 @@ render();
   const use = (n) => (c?.use ? c.use(n).catch(() => null) : Promise.resolve(null));
   const [db, assets, sample, downloads] = await Promise.all([use("db"), use("assets"), use("sample"), use("downloads")]);
   S.db = db; S.assets = assets; S.sample = sample; S.downloads = downloads;
-  if (sample) { try { S.imgMax = (await sample.limits())?.images?.maxCount || 0; } catch { S.imgMax = 0; } }
+  // null = this view did not say; let the call try instead of blocking the button.
+  if (sample) { try { const l = await sample.limits(); S.imgMax = l?.images ? (l.images.maxCount || 1) : 0; } catch { S.imgMax = null; } }
   if (!db) { S.runtime = "local"; pickProfile(); render(); return; }
   const ready = () => { if (S.loaded.p && S.loaded.a && S.runtime === "loading") { S.runtime = "db"; pickProfile(); render(); } else if (S.runtime === "db") onData(); };
   const fail = (e) => { if (e?.code === "revoked") toast("O acesso aos dados foi encerrado nesta visualização."); else toast("Falha ao carregar dados. Recarregue a página."); };
