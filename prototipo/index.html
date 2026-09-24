@@ -300,6 +300,10 @@ td.r, th.r { text-align: right; }
 .seg.small button { padding: 5px 10px; font-size: 12.5px; }
 .q { display: grid; gap: 6px; }
 .q > span { font-size: 13px; font-weight: 600; color: var(--ink-2); }
+.maps { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr)); }
+.maps figure { margin: 0; display: grid; gap: 6px; }
+.maps canvas { width: 100%; max-width: 100%; height: auto; border-radius: 10px; background: var(--surface-2); display: block; }
+.maps figcaption { font-size: 13px; color: var(--ink-2); }
 .chart .proc { stroke: var(--warn); stroke-width: 1.5; stroke-dasharray: 4 3; }
 .chart .proc-l { fill: var(--warn); font-size: 10.5px; font-family: var(--body); font-weight: 600; }
 </style>
@@ -315,13 +319,39 @@ td.r, th.r { text-align: right; }
 // ---------- Constants ----------
 const CATS = [
   ["textura", "Textura"],
-  ["uniformidade", "Uniformidade do tom"],
-  ["manchas", "Manchas"],
-  ["linhas", "Linhas e rugas"],
+  ["poros", "Poros"],
+  ["linhas", "Rugas e linhas de expressão"],
+  ["firmeza", "Firmeza e elasticidade aparentes"],
+  ["manchas", "Pigmentação e manchas"],
+  ["uniformidade", "Tom e uniformidade"],
+  ["vermelhidao", "Vermelhidão e vasinhos"],
+  ["oleosidade", "Sebo e oleosidade"],
+  ["brilho", "Brilho e luminosidade"],
   ["hidratacao", "Hidratação aparente"],
-  ["firmeza", "Firmeza aparente"],
-  ["vermelhidao", "Vermelhidão"],
-  ["oleosidade", "Oleosidade e poros"],
+];
+// What each score looks at; sent to the model so every analysis reads the photo the same way.
+const CAT_DEF = {
+  textura: "relevo e regularidade da superfície (aspereza, irregularidades, cicatrizes)",
+  poros: "tamanho e visibilidade dos poros no nariz, bochechas e testa",
+  linhas: "rugas estáticas e linhas de expressão (testa, entre as sobrancelhas, ao redor dos olhos, sulco nasogeniano)",
+  firmeza: "contorno do rosto, flacidez e sulcos; elasticidade não se mede por foto, estime só pela aparência",
+  manchas: "manchas solares, melasma, marcas escuras pós-espinha e sardas",
+  uniformidade: "homogeneidade do tom em todo o rosto, incluindo olheiras e áreas mais escuras ou claras",
+  vermelhidao: "vermelhidão difusa, vasinhos visíveis (telangiectasias) e áreas com aspecto irritado ou sensível",
+  oleosidade: "sinais de sebo: brilho oleoso e aspecto untuoso, principalmente na zona T",
+  brilho: "luminosidade saudável (viço) versus pele opaca e sem vida; NÃO confundir com brilho oleoso, que vai em oleosidade",
+  hidratacao: "sinais visuais de ressecamento: descamação, linhas finas de desidratação, aspecto áspero ou repuxado",
+};
+const FOTO_TIPOS = { comum: "Luz comum (celular)", polarizada: "Luz polarizada", uv: "Luz UV" };
+const QUIZ = [
+  ["q1", "od", "Duas a três horas depois de lavar o rosto, sem produtos, a pele fica:", ["Repuxando ou áspera", "Confortável", "Com brilho só na zona T", "Com brilho no rosto todo"]],
+  ["q2", "od", "Ao longo do dia, o protetor ou a maquiagem:", ["Racha ou marca as linhas", "Fica igual", "Some na zona T", "Some no rosto todo"]],
+  ["q3", "sr", "Produtos novos causam ardor, coceira ou vermelhidão?", ["Nunca", "Raramente", "Às vezes", "Com frequência"]],
+  ["q4", "sr", "Fica vermelho(a) com facilidade (calor, exercício, bebida, emoção)?", ["Nunca", "Raramente", "Às vezes", "Com frequência"]],
+  ["q5", "pn", "Depois de uma espinha ou machucado, fica mancha escura?", ["Nunca", "Raramente", "Às vezes", "Com frequência"]],
+  ["q6", "pn", "Tem manchas, melasma ou sardas que escurecem com o sol?", ["Não", "Poucas", "Algumas", "Muitas"]],
+  ["q7", "wt", "Ao longo da vida, tomou sol sem proteção:", ["Raramente", "Às vezes", "Com frequência", "Quase sempre"]],
+  ["q8", "wt", "Fuma ou já fumou?", ["Nunca", "Já fumei e parei", "Fumo pouco", "Fumo todo dia"]],
 ];
 const OBJETIVOS = ["Uniformizar o tom", "Reduzir manchas", "Hidratação", "Linhas finas", "Acne e oleosidade", "Firmeza", "Vermelhidão", "Poros"];
 const TIPOS = ["Não sei", "Normal", "Seca", "Oleosa", "Mista", "Sensível"];
@@ -398,7 +428,7 @@ const profile = (id) => S.profiles.find((p) => p.id === id) || null;
 const byDate = (a, b) => (a.data + (a.criadoEm || "")).localeCompare(b.data + (b.criadoEm || ""));
 const analysesOf = (pid) => S.analyses.filter((a) => a.profileId === pid).sort(byDate);
 // Analyses that count as follow-up (not a stability test, not awaiting review)
-const inEvo = (a) => a.skinScore != null && !a.teste && !a.revisao;
+const inEvo = (a) => a.skinScore != null && !a.teste && !a.revisao && tipoFoto(a) === "comum";
 const validOf = (pid) => analysesOf(pid).filter(inEvo);
 const latest = (pid) => { const l = validOf(pid); return l[l.length - 1] || null; };
 const pendingOf = (pid) => analysesOf(pid).filter((a) => a.revisao);
@@ -417,6 +447,21 @@ function computeScore(res) {
   return v.length ? Math.round(mean(v)) : null;
 }
 function catScore(a, k) { const n = a?.resultado?.notas?.[k]?.nota; return Number.isFinite(n) ? n : null; }
+// Simplified questionnaire inspired by the Baumann skin type axes (not a validated instrument).
+function classify(qz) {
+  if (!qz) return null;
+  const ax = (k) => { const v = QUIZ.filter((q) => q[1] === k).map((q) => qz[q[0]]).filter((x) => x !== undefined && x !== ""); return v.length === 2 ? v.reduce((s, x) => s + Number(x), 0) : null; };
+  const od = ax("od"), sr = ax("sr"), pn = ax("pn"), wt = ax("wt");
+  if ([od, sr, pn, wt].some((v) => v == null)) return null;
+  return {
+    oleosidade: od <= 1 ? "Seca" : od <= 3 ? "Normal" : od === 4 ? "Mista" : "Oleosa",
+    sensibilidade: sr >= 3 ? "Sensível" : "Resistente",
+    pigmentacao: pn >= 3 ? "Com tendência a manchas" : "Sem tendência a manchas",
+    envelhecimento: wt >= 3 ? "Maior risco de rugas" : "Menor risco de rugas",
+    codigo: (od >= 4 ? "O" : "D") + (sr >= 3 ? "S" : "R") + (pn >= 3 ? "P" : "N") + (wt >= 3 ? "W" : "T"),
+  };
+}
+const tipoFoto = (a) => a?.tipoFoto || "comum";
 function level(spread) { return spread == null ? null : spread <= LIM_OK ? "ok" : spread <= LIM_WARN ? "warn" : "bad"; }
 
 // ---------- Store (db or in-memory fallback) ----------
@@ -580,6 +625,8 @@ function vInicio() {
     </div>
     <div class="stack">
       ${alertsHtml(last)}
+      <div class="card"><h3>Tipo de pele</h3>${tipoPeleHtml(p, last)}</div>
+      ${idadeHtml(p, last) ? `<div class="card"><h3>Idade aparente da pele</h3>${idadeHtml(p, last)}</div>` : ""}
       <div class="card">
         <h3>Próxima foto</h3>
         <p>${since >= 15 ? `<b>Já passaram ${since} dias.</b> Hora de pedir uma foto nova para ${esc(p.nome)}.` : `Última foto há ${since} ${since === 1 ? "dia" : "dias"}. Sugestão: nova foto a cada 15 dias, nas mesmas condições.`}</p>
@@ -599,7 +646,7 @@ function vInicio() {
 function ensureDraft() {
   if (!S.draft || S.draft.pid !== S.pid) {
     if (S.draft?.url) URL.revokeObjectURL(S.draft.url);
-    S.draft = { pid: S.pid, data: today(), regiao: "frontal", blob: null, url: null, q: null, force: false, ctx: { sono: "", agua: "", sol: "", ciclo: "", estresse: "", produtos: "" } };
+    S.draft = { pid: S.pid, data: today(), regiao: "frontal", tipoFoto: "comum", blob: null, url: null, q: null, force: false, ctx: { pele: "", sono: "", agua: "", sol: "", ciclo: "", estresse: "", produtos: "" } };
   }
   return S.draft;
 }
@@ -620,7 +667,8 @@ function vNova() {
   const d = ensureDraft();
   const busy = !!S.busy;
   const bad = d.q?.level === "bad";
-  const canRun = d.blob && S.sample && S.imgMax > 0 && p.consentimento && !busy && (!bad || d.force);
+  const special = d.tipoFoto !== "comum";
+  const canRun = d.blob && S.sample && S.imgMax > 0 && p.consentimento && !busy && (!bad || d.force || special);
   const ctx = d.ctx;
   return `
   <section class="grid2">
@@ -632,6 +680,8 @@ function vNova() {
         <label class="f" for="d-data">Data da foto<input type="date" id="d-data" data-d="data" value="${esc(d.data)}" max="${today()}"${busy ? " disabled" : ""}></label>
         <div class="f">Região<div class="seg" role="group" aria-label="Região">${Object.entries(REGIOES).map(([k, l]) => `<button data-act="reg:${k}" aria-pressed="${d.regiao === k}"${busy ? " disabled" : ""}>${l}</button>`).join("")}</div></div>
       </div>
+      <div class="f">Tipo de foto<div class="seg" role="group" aria-label="Tipo de foto">${Object.entries(FOTO_TIPOS).map(([k, l]) => `<button data-act="tf:${k}" aria-pressed="${d.tipoFoto === k}"${busy ? " disabled" : ""}>${l}</button>`).join("")}</div></div>
+      ${special ? `<div class="notice"><span class="ico">i</span><div>${d.tipoFoto === "uv" ? "Foto sob luz UV (lâmpada de Wood ou lente UV para celular). Mostra manchas sob a superfície e <b>porfirinas</b>, substâncias da bactéria da acne que brilham em laranja nos poros." : "Foto com filtro polarizador cruzado (lente para celular ou aparelho de clínica). Tira o reflexo da pele e mostra melhor pigmento e vasinhos."} Fotos assim exigem acessório, não entram no gráfico de evolução e não atualizam a rotina.</div></div>` : ""}
       ${d.url ? `<div class="preview"><img class="photo" src="${esc(d.url)}" alt="Foto selecionada"><div class="stack"><h3>Qualidade da foto</h3>${qualityHtml(d.q)}<div class="row"><label class="btn sm" for="file">Trocar foto</label></div></div></div>`
         : `<label class="drop" for="file" id="drop"><svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="1.5" aria-hidden="true"><rect x="3" y="5" width="18" height="15" rx="3"/><circle cx="12" cy="12.5" r="3.5"/><path d="M8.5 5l1.5-2h4l1.5 2"/></svg><strong>Escolha ou arraste a foto</strong><span class="small">JPG, PNG ou WebP. A foto é reduzida e sem metadados antes de ser salva.</span></label>`}
       <input type="file" id="file" accept="image/jpeg,image/png,image/webp" hidden>
@@ -640,6 +690,7 @@ function vNova() {
       <h3>Contexto do dia (opcional)</h3>
       <p class="small muted">Ajuda a interpretar mudanças entre fotos.</p>
       <div class="fields">
+        <label class="f" for="c-pele">Como a pele está hoje<select id="c-pele" data-ctx="pele">${["", "Repuxando ou seca", "Confortável", "Oleosa", "Sensível ou ardendo"].map((o) => `<option${o === ctx.pele ? " selected" : ""} value="${o}">${o || "—"}</option>`).join("")}</select></label>
         <label class="f" for="c-sono">Sono (horas)<input type="number" min="0" max="14" id="c-sono" data-ctx="sono" value="${esc(ctx.sono)}"></label>
         <label class="f" for="c-agua">Água (copos)<input type="number" min="0" max="20" id="c-agua" data-ctx="agua" value="${esc(ctx.agua)}"></label>
         <label class="f" for="c-sol">Sol na semana<select id="c-sol" data-ctx="sol">${["", "Pouco", "Moderado", "Muito"].map((o) => `<option${o === ctx.sol ? " selected" : ""} value="${o}">${o || "—"}</option>`).join("")}</select></label>
@@ -647,7 +698,7 @@ function vNova() {
         <label class="f" for="c-ciclo">Ciclo menstrual<select id="c-ciclo" data-ctx="ciclo">${["", "Não se aplica", "Menstruação", "Fase folicular", "Ovulação", "Pré-menstrual"].map((o) => `<option${o === ctx.ciclo ? " selected" : ""} value="${o}">${o || "—"}</option>`).join("")}</select></label>
       </div>
       <label class="f" for="c-produtos">Produtos em uso hoje<textarea id="c-produtos" data-ctx="produtos" placeholder="Ex.: sabonete Cetaphil, protetor Episol, hidratante Neutrogena Hydro Boost">${esc(ctx.produtos)}</textarea></label>
-      ${bad && !busy ? `<div class="notice bad"><span class="ico">!</span><div>A foto tem problemas que podem distorcer o resultado. O ideal é pedir outra. <label class="pill-check" style="margin-top:6px"><input type="checkbox" id="force" data-act="force"${d.force ? " checked" : ""}> Analisar mesmo assim</label></div></div>` : ""}
+      ${bad && !busy && !special ? `<div class="notice bad"><span class="ico">!</span><div>A foto tem problemas que podem distorcer o resultado. O ideal é pedir outra. <label class="pill-check" style="margin-top:6px"><input type="checkbox" id="force" data-act="force"${d.force ? " checked" : ""}> Analisar mesmo assim</label></div></div>` : ""}
       ${S.sample && S.imgMax === 0 ? `<div class="notice warn"><span class="ico">!</span><div>${ERR.images_unavailable}</div></div>` : ""}
       <div id="busy">${busyHtml()}</div>
       <div class="row"><button class="btn primary" data-act="analisar"${canRun ? "" : " disabled"}>Analisar com IA</button>${d.url && !busy ? `<button class="btn ghost" data-act="clear-photo">Descartar foto</button>` : ""}</div>
@@ -691,6 +742,7 @@ function vEvolucao() {
     ${inPeriod.length > 1 ? `<div class="tbl-wrap"><table><thead><tr><th>Indicador</th><th class="r">${fmtS(first.data)}</th><th class="r">${fmtS(last.data)}</th><th class="r">Variação</th></tr></thead><tbody>
       <tr><td><b>Skin Score</b></td><td class="r num">${first.skinScore}</td><td class="r num">${last.skinScore}</td><td class="r">${deltaHtml(last.skinScore, first.skinScore)}</td></tr>
       ${CATS.map(([k, l]) => { const a = catScore(first, k), b = catScore(last, k); return `<tr><td>${l}</td><td class="r num">${a ?? "—"}</td><td class="r num">${b ?? "—"}</td><td class="r">${deltaHtml(b, a) || "—"}</td></tr>`; }).join("")}
+      ${first.mapas && last.mapas ? [["pigmentoPct", "Área com manchas (mapa)"], ["vermelhoPct", "Área avermelhada (mapa)"]].map(([k, l]) => { const a = first.mapas[k], b = last.mapas[k], dd = +(b - a).toFixed(1); return `<tr><td>${l}</td><td class="r num">${String(a).replace(".", ",")}%</td><td class="r num">${String(b).replace(".", ",")}%</td><td class="r"><span class="delta ${dd < 0 ? "up" : dd > 0 ? "down" : ""}">${dd > 0 ? "+" : ""}${String(dd).replace(".", ",")}</span></td></tr>`; }).join("") : ""}
     </tbody></table></div>
     <p class="small muted">Diferenças de até ${LIM_OK} pontos podem vir da luz ou do ângulo da foto, não da pele.</p>` : ""}
   </section>
@@ -707,7 +759,7 @@ function vEvolucao() {
     </div>
     <div class="card">
       <h3>Todas as análises</h3>
-      ${all.length ? `<div class="list">${[...all].reverse().map((a) => `<button class="item" data-act="detail:${esc(a.id)}">${photoHtml(a, "thumb")}<span class="item-b"><span class="item-t">${fmt(a.data)}</span><span class="small muted">${REGIOES[a.regiao] || ""}${a.demo ? " · exemplo" : ""}${a.skinScore == null ? " · foto insuficiente" : ""}</span>${a.revisao ? `<span><span class="chip warn">Revisar</span></span>` : ""}</span><span class="score-s">${a.skinScore ?? "—"}</span></button>`).join("")}</div>` : `<p class="muted">Nenhuma análise ainda.</p>`}
+      ${all.length ? `<div class="list">${[...all].reverse().map((a) => `<button class="item" data-act="detail:${esc(a.id)}">${photoHtml(a, "thumb")}<span class="item-b"><span class="item-t">${fmt(a.data)}</span><span class="small muted">${REGIOES[a.regiao] || ""}${a.demo ? " · exemplo" : ""}${tipoFoto(a) !== "comum" ? " · " + FOTO_TIPOS[tipoFoto(a)].toLowerCase() : a.skinScore == null ? " · foto insuficiente" : ""}</span>${a.revisao ? `<span><span class="chip warn">Revisar</span></span>` : ""}</span><span class="score-s">${a.skinScore ?? "—"}</span></button>`).join("")}</div>` : `<p class="muted">Nenhuma análise ainda.</p>`}
     </div>
   </section>
   <section class="card">
@@ -811,25 +863,27 @@ function vDetalhe() {
   const r = a.resultado || {};
   const list = validOf(a.profileId).filter((x) => byDate(x, a) < 0);
   const prev = list[list.length - 1] || null;
-  const insuf = a.skinScore == null;
+  const insuf = tipoFoto(a) === "comum" ? a.skinScore == null : r.qualidade_suficiente === false;
   const q = a.qualidade;
   const ctx = a.contexto || {};
   const ctxItems = [["Sono", ctx.sono && ctx.sono + " h"], ["Água", ctx.agua && ctx.agua + " copos"], ["Sol", ctx.sol], ["Estresse", ctx.estresse], ["Ciclo", ctx.ciclo], ["Produtos", ctx.produtos]].filter(([, v]) => v);
   const delAsk = S.confirm === "a:" + a.id;
   const rec = recoveryOn(a.profileId, a.data);
   const pessoa = { sim: ["good", "Mesma pessoa da foto anterior"], nao: ["bad", "Parece outra pessoa"], incerto: ["warn", "Mesma pessoa: incerto"] }[r.mesma_pessoa];
+  const special = tipoFoto(a) !== "comum";
   return `
   <div class="row"><button class="btn ghost" data-act="tab:${a.teste ? "testes" : "evolucao"}">← Voltar</button></div>
   ${reviewHtml(a, p)}
   <section class="grid2">
     <div class="card">
       <div class="row between"><h2>${esc(p?.nome || "")} · ${fmt(a.data)}</h2>${a.demo ? `<span class="chip gold">Exemplo</span>` : ""}</div>
-      <div class="row"><span class="chip">${REGIOES[a.regiao] || ""}</span>${confChip(a)}${a.teste ? `<span class="chip gold">Teste de repetição · ${a.teste.condicao === "mesma" ? "mesma luz" : "luz diferente"}</span>` : ""}${pessoa ? `<span class="chip ${pessoa[0]}">${pessoa[1]}</span>` : ""}${r.filtro_suspeito ? `<span class="chip bad">Possível filtro na foto</span>` : ""}${rec ? `<span class="chip warn">Em recuperação: ${esc(rec.tipo.toLowerCase())}</span>` : ""}</div>
+      <div class="row"><span class="chip">${REGIOES[a.regiao] || ""}</span>${confChip(a)}${tipoFoto(a) !== "comum" ? `<span class="chip gold">${FOTO_TIPOS[tipoFoto(a)]}</span>` : ""}${a.teste ? `<span class="chip gold">Teste de repetição · ${a.teste.condicao === "mesma" ? "mesma luz" : "luz diferente"}</span>` : ""}${pessoa ? `<span class="chip ${pessoa[0]}">${pessoa[1]}</span>` : ""}${r.filtro_suspeito ? `<span class="chip bad">Possível filtro na foto</span>` : ""}${rec ? `<span class="chip warn">Em recuperação: ${esc(rec.tipo.toLowerCase())}</span>` : ""}</div>
       ${photoHtml(a)}
       ${q?.items ? `<details><summary class="small muted">Qualidade medida da foto</summary><div style="margin-top:10px">${qualityHtml(q)}</div></details>` : ""}
     </div>
     <div class="stack">
-      ${insuf ? `<div class="notice bad"><span class="ico">!</span><div><b>Foto insuficiente para avaliar.</b><ul>${(r.problemas_foto || ["Motivo não informado"]).map((x) => `<li>${esc(x)}</li>`).join("")}</ul>Peça uma nova foto seguindo o guia.</div></div>` : `
+      ${insuf ? `<div class="notice bad"><span class="ico">!</span><div><b>Foto insuficiente para avaliar.</b><ul>${(r.problemas_foto || ["Motivo não informado"]).map((x) => `<li>${esc(x)}</li>`).join("")}</ul>Peça uma nova foto seguindo o guia.</div></div>` : special ? `
+      <div class="card"><h3>O que a foto ${esc(FOTO_TIPOS[tipoFoto(a)].toLowerCase())} mostra</h3><p class="lede">${esc(r.resumo || "")}</p>${specialHtml(r)}${barsHtml(a, null, true)}<p class="small muted">Categorias que esta luz não permite avaliar aparecem com traço.</p></div>` : `
       <div class="card">
         <div class="hero">${ring(a.skinScore)}<div class="stack"><p class="lede">${esc(r.resumo || "")}</p>${prev && !a.teste ? `<span class="chip">${deltaHtml(a.skinScore, prev.skinScore)} desde ${fmtS(prev.data)}</span>` : ""}</div></div>
         ${barsHtml(a, a.teste ? null : prev, true)}
@@ -839,17 +893,59 @@ function vDetalhe() {
       ${(r.problemas_foto || []).length && !insuf ? `<div class="notice warn"><span class="ico">!</span><div><b>Observações sobre a foto</b><ul>${r.problemas_foto.map((x) => `<li>${esc(x)}</li>`).join("")}</ul></div></div>` : ""}
     </div>
   </section>
-  ${!insuf && !a.teste ? `<section class="grid2">
+  ${!insuf && !special ? `<section class="grid2">
+    <div class="card"><h3>Tipo de pele</h3>${tipoPeleHtml(p, a)}</div>
+    <div class="card"><h3>Idade aparente da pele</h3>${idadeHtml(p, a) || `<p class="muted small">${p?.mostrarIdade === false ? "Oculta no cadastro desta pessoa." : "Sem estimativa nesta análise."}</p>`}</div>
+  </section>
+  ${photoSrc(a) ? `<section class="card">
+    <div class="row between"><h3>Mapas de cor (experimental)</h3>${a.mapas ? `<span class="small muted num">manchas ${String(a.mapas.pigmentoPct).replace(".", ",")}% · vermelhidão ${String(a.mapas.vermelhoPct).replace(".", ",")}%</span>` : ""}</div>
+    <div class="maps" id="maps" data-src="${esc(photoSrc(a))}">
+      <figure><canvas id="map-pig" aria-label="Mapa de pigmentação"></canvas><figcaption><b>Pigmentação</b> · <span id="pig-pct">calculando…</span></figcaption></figure>
+      <figure><canvas id="map-red" aria-label="Mapa de vermelhidão"></canvas><figcaption><b>Vermelhidão</b> · <span id="red-pct">calculando…</span></figcaption></figure>
+    </div>
+    <p class="small muted">Calculados pela cor da foto: marrom mostra áreas mais pigmentadas que a pele ao redor; vermelho mostra áreas mais avermelhadas que a média do rosto. É uma aproximação: não substitui foto com luz polarizada ou UV, e a luz da foto muda os números. Compare só fotos tiradas do mesmo jeito.</p>
+  </section>` : ""}` : ""}
+  ${!insuf && !a.teste && !special ? `<section class="grid2">
     <div class="card"><h3>Pontos fortes</h3><ul class="guide">${(r.pontos_fortes || []).map((x) => `<li>${esc(x)}</li>`).join("") || "<li>—</li>"}</ul>
       <h3>Pontos de atenção</h3><ul class="guide">${(r.pontos_atencao || []).map((x) => `<li>${esc(x)}</li>`).join("") || "<li>—</li>"}</ul></div>
     <div class="card"><h3>Ingredientes indicados</h3>${ingredientsHtml(r)}</div>
   </section>` : ""}
-  ${!insuf && !a.teste ? feedbackHtml(a, p) : ""}
+  ${!insuf && !a.teste && !special ? feedbackHtml(a, p) : ""}
   <section class="card">
     <div class="row between"><h3>Registro</h3></div>
     <p class="small muted">${ctxItems.length ? ctxItems.map(([k, v]) => `<b>${k}:</b> ${esc(v)}`).join(" · ") : "Sem contexto informado."}</p>
     <div class="row">${delAsk ? `<span class="small">Excluir esta análise e a foto? Não dá para desfazer.</span><button class="btn danger solid sm" data-act="a-del-yes:${esc(a.id)}">Excluir</button><button class="btn sm" data-act="cancel-confirm">Cancelar</button>` : `<button class="btn danger sm" data-act="a-del:${esc(a.id)}">Excluir análise</button>`}</div>
   </section>`;
+}
+
+function specialHtml(r) {
+  const ae = r.achados_especiais; if (!ae) return "";
+  const rows = [["Porfirinas", ae.porfirinas], ["Pigmento sob a superfície", ae.pigmento_profundo], ["Vasinhos", ae.vascular], ["Observação", ae.obs]].filter(([, v]) => v);
+  return `<ul class="guide">${rows.map(([k, v]) => `<li><b>${k}:</b> ${esc(v)}</li>`).join("")}</ul>${ae.porfirinas ? `<p class="small muted">Porfirinas são substâncias produzidas pela bactéria ligada à acne. Sob luz UV, aparecem como pontos laranja nos poros. Muitas porfirinas indicam poros com bactéria ativa, não uma doença.</p>` : ""}`;
+}
+
+function tipoPeleHtml(p, a) {
+  const c = classify(p?.quest);
+  const v = a?.resultado?.tipo_pele_visual;
+  const cv = c ? c.oleosidade.toLowerCase() : null, vv = v?.oleosidade?.toLowerCase();
+  const diverge = cv && vv && cv !== vv;
+  return `<div class="stack">
+    <div><span class="small muted">Questionário</span><br>${c ? `<b>${c.oleosidade}</b> · ${c.sensibilidade} · ${c.pigmentacao} · ${c.envelhecimento} <span class="chip num" title="Código inspirado na classificação de Baumann">${c.codigo}</span>` : `Ainda não respondido. <button class="btn sm" data-act="p-edit:${esc(p?.id || "")}">Responder (8 perguntas)</button>`}</div>
+    <div><span class="small muted">Pela foto${a ? " de " + fmtS(a.data) : ""}</span><br>${v ? `<b>${esc(v.oleosidade || "—")}</b>${[v.sensibilidade, v.pigmentacao, v.envelhecimento].filter(Boolean).map((x) => " · " + esc(x)).join("")}${v.obs ? `<br><span class="small muted">${esc(v.obs)}</span>` : ""}` : `<span class="muted">Sem estimativa ainda.</span>`}</div>
+    ${p?.tipoPele && p.tipoPele !== "Não sei" ? `<div><span class="small muted">Como a pessoa descreve</span><br>${esc(p.tipoPele)}</div>` : ""}
+    ${diverge ? `<p class="small">O questionário e a foto divergem na oleosidade. Observe a pele ao longo de um dia comum, sem produtos, para confirmar.</p>` : ""}
+    <p class="small muted">Questionário simplificado, inspirado na classificação de Baumann. Não é um instrumento validado.</p>
+  </div>`;
+}
+
+function idadeHtml(p, a) {
+  const ia = a?.resultado?.idade_aparente;
+  if (!ia || p?.mostrarIdade === false) return "";
+  const diff = p?.idade ? ia.estimativa - p.idade : null;
+  const cmp = diff == null ? "" : Math.abs(diff) <= 3 ? "Dentro do esperado para a idade." : diff < 0 ? `Aparenta ${-diff} anos a menos que a idade real.` : `Aparenta ${diff} anos a mais que a idade real. Protetor solar todo dia é o que mais ajuda.`;
+  return `<div class="stack"><div class="row" style="align-items:baseline"><span class="score-s">${ia.estimativa}</span><span class="muted small">anos (faixa de ${ia.min} a ${ia.max})${p?.idade ? ` · idade real ${p.idade}` : ""}</span></div>
+    ${cmp ? `<p>${cmp}</p>` : ""}${ia.obs ? `<p class="small muted">${esc(ia.obs)}</p>` : ""}
+    <p class="small muted">Estimativa visual da idade que a pele aparenta, com margem de alguns anos. Não é idade biológica, que depende de exames.</p></div>`;
 }
 
 function ingredientsHtml(r) {
@@ -986,6 +1082,10 @@ function profileForm(ep) {
     </div>
     <div class="f">Objetivos<div class="checks">${OBJETIVOS.map((o, i) => `<label class="pill-check" for="pf-o${i}"><input type="checkbox" id="pf-o${i}" data-obj="${esc(o)}"${(ep.objetivos || []).includes(o) ? " checked" : ""}>${o}</label>`).join("")}</div></div>
     <label class="f" for="pf-obs">Observações (alergias, gestação, tratamentos em curso)<textarea id="pf-obs" data-pf="obs">${esc(ep.obs || "")}</textarea></label>
+    <details${ep.quest && Object.keys(ep.quest).length ? "" : " open"}><summary class="f" style="cursor:pointer">Questionário de tipo de pele (8 perguntas)${classify(ep.quest) ? ` · <span class="chip gold">${classify(ep.quest).codigo}</span>` : ""}</summary>
+      <div class="stack" style="margin-top:10px">${QUIZ.map(([id, , q, opts]) => `<label class="f" for="qz-${id}">${esc(q)}<select id="qz-${id}" data-qz="${id}"><option value="">—</option>${opts.map((o, i) => `<option value="${i}"${String(ep.quest?.[id]) === String(i) ? " selected" : ""}>${esc(o)}</option>`).join("")}</select></label>`).join("")}</div>
+    </details>
+    <label class="pill-check" for="pf-idade-show"><input type="checkbox" id="pf-idade-show" data-pf="mostrarIdade"${ep.mostrarIdade !== false ? " checked" : ""}>Mostrar a estimativa de idade da pele</label>
     <label class="pill-check" for="pf-proc6"><input type="checkbox" id="pf-proc6" data-pf="procRecente"${ep.procRecente ? " checked" : ""}>Fez procedimento estético nos últimos 6 meses</label>
     ${ep.procRecente ? `<p class="small muted">Depois de salvar, registre o procedimento na aba Evolução para o app levar em conta.</p>` : ""}
     <label class="pill-check" for="pf-cons"><input type="checkbox" id="pf-cons" data-pf="consentimento"${ep.consentimento ? " checked" : ""}>A pessoa autorizou o uso das fotos neste teste</label>
@@ -1002,6 +1102,7 @@ async function saveProfile() {
   const data = {
     nome: ep.nome.trim(), idade: ep.idade ? Number(ep.idade) : null, tipoPele: ep.tipoPele || TIPOS[0], fototipo: ep.fototipo || FOTOTIPOS[0],
     objetivos: ep.objetivos || [], obs: ep.obs || "", consentimento: !!ep.consentimento, procRecente: !!ep.procRecente,
+    quest: ep.quest || {}, mostrarIdade: ep.mostrarIdade !== false,
     criadoEm: ep.criadoEm || new Date().toISOString(), ...(ep.demo ? { demo: true } : {}),
   };
   try {
@@ -1182,11 +1283,11 @@ async function exportData(kind) {
   const stamp = today();
   let filename, data;
   if (kind === "csv") {
-    const head = ["pessoa", "idade", "fototipo", "data", "regiao", "tipo", "teste_id", "condicao_luz", "skin_score", ...CATS.map(([k]) => k), "confianca", "qualidade_foto", "mesma_pessoa", "revisao", "em_recuperacao", "fb_entendeu", "fb_concorda", "fb_notas_erradas", "fb_seguiria", "fb_pagaria", "fb_valor", "fb_comentario"];
+    const head = ["pessoa", "idade", "fototipo", "data", "regiao", "tipo", "teste_id", "condicao_luz", "skin_score", ...CATS.map(([k]) => k), "confianca", "qualidade_foto", "tipo_foto", "mapa_manchas_pct", "mapa_vermelhidao_pct", "idade_real", "idade_aparente", "tipo_pele_questionario", "tipo_pele_foto", "porfirinas", "mesma_pessoa", "revisao", "em_recuperacao", "fb_entendeu", "fb_concorda", "fb_notas_erradas", "fb_seguiria", "fb_pagaria", "fb_valor", "fb_comentario"];
     const rows = [...S.analyses].filter((a) => !a.demo).sort(byDate).map((a) => {
       const p = profile(a.profileId) || {}; const fb = a.feedback || {}; const rec = recoveryOn(a.profileId, a.data);
       return [p.nome, p.idade, p.fototipo, a.data, REGIOES[a.regiao], a.teste ? "teste de repetição" : "acompanhamento", a.teste?.id, a.teste ? (a.teste.condicao === "mesma" ? "mesma" : "diferente") : "", a.skinScore,
-        ...CATS.map(([k]) => catScore(a, k)), a.resultado?.confianca, a.qualidade?.level, a.resultado?.mesma_pessoa, a.revisao?.tipo, rec ? rec.tipo : "",
+        ...CATS.map(([k]) => catScore(a, k)), a.resultado?.confianca, a.qualidade?.level, tipoFoto(a), a.mapas?.pigmentoPct, a.mapas?.vermelhoPct, p.idade, a.resultado?.idade_aparente?.estimativa, classify(p.quest)?.codigo, a.resultado?.tipo_pele_visual?.oleosidade, a.resultado?.achados_especiais?.porfirinas, a.resultado?.mesma_pessoa, a.revisao?.tipo, rec ? rec.tipo : "",
         fb.entendeu, fb.concorda, (fb.notasErradas || []).join(" "), fb.seguiria, fb.pagaria, fb.valor, fb.comentario].map(csvCell).join(";");
     });
     filename = `myskin-etapa1-${stamp}.csv`;
@@ -1267,6 +1368,77 @@ function measure(px, w, h, W, H) {
   return { items, level: lvl, medidas: { brilho: Math.round(avg), estourado: +hiPct.toFixed(1), sombra: Math.round(side), nitidez: Math.round(lap), corRB: +rb.toFixed(2), largura: W, altura: H } };
 }
 
+// Color maps from an ordinary photo. Melanin and erythema indices follow the reflectance
+// approximations used by skin colorimeters (MI = log 1/R, EI = log 1/G - log 1/R).
+// Experimental: lighting shifts the absolute values, so compare photos taken the same way.
+function colorMaps(img, maxSide = 480) {
+  const W0 = img.naturalWidth || img.width, H0 = img.naturalHeight || img.height;
+  const sc = Math.min(1, maxSide / Math.max(W0, H0));
+  const w = Math.max(8, Math.round(W0 * sc)), h = Math.max(8, Math.round(H0 * sc)), n = w * h;
+  const cv = document.createElement("canvas"); cv.width = w; cv.height = h;
+  const cx = cv.getContext("2d", { willReadFrequently: true }); cx.drawImage(img, 0, 0, w, h);
+  const px = cx.getImageData(0, 0, w, h).data;
+  const skin = new Uint8Array(n), mi = new Float32Array(n), ei = new Float32Array(n), gray = new Uint8ClampedArray(n);
+  let ns = 0, e1 = 0;
+  for (let i = 0; i < n; i++) {
+    const r = Math.max(px[i * 4], 1), g = Math.max(px[i * 4 + 1], 1), b = px[i * 4 + 2];
+    const Y = 0.299 * r + 0.587 * g + 0.114 * b; gray[i] = Y;
+    const cb = 128 - 0.168736 * r - 0.331264 * g + 0.5 * b, cr = 128 + 0.5 * r - 0.418688 * g - 0.081312 * b;
+    mi[i] = Math.log10(255 / r); ei[i] = Math.log10(255 / g) - Math.log10(255 / r);
+    if (cb >= 77 && cb <= 127 && cr >= 133 && cr <= 185 && Y > 40 && Y < 245) { skin[i] = 1; ns++; e1 += ei[i]; }
+  }
+  const out = { w, h, gray, pig: null, red: null, pigPct: null, redPct: null, skinPct: (ns / n) * 100 };
+  if (ns < n * 0.03) return out;
+  // Local mean of the melanin index over skin pixels (integral images), so spots stand out from the base tone.
+  const W1 = w + 1, SI = new Float64Array(W1 * (h + 1)), CI = new Float64Array(W1 * (h + 1));
+  for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
+    const i = y * w + x, k = (y + 1) * W1 + x + 1;
+    SI[k] = SI[k - 1] + SI[k - W1] - SI[k - W1 - 1] + (skin[i] ? mi[i] : 0);
+    CI[k] = CI[k - 1] + CI[k - W1] - CI[k - W1 - 1] + skin[i];
+  }
+  const rad = Math.max(4, Math.round(Math.max(w, h) / 24)), mE = e1 / ns;
+  const pig = new Uint8ClampedArray(n), red = new Uint8ClampedArray(n);
+  let np = 0, nr = 0;
+  for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
+    const i = y * w + x; if (!skin[i]) continue;
+    const xa = Math.max(0, x - rad), xb = Math.min(w, x + rad + 1), ya = Math.max(0, y - rad), yb = Math.min(h, y + rad + 1);
+    const sum = SI[yb * W1 + xb] - SI[ya * W1 + xb] - SI[yb * W1 + xa] + SI[ya * W1 + xa];
+    const cnt = CI[yb * W1 + xb] - CI[ya * W1 + xb] - CI[yb * W1 + xa] + CI[ya * W1 + xa];
+    const dp = mi[i] - sum / cnt;
+    if (dp > 0.035) { pig[i] = 70 + clamp((dp - 0.035) / 0.06, 0, 1) * 185; np++; continue; }
+    // Brown spots also raise the erythema index in RGB, so a pixel counts as red only if it is not a spot.
+    const dr = ei[i] - mE;
+    if (dr > 0.06) { red[i] = 70 + clamp((dr - 0.06) / 0.08, 0, 1) * 185; nr++; }
+  }
+  return { ...out, pig, red, pigPct: (np / ns) * 100, redPct: (nr / ns) * 100 };
+}
+
+const mapCache = {};
+async function drawMaps(src) {
+  const box = $("#maps"); if (!box) return;
+  let m = mapCache[src];
+  if (!m) {
+    try { const img = new Image(); img.src = src; await img.decode(); m = mapCache[src] = colorMaps(img); }
+    catch { box.innerHTML = `<p class="muted small">Não foi possível gerar os mapas desta foto.</p>`; return; }
+  }
+  if (!m.pig) { box.innerHTML = `<p class="muted small">Pouca pele detectada na foto para gerar os mapas.</p>`; return; }
+  const paint = (id, layer, [cr, cg, cb]) => {
+    const c = document.getElementById(id); if (!c) return;
+    c.width = m.w; c.height = m.h;
+    const ctx = c.getContext("2d"), im = ctx.createImageData(m.w, m.h), o = im.data;
+    for (let i = 0; i < m.w * m.h; i++) {
+      const base = 150 + m.gray[i] * 0.4, a = layer[i] / 255;
+      o[i * 4] = base * (1 - a) + cr * a; o[i * 4 + 1] = base * (1 - a) + cg * a; o[i * 4 + 2] = base * (1 - a) + cb * a; o[i * 4 + 3] = 255;
+    }
+    ctx.putImageData(im, 0, 0);
+  };
+  paint("map-pig", m.pig, [110, 62, 18]);
+  paint("map-red", m.red, [214, 38, 48]);
+  const a = $("#pig-pct"), b = $("#red-pct");
+  if (a) a.textContent = m.pigPct.toFixed(1).replace(".", ",") + "% da pele";
+  if (b) b.textContent = m.redPct.toFixed(1).replace(".", ",") + "% da pele";
+}
+
 function checkFile(file) {
   if (!/^image\/(jpeg|png|webp)$/.test(file.type)) { toast("Use uma foto JPG, PNG ou WebP. Fotos HEIC do iPhone: envie como JPG."); return false; }
   if (file.size > 20 * 1024 * 1024) { toast(ERR.image_too_big); return false; }
@@ -1305,21 +1477,31 @@ function buildPrompt(p, d, prev, prevHasImage, isTest) {
   const ctx = Object.entries(d.ctx || {}).filter(([, v]) => v).map(([k, v]) => `${k}: ${v}`).join("; ") || "não informado";
   const prevNotes = prev ? CATS.map(([k, l]) => `${l} ${catScore(prev, k) ?? "—"}`).join(", ") : "";
   const evs = eventosOf(p.id).filter((e) => e.data <= d.data && e.data >= addDays(d.data, -180));
+  const quiz = classify(p.quest);
+  const tf = d.tipoFoto || "comum";
+  const tipoTxt = {
+    comum: "Foto comum de celular. Porfirinas e pigmento profundo NÃO podem ser avaliados nela: use \"achados_especiais\": null.",
+    polarizada: "Foto com luz polarizada cruzada: o reflexo da superfície é removido e pigmento e vasos sob a pele ficam realçados. Brilho, oleosidade, poros e textura de superfície não podem ser avaliados (use null). Preencha \"achados_especiais\".",
+    uv: "Foto sob luz ultravioleta (lâmpada de Wood ou lente UV). Porfirinas aparecem como pontos laranja-avermelhados fluorescentes nos poros; manchas da epiderme ficam mais contrastadas. Avalie só manchas e poros (demais notas null) e preencha \"achados_especiais\". Idade aparente: null.",
+  }[tf];
   const procTxt = evs.length ? evs.map((e) => `${e.tipo} em ${fmt(e.data)}${e.area ? " (" + e.area + ")" : ""}, recuperação estimada de ${e.dias || 14} dias`).join("; ") : (p.procRecente ? "a pessoa informou procedimento estético nos últimos 6 meses, sem detalhes" : "nenhum registrado");
   return `Você é o motor de avaliação visual do protótipo MY Skin AI, um app de cuidados com a pele (uso cosmético, NÃO é diagnóstico médico). Responda em português do Brasil.
 
-IMAGEM 1: foto atual, região "${REGIOES[d.regiao]}", tirada em ${fmt(d.data)}.${prevHasImage ? `
+IMAGEM 1: foto atual, região "${REGIOES[d.regiao]}", tirada em ${fmt(d.data)}. ${tipoTxt}${prevHasImage ? `
 IMAGEM 2: foto anterior da mesma região, tirada em ${fmt(prev.data)}, que está no cadastro da mesma pessoa.` : ""}
 
-PERFIL: idade ${p.idade || "não informada"}; tipo de pele percebido: ${p.tipoPele || "não sei"}; fototipo: ${p.fototipo || "não informado"}; objetivos: ${(p.objetivos || []).join(", ") || "não informados"}; observações: ${p.obs || "nenhuma"}.
+PERFIL: idade ${p.idade || "não informada"}; tipo de pele percebido: ${p.tipoPele || "não sei"}; questionário de tipo de pele: ${quiz ? `${quiz.oleosidade}, ${quiz.sensibilidade}, ${quiz.pigmentacao}, ${quiz.envelhecimento}` : "não respondido"}; fototipo: ${p.fototipo || "não informado"}; objetivos: ${(p.objetivos || []).join(", ") || "não informados"}; observações: ${p.obs || "nenhuma"}.
 PROCEDIMENTOS ESTÉTICOS RECENTES: ${procTxt}.
 CONTEXTO DO DIA: ${ctx}.
 QUALIDADE MEDIDA NA FOTO (métricas automáticas): ${JSON.stringify(d.q?.medidas || {})}.
 ${isTest ? "Esta análise faz parte de um teste de repetição: avalie SOMENTE esta foto, de forma independente." : prev ? `ANÁLISE ANTERIOR (${fmt(prev.data)}): ${prevNotes}.` : "Esta é a primeira análise desta pessoa."}
 
+O QUE CADA NOTA AVALIA:
+${CATS.map(([k, l]) => `- ${k} (${l}): ${CAT_DEF[k]}`).join("\n")}
+
 ESCALA DAS NOTAS (0 a 100, sempre "maior = aparência melhor" naquela categoria):
 90-100 quase nenhum sinal visível; 75-89 sinais leves; 60-74 moderados; 40-59 evidentes; abaixo de 40 muito evidentes.
-Em manchas, linhas, vermelhidão e oleosidade, nota alta significa POUCO sinal. Não ajuste a escala pela idade; a idade serve só para contextualizar o texto. Use null quando a categoria não puder ser avaliada nesta foto.
+Em poros, linhas, manchas, vermelhidão e oleosidade, nota alta significa POUCO sinal. Não ajuste a escala pela idade; a idade serve só para contextualizar o texto. Use null quando a categoria não puder ser avaliada nesta foto.
 CONSISTÊNCIA: seja conservador. Diferença de luz, ângulo ou distância não é mudança da pele.${prev && !isTest ? " Só altere uma nota em mais de 5 pontos em relação à análise anterior se a mudança for claramente visível apesar dessas diferenças." : ""}
 PROCEDIMENTOS: se houver procedimento recente, considere que vermelhidão, inchaço ou descamação podem ser temporários, e não atribua ao cuidado diário mudanças que venham do procedimento. Durante a recuperação, a rotina deve ser só limpeza suave, hidratante calmante e protetor solar, sem ácidos, retinoides ou esfoliação.${prevHasImage ? `
 VERIFICAÇÃO: compare a IMAGEM 1 com a IMAGEM 2 apenas para dizer se parecem ser a mesma pessoa. Não diga quem é. Lembre que luz, maquiagem, cabelo e procedimentos mudam a aparência. Responda em "mesma_pessoa" com "sim", "nao" ou "incerto".` : ""}
@@ -1328,6 +1510,8 @@ REGRAS:
 - Se a imagem não mostrar um rosto humano, ou a qualidade não permitir avaliar, use "qualidade_suficiente": false, todas as notas null, e explique em "problemas_foto".
 - Aponte sinais de filtro, "modo beleza" ou edição em "filtro_suspeito". Se parecer foto de uma tela ou de outra foto, diga em "problemas_foto".
 - Não identifique a pessoa. Não nomeie doenças como certeza; use "aparência de".
+- TIPO DE PELE PELA FOTO: classifique o que se vê (oleosidade, sinais de sensibilidade, tendência a manchas, sinais de envelhecimento). É uma estimativa visual; se o questionário divergir, diga em "obs".
+- IDADE APARENTE DA PELE: estime a idade que a pele aparenta pela foto, com uma faixa de pelo menos 6 anos, e diga o que mais pesou. É idade aparente, não idade biológica. Use null se a foto não permitir.
 - Em "alertas", só quando houver algo que mereça dermatologista: pinta irregular ou que parece ter mudado, ferida que não cicatriza, lesão que sangra, inflamação intensa, acne nodular ou cística, descamação extensa. Caso contrário, lista vazia.
 - Não recomende medicamentos de prescrição (tretinoína, isotretinoína, hidroquinona, antibióticos, corticoides). Se parecer indicado, diga para conversar com um dermatologista.
 - Rotina simples: até 4 passos de manhã e até 4 à noite, com protetor solar de manhã. Não combine retinoide com ácidos esfoliantes na mesma noite. Respeite as observações do perfil (gestação, alergias).
@@ -1341,6 +1525,9 @@ Responda SOMENTE com um objeto JSON neste formato:
   "mesma_pessoa": "sim" | "nao" | "incerto",` : ""}
   "problemas_foto": ["frases curtas sobre limitações da foto, se houver"],
   "confianca": "alta" | "media" | "baixa",
+  "tipo_pele_visual": { "oleosidade": "seca" | "normal" | "mista" | "oleosa", "sensibilidade": "sinais de sensibilidade" | "sem sinais" | "incerto", "pigmentacao": "tendência a manchas" | "sem tendência" | "incerto", "envelhecimento": "sinais visíveis" | "poucos sinais", "obs": "uma frase" },
+  "idade_aparente": { "estimativa": 40, "min": 37, "max": 43, "obs": "o que mais pesou na estimativa" },
+  "achados_especiais": ${tf === "comum" ? "null" : '{ "porfirinas": "nenhuma" | "poucas" | "moderadas" | "muitas" | null, "pigmento_profundo": "frase curta", "vascular": "frase curta", "obs": "frase curta" }'},
   "notas": {
 ${CATS.map(([k]) => `    "${k}": { "nota": 0-100 ou null, "obs": "uma frase curta sobre o que se vê" }`).join(",\n")}
   },
@@ -1371,6 +1558,13 @@ function normalize(res) {
   for (const k of ["problemas_foto", "pontos_fortes", "pontos_atencao", "alertas", "ingredientes", "produtos"]) if (!Array.isArray(res[k])) res[k] = [];
   res.produtos = res.produtos.map((p) => ({ ...p, preco_min: Number.isFinite(Number(p.preco_min)) ? Number(p.preco_min) : null, preco_max: Number.isFinite(Number(p.preco_max)) ? Number(p.preco_max) : null }));
   res.confianca = String(res.confianca || "").toLowerCase().replace("é", "e");
+  const tv = res.tipo_pele_visual;
+  res.tipo_pele_visual = tv && typeof tv === "object" ? Object.fromEntries(["oleosidade", "sensibilidade", "pigmentacao", "envelhecimento", "obs"].map((k) => [k, tv[k] ? String(tv[k]) : ""])) : null;
+  const ia = res.idade_aparente;
+  const est = Number(ia?.estimativa);
+  res.idade_aparente = ia && Number.isFinite(est) ? { estimativa: Math.round(est), min: Math.round(Number(ia.min) || est - 3), max: Math.round(Number(ia.max) || est + 3), obs: ia.obs ? String(ia.obs) : "" } : null;
+  const ae = res.achados_especiais;
+  res.achados_especiais = ae && typeof ae === "object" ? Object.fromEntries(["porfirinas", "pigmento_profundo", "vascular", "obs"].map((k) => [k, ae[k] ? String(ae[k]) : ""])) : null;
   const mp = String(res.mesma_pessoa || "").toLowerCase().replace("ã", "a");
   res.mesma_pessoa = ["sim", "nao", "incerto"].includes(mp) ? mp : null;
   return res;
@@ -1378,6 +1572,8 @@ function normalize(res) {
 
 // One photo -> Claude -> saved analysis document. Throws a sample error on failure.
 async function runAnalysis(p, d, { prev = null, teste = null, signal, onProgress } = {}) {
+  const tf = d.tipoFoto || "comum";
+  if (tf !== "comum") prev = null;
   const images = [d.blob];
   let prevHasImage = false;
   if (!teste && prev?.fotoId && S.imgMax >= 2) {
@@ -1401,7 +1597,12 @@ async function runAnalysis(p, d, { prev = null, teste = null, signal, onProgress
     try { fotoId = (await S.assets.upload(d.blob, { type: "image/jpeg" })).id; }
     catch { toast("A foto não pôde ser guardada. A análise foi salva sem ela."); }
   } else localUrls[id] = URL.createObjectURL(d.blob);
-  const skinScore = computeScore(res);
+  // Special-light photos read a different signal; they never produce a Skin Score.
+  const skinScore = tf === "comum" ? computeScore(res) : null;
+  let mapas = null;
+  if (tf === "comum") {
+    try { const bmp = await createImageBitmap(d.blob); const m = colorMaps(bmp); if (m.pigPct != null) mapas = { pigmentoPct: +m.pigPct.toFixed(1), vermelhoPct: +m.redPct.toFixed(1), pelePct: +m.skinPct.toFixed(0) }; } catch {}
+  }
   let revisao = null;
   if (!teste && skinScore != null) {
     if (res.mesma_pessoa === "nao" || res.mesma_pessoa === "incerto") {
@@ -1414,14 +1615,14 @@ async function runAnalysis(p, d, { prev = null, teste = null, signal, onProgress
     }
   }
   const doc = {
-    profileId: p.id, data: d.data, regiao: d.regiao, fotoId,
-    qualidade: d.q, contexto: d.ctx || {}, resultado: res, skinScore,
+    profileId: p.id, data: d.data, regiao: d.regiao, tipoFoto: tf, fotoId,
+    qualidade: d.q, contexto: d.ctx || {}, resultado: res, skinScore, mapas,
     comparadoCom: teste ? null : prev?.id || null, revisao, teste,
     criadoEm: new Date().toISOString(),
   };
   await putDoc("analyses", id, doc);
   if (revisao) logOcorrencia(p.id, "revisão", revisao.motivo);
-  if (skinScore == null) logOcorrencia(p.id, "foto insuficiente", (res.problemas_foto || []).join("; ") || "sem motivo informado");
+  if (skinScore == null && tf === "comum") logOcorrencia(p.id, "foto insuficiente", (res.problemas_foto || []).join("; ") || "sem motivo informado");
   return { id, doc };
 }
 
@@ -1505,6 +1706,8 @@ function afterRender() {
   }
   const pf = $("#pform");
   if (pf) pf.addEventListener("submit", (e) => { e.preventDefault(); saveProfile(); });
+  const mp = $("#maps");
+  if (mp) drawMaps(mp.dataset.src);
   const prf = $("#procform");
   if (prf) prf.addEventListener("submit", (e) => { e.preventDefault(); saveProc(); });
 }
@@ -1535,6 +1738,7 @@ document.addEventListener("click", (e) => {
     case "detail": S.detailId = arg; S.tab = "detalhe"; S.confirm = null; S.moveTo = ""; render(); window.scrollTo({ top: 0 }); break;
     case "period": S.period = arg; renderMain(); break;
     case "reg": ensureDraft().regiao = arg; renderMain(); break;
+    case "tf": ensureDraft().tipoFoto = arg; renderMain(); break;
     case "force": S.draft.force = el.checked; renderMain(); break;
     case "clear-photo": if (S.draft?.url) URL.revokeObjectURL(S.draft.url); Object.assign(S.draft, { blob: null, url: null, q: null, force: false }); renderMain(); break;
     case "analisar": analisar(); break;
@@ -1597,6 +1801,7 @@ function handleField(t) {
   else if (t.dataset.ctx && S.draft) S.draft.ctx[t.dataset.ctx] = t.value;
   else if (t.dataset.pf && S.editProfile) S.editProfile[t.dataset.pf] = t.type === "checkbox" ? t.checked : t.value;
   else if (t.dataset.pr && S.procForm) S.procForm[t.dataset.pr] = t.value;
+  else if (t.dataset.qz && S.editProfile) S.editProfile.quest = { ...(S.editProfile.quest || {}), [t.dataset.qz]: t.value };
   else if (t.dataset.fb && S.fb) S.fb[t.dataset.fb] = t.value;
   else if (t.dataset.fbn && S.fb) {
     const set = new Set(S.fb.notasErradas || []); t.checked ? set.add(t.dataset.fbn) : set.delete(t.dataset.fbn);
