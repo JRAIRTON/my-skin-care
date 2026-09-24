@@ -402,6 +402,7 @@ const S = {
   loaded: { p: false, a: false },
   draft: null, busy: null, confirm: null, editProfile: null, cmp: { a: null, b: null, cut: 50 },
   procForm: null, fb: null, testDraft: null, noteDraft: "", moveTo: "",
+  diag: { host: false, use: {}, perms: null, limits: null, limitsErr: null },
 };
 const localUrls = {};
 const COLS = ["profiles", "analyses", "eventos", "testes", "ocorrencias"];
@@ -596,7 +597,39 @@ function blockers(p, extra = []) {
 }
 function whyHtml(why) {
   if (!why.length) return "";
-  return `<div class="notice warn"><span class="ico">!</span><div><b>Por que o botão está desabilitado:</b><ul>${why.map((w) => `<li>${esc(w)}</li>`).join("")}</ul></div></div>`;
+  const aiBlocked = S.runtime !== "loading" && (!S.sample || S.imgMax === 0);
+  return `<div class="notice warn"><span class="ico">!</span><div class="stack" style="gap:8px"><div><b>Por que o botão está desabilitado:</b><ul>${why.map((w) => `<li>${esc(w)}</li>`).join("")}</ul></div>${aiBlocked ? diagHtml() : ""}</div></div>`;
+}
+// What this view reported about each capability, so a blocked analysis can be diagnosed from a screenshot.
+function diagHtml() {
+  const g = S.diag;
+  const yes = (v) => v ? "sim" : "não";
+  const perms = g.perms ? Object.entries(g.perms).map(([k, v]) => `${k}: ${v}`).join(", ") || "nenhuma" : "não informado";
+  return `<div class="row"><button class="btn sm primary" data-act="ask-sample">Autorizar o Claude nesta página</button></div>
+    <details><summary class="small muted" style="cursor:pointer">Detalhes técnicos (mande um print se continuar)</summary>
+    <ul class="small num" style="margin-top:6px">
+      <li>Página aberta dentro do claude.ai: ${yes(g.host)}</li>
+      <li>Banco de dados: ${yes(g.use.db)} · Fotos: ${yes(g.use.assets)} · Claude: ${yes(g.use.sample)} · Arquivos: ${yes(g.use.downloads)}</li>
+      <li>Permissões: ${esc(perms)}</li>
+      <li>Envio de imagens: ${g.limits ? (g.limits.images ? `sim, até ${g.limits.images.maxCount} por análise` : "não") : esc(g.limitsErr || "não informado")}</li>
+      <li>Navegador: ${esc(navigator.userAgent.slice(0, 120))}</li>
+    </ul></details>`;
+}
+async function askSample() {
+  const c = window.claude; if (!c?.use) { toast("Esta página não está aberta dentro do claude.ai."); return; }
+  try {
+    const perms = await c.use("permissions").catch(() => null);
+    if (perms) { S.diag.perms = await perms.request(["sample", "assets", "db", "downloads"]).catch(() => S.diag.perms); }
+    const sample = await c.use("sample").catch(() => null);
+    S.sample = sample; S.diag.use.sample = !!sample;
+    if (sample) await readLimits(sample);
+    toast(sample ? "Claude liberado nesta página." : "O Claude continua indisponível nesta visualização.");
+  } catch { toast("Não foi possível pedir a autorização."); }
+  renderMain();
+}
+async function readLimits(sample) {
+  try { const l = await sample.limits(); S.diag.limits = l; S.imgMax = l?.images ? (l.images.maxCount || 1) : 0; }
+  catch (e) { S.imgMax = null; S.diag.limitsErr = "erro: " + (e?.code || e?.message || "desconhecido"); }
 }
 
 function needProfile() {
@@ -1783,6 +1816,7 @@ document.addEventListener("click", (e) => {
     case "slot-add": S.testDraft?.slots.push({ condicao: arg }); renderMain(); break;
     case "slot-del": { const s = S.testDraft?.slots[Number(arg)]; if (s?.url) URL.revokeObjectURL(s.url); S.testDraft?.slots.splice(Number(arg), 1); renderMain(); break; }
     case "run-test": runTest(); break;
+    case "ask-sample": askSample(); break;
     case "oc-add": { const t = S.noteDraft.trim(); if (!t) break; queued(() => putDoc("ocorrencias", newId(), { profileId: S.pid, tipo: "anotação", detalhe: t.slice(0, 500), criadoEm: new Date().toISOString(), auto: false })); S.noteDraft = ""; renderMain(); break; }
     case "oc-del": queued(() => delDoc("ocorrencias", arg)); break;
     case "export": exportData(arg); break;
@@ -1837,8 +1871,11 @@ render();
   const use = (n) => (c?.use ? c.use(n).catch(() => null) : Promise.resolve(null));
   const [db, assets, sample, downloads] = await Promise.all([use("db"), use("assets"), use("sample"), use("downloads")]);
   S.db = db; S.assets = assets; S.sample = sample; S.downloads = downloads;
-  // null = this view did not say; let the call try instead of blocking the button.
-  if (sample) { try { const l = await sample.limits(); S.imgMax = l?.images ? (l.images.maxCount || 1) : 0; } catch { S.imgMax = null; } }
+  S.diag.host = !!c?.use;
+  S.diag.use = { db: !!db, assets: !!assets, sample: !!sample, downloads: !!downloads };
+  if (c?.use) { try { const perms = await c.use("permissions"); if (perms) S.diag.perms = await perms.state(); } catch {} }
+  // imgMax null = this view did not say; let the call try instead of blocking the button.
+  if (sample) await readLimits(sample);
   if (!db) { S.runtime = "local"; pickProfile(); render(); return; }
   const ready = () => { if (S.loaded.p && S.loaded.a && S.runtime === "loading") { S.runtime = "db"; pickProfile(); render(); } else if (S.runtime === "db") onData(); };
   const fail = (e) => { if (e?.code === "revoked") toast("O acesso aos dados foi encerrado nesta visualização."); else toast("Falha ao carregar dados. Recarregue a página."); };
