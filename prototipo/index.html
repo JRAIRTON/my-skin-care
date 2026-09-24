@@ -281,6 +281,27 @@ td.r, th.r { text-align: right; }
 .foot { font-size: 12.5px; color: var(--muted); text-align: center; padding-top: 8px; }
 .empty { text-align: center; justify-items: center; padding-block: 36px; }
 .empty p { max-width: 46ch; }
+
+/* Etapa 1 */
+.goals { display: grid; gap: 10px; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); }
+.goal { border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; display: grid; gap: 4px; }
+.goal b { font-family: var(--mono); font-size: 22px; font-weight: 500; }
+.slots { display: grid; gap: 12px; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); }
+.slot { border: 1px solid var(--line); border-radius: 12px; padding: 10px; display: grid; gap: 8px; align-content: start; }
+.slot .photo, .slot .ph { aspect-ratio: 3 / 4; }
+.slot .drop { min-height: 0; aspect-ratio: 3 / 4; padding: 10px; font-size: 12.5px; }
+.cell-ok { color: var(--good); font-weight: 600; }
+.cell-warn { color: var(--warn); font-weight: 600; }
+.cell-bad { color: var(--bad); font-weight: 600; }
+.dist { display: grid; gap: 6px; }
+.dist-row { display: grid; grid-template-columns: minmax(0, 12em) 1fr 2.4em; gap: 10px; align-items: center; font-size: 13.5px; }
+.dist-row .track { height: 8px; border-radius: 4px; background: var(--surface-2); overflow: hidden; }
+.dist-row .fill { height: 100%; background: var(--gold); border-radius: 4px; }
+.seg.small button { padding: 5px 10px; font-size: 12.5px; }
+.q { display: grid; gap: 6px; }
+.q > span { font-size: 13px; font-weight: 600; color: var(--ink-2); }
+.chart .proc { stroke: var(--warn); stroke-width: 1.5; stroke-dasharray: 4 3; }
+.chart .proc-l { fill: var(--warn); font-size: 10.5px; font-family: var(--body); font-weight: 600; }
 </style>
 
 <div id="hdr"></div>
@@ -306,7 +327,12 @@ const OBJETIVOS = ["Uniformizar o tom", "Reduzir manchas", "Hidratação", "Linh
 const TIPOS = ["Não sei", "Normal", "Seca", "Oleosa", "Mista", "Sensível"];
 const FOTOTIPOS = ["Não informado", "I · muito clara, sempre queima", "II · clara, queima fácil", "III · média, às vezes queima", "IV · morena clara, raramente queima", "V · morena escura", "VI · negra"];
 const REGIOES = { frontal: "Rosto frontal", esquerdo: "Lado esquerdo", direito: "Lado direito" };
-const TABS = [["inicio", "Início"], ["nova", "Nova análise"], ["evolucao", "Evolução"], ["rotina", "Rotina"], ["produtos", "Produtos"], ["perfis", "Familiares"]];
+const TABS = [["inicio", "Início"], ["nova", "Nova análise"], ["evolucao", "Evolução"], ["rotina", "Rotina"], ["produtos", "Produtos"], ["perfis", "Familiares"], ["testes", "Etapa 1"]];
+const PROCS = [
+  ["Toxina botulínica", 14], ["Preenchimento", 14], ["Bioestimulador de colágeno", 30], ["Laser ou luz pulsada", 21],
+  ["Peeling químico", 14], ["Microagulhamento", 7], ["Limpeza de pele", 3], ["Cirurgia facial", 60], ["Outro", 14],
+];
+const VALORES = ["Não pagaria", "Até R$ 9,90", "R$ 10 a 19,90", "R$ 20 a 29,90", "R$ 30 a 49,90", "R$ 50 ou mais"];
 const GUIA = [
   "Rosto limpo, sem maquiagem e sem creme há pelo menos 30 minutos.",
   "De frente para uma janela, com luz do dia indireta. Sem sol direto e sem flash.",
@@ -316,6 +342,11 @@ const GUIA = [
   "Sem filtros e sem modo beleza ou retrato.",
   "No WhatsApp, envie como documento para não perder qualidade.",
   "Nas próximas fotos: mesmo lugar, mesmo horário, mesma posição.",
+];
+const GUIA_TESTE = [
+  "No mesmo lugar e na mesma hora, tire 3 fotos seguidas do rosto, seguindo o guia de foto. Entre uma e outra, abaixe o celular e posicione de novo.",
+  "Depois, tire 1 foto num lugar com luz diferente (por exemplo, à noite com a lâmpada do banheiro).",
+  "Envie as 4 fotos como documento, na ordem em que foram tiradas.",
 ];
 const ERR = {
   not_granted: "O uso do Claude não foi autorizado nesta página. Recarregue a página e autorize.",
@@ -330,38 +361,51 @@ const ERR = {
   prompt_too_large: "Dados demais para uma análise. Encurte as observações.",
   image_too_big: "A foto é grande demais. Use uma foto com menos de 20 MB.",
 };
+// Stability thresholds used across Etapa 1
+const LIM_OK = 5, LIM_WARN = 10, SALTO_SCORE = 10, SALTO_CAT = 15;
 
 // ---------- State ----------
 const S = {
-  profiles: [], analyses: [], checks: {},
+  profiles: [], analyses: [], checks: {}, eventos: [], testes: [], ocorrencias: [],
   pid: null, tab: "inicio", detailId: null, period: "tudo",
-  db: null, assets: null, sample: null, imgMax: 0, runtime: "loading",
+  db: null, assets: null, sample: null, downloads: null, imgMax: 0, runtime: "loading",
   loaded: { p: false, a: false },
   draft: null, busy: null, confirm: null, editProfile: null, cmp: { a: null, b: null, cut: 50 },
+  procForm: null, fb: null, testDraft: null, noteDraft: "", moveTo: "",
 };
 const localUrls = {};
+const COLS = ["profiles", "analyses", "eventos", "testes", "ocorrencias"];
 
 // ---------- Helpers ----------
 const $ = (s, r = document) => r.querySelector(s);
 const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 const newId = () => (crypto.randomUUID ? crypto.randomUUID() : String(Math.random()).slice(2) + Date.now()).replace(/-/g, "").slice(0, 20);
 const pad = (n) => String(n).padStart(2, "0");
-const today = () => { const d = new Date(); return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`; };
+const ymd = (d) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+const today = () => ymd(new Date());
+const addDays = (s, n) => { const d = new Date(s + "T12:00:00"); d.setDate(d.getDate() + n); return ymd(d); };
 const fmt = (s) => { if (!s) return "—"; const [y, m, d] = s.split("-"); return `${d}/${m}/${y}`; };
 const fmtS = (s) => { if (!s) return "—"; const [, m, d] = s.split("-"); return `${d}/${m}`; };
 const dayMs = (s) => new Date(s + "T12:00:00").getTime();
 const daysBetween = (a, b) => Math.round((dayMs(b) - dayMs(a)) / 86400000);
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const brl = (v) => Number(v).toLocaleString("pt-BR", { style: "currency", currency: "BRL", maximumFractionDigits: 0 });
+const mean = (a) => a.length ? a.reduce((s, n) => s + n, 0) / a.length : null;
 const lsGet = (k) => { try { return localStorage.getItem(k); } catch { return null; } };
 const lsSet = (k, v) => { try { localStorage.setItem(k, v); } catch {} };
 
 const profile = (id) => S.profiles.find((p) => p.id === id) || null;
-const analysesOf = (pid) => S.analyses.filter((a) => a.profileId === pid)
-  .sort((a, b) => (a.data + (a.criadoEm || "")).localeCompare(b.data + (b.criadoEm || "")));
-const validOf = (pid) => analysesOf(pid).filter((a) => a.skinScore != null);
+const byDate = (a, b) => (a.data + (a.criadoEm || "")).localeCompare(b.data + (b.criadoEm || ""));
+const analysesOf = (pid) => S.analyses.filter((a) => a.profileId === pid).sort(byDate);
+// Analyses that count as follow-up (not a stability test, not awaiting review)
+const inEvo = (a) => a.skinScore != null && !a.teste && !a.revisao;
+const validOf = (pid) => analysesOf(pid).filter(inEvo);
 const latest = (pid) => { const l = validOf(pid); return l[l.length - 1] || null; };
+const pendingOf = (pid) => analysesOf(pid).filter((a) => a.revisao);
 const photoSrc = (a) => a?.fotoId ? "/_blob/" + a.fotoId : (localUrls[a?.id] || null);
+const eventosOf = (pid) => S.eventos.filter((e) => e.profileId === pid).sort((a, b) => a.data.localeCompare(b.data));
+const recoveryOn = (pid, date) => eventosOf(pid).find((e) => date >= e.data && date <= addDays(e.data, e.dias || 14)) || null;
+const eventsBetween = (pid, a, b) => eventosOf(pid).filter((e) => e.data > a && e.data <= b);
 
 function toast(msg) {
   const t = $("#toast"); t.textContent = msg; t.hidden = false;
@@ -370,9 +414,10 @@ function toast(msg) {
 
 function computeScore(res) {
   const v = CATS.map(([k]) => res?.notas?.[k]?.nota).filter((n) => Number.isFinite(n));
-  return v.length ? Math.round(v.reduce((s, n) => s + n, 0) / v.length) : null;
+  return v.length ? Math.round(mean(v)) : null;
 }
 function catScore(a, k) { const n = a?.resultado?.notas?.[k]?.nota; return Number.isFinite(n) ? n : null; }
+function level(spread) { return spread == null ? null : spread <= LIM_OK ? "ok" : spread <= LIM_WARN ? "warn" : "bad"; }
 
 // ---------- Store (db or in-memory fallback) ----------
 function upsertLocal(col, id, data) {
@@ -384,12 +429,20 @@ async function putDoc(col, id, data) {
   if (S.db) await S.db.collection(col).doc(id).set(data);
   else { upsertLocal(col, id, data); onData(); }
 }
+async function patchDoc(col, id, patch) {
+  if (S.db) await S.db.collection(col).doc(id).update(patch);
+  else { const cur = S[col].find((x) => x.id === id); if (cur) { const { id: _, ...rest } = cur; upsertLocal(col, id, { ...rest, ...patch }); } onData(); }
+}
 async function delDoc(col, id) {
   if (S.db) await S.db.collection(col).doc(id).delete();
   else { if (col === "checks") delete S.checks[id]; else S[col] = S[col].filter((x) => x.id !== id); onData(); }
 }
 let writeChain = Promise.resolve();
 const queued = (fn) => (writeChain = writeChain.then(fn).catch((e) => toast("Não foi possível salvar: " + (e?.message || e?.code || "erro"))));
+
+function logOcorrencia(profileId, tipo, detalhe) {
+  queued(() => putDoc("ocorrencias", newId(), { profileId: profileId || null, tipo, detalhe: String(detalhe).slice(0, 500), criadoEm: new Date().toISOString(), auto: true }));
+}
 
 function pickProfile() {
   if (S.pid && profile(S.pid)) return;
@@ -424,7 +477,7 @@ function renderHeader() {
 
 // ---------- Rendering: main ----------
 function renderMain() {
-  const views = { inicio: vInicio, nova: vNova, evolucao: vEvolucao, detalhe: vDetalhe, rotina: vRotina, produtos: vProdutos, perfis: vPerfis };
+  const views = { inicio: vInicio, nova: vNova, evolucao: vEvolucao, detalhe: vDetalhe, rotina: vRotina, produtos: vProdutos, perfis: vPerfis, testes: vTestes };
   $("#main").innerHTML = banner() + (views[S.tab] || vInicio)() + `<p class="foot">Protótipo para avaliação de viabilidade. Avaliação visual automatizada com fins cosméticos: não é diagnóstico médico.</p>`;
   afterRender();
 }
@@ -464,7 +517,7 @@ function barsHtml(a, prev, withObs) {
 
 function confChip(a) {
   const c = a?.resultado?.confianca;
-  const map = { alta: ["good", "Confiança alta"], media: ["warn", "Confiança média"], "média": ["warn", "Confiança média"], baixa: ["bad", "Confiança baixa"] };
+  const map = { alta: ["good", "Confiança alta"], media: ["warn", "Confiança média"], baixa: ["bad", "Confiança baixa"] };
   const [cls, l] = map[c] || ["", "Confiança não informada"];
   return `<span class="chip ${cls}"><span class="dot"></span>${l}</span>`;
 }
@@ -481,8 +534,20 @@ function alertsHtml(a) {
   return `<div class="notice bad"><span class="ico">!</span><div><b>Vale mostrar a um dermatologista</b><ul>${al.map((x) => `<li>${esc(x)}</li>`).join("")}</ul></div></div>`;
 }
 
+function recoveryNotice(pid, date, lead) {
+  const ev = recoveryOn(pid, date);
+  if (!ev) return "";
+  return `<div class="notice warn"><span class="ico">!</span><div><b>${lead} ${esc(ev.tipo.toLowerCase())} em ${fmt(ev.data)}.</b> Recuperação estimada até ${fmt(addDays(ev.data, ev.dias || 14))}. Nesse período, vermelhidão, inchaço ou descamação podem mudar as notas sem que a pele tenha piorado. Siga a orientação do profissional que fez o procedimento.</div></div>`;
+}
+
 function needProfile() {
   return `<section class="card empty"><h2>Comece cadastrando um familiar</h2><p class="lede">Cada pessoa tem seu histórico de fotos, Skin Score, rotina e produtos.</p><button class="btn primary" data-act="p-new">Cadastrar familiar</button></section>`;
+}
+
+function pendingNotice(pid) {
+  const pend = pendingOf(pid);
+  if (!pend.length) return "";
+  return `<div class="notice warn"><span class="ico">!</span><div><b>${pend.length === 1 ? "1 análise precisa" : pend.length + " análises precisam"} da sua revisão</b> antes de entrar na evolução. ${pend.map((a) => `<button class="btn sm" data-act="detail:${esc(a.id)}">${fmt(a.data)}</button>`).join(" ")}</div></div>`;
 }
 
 // ----- Início
@@ -492,18 +557,21 @@ function vInicio() {
   const list = validOf(p.id);
   const last = list[list.length - 1], prev = list[list.length - 2];
   if (!last) {
-    return `<section class="card empty"><h2>${esc(p.nome)} ainda não tem análises</h2><p class="lede">Peça uma foto do rosto seguindo o guia e suba aqui. A primeira análise vira a linha de base para acompanhar a evolução.</p><div class="row"><button class="btn primary" data-act="tab:nova">Nova análise</button><button class="btn" data-act="tab:perfis">Ver guia de foto</button></div></section>`;
+    return `${pendingNotice(p.id)}<section class="card empty"><h2>${esc(p.nome)} ainda não tem análises</h2><p class="lede">Peça uma foto do rosto seguindo o guia e suba aqui. A primeira análise vira a linha de base para acompanhar a evolução.</p><div class="row"><button class="btn primary" data-act="tab:nova">Nova análise</button><button class="btn" data-act="tab:perfis">Ver guia de foto</button></div></section>`;
   }
   const since = daysBetween(last.data, today());
   const r = last.resultado || {};
+  const procBetween = prev ? eventsBetween(p.id, prev.data, last.data) : [];
   return `
+  ${pendingNotice(p.id)}
+  ${recoveryNotice(p.id, today(), `${esc(p.nome)} fez`)}
   <section class="grid2">
     <div class="card">
       <div class="row between"><h3>Última análise · ${fmt(last.data)}</h3>${p.demo ? `<span class="chip gold">Exemplo</span>` : ""}</div>
       <div class="hero">${ring(last.skinScore)}
         <div class="stack">
           <h1>${esc(p.nome)}</h1>
-          <div class="row">${confChip(last)}${prev ? `<span class="chip">${deltaHtml(last.skinScore, prev.skinScore)} desde ${fmtS(prev.data)}</span>` : `<span class="chip">Linha de base</span>`}</div>
+          <div class="row">${confChip(last)}${prev ? `<span class="chip">${deltaHtml(last.skinScore, prev.skinScore)} desde ${fmtS(prev.data)}</span>` : `<span class="chip">Linha de base</span>`}${procBetween.length ? `<span class="chip warn">Após procedimento</span>` : ""}</div>
           <p class="lede small">${esc(r.resumo || "")}</p>
         </div>
       </div>
@@ -540,6 +608,11 @@ function qualityHtml(q) {
   const icon = { ok: ["good", "✓"], warn: ["warn", "!"], bad: ["bad", "✕"] };
   return `<ul class="qlist">${q.items.map((it) => `<li><span class="chip ${icon[it.s][0]}" aria-label="${it.s}">${icon[it.s][1]}</span><span>${esc(it.k)}</span><span class="num small muted">${esc(it.v)}</span>${it.s !== "ok" ? `<span class="tip">${esc(it.tip)}</span>` : ""}</li>`).join("")}</ul>`;
 }
+function qualityChip(q) {
+  if (!q) return "";
+  const m = { ok: ["good", "Foto boa"], warn: ["warn", "Foto com ressalvas"], bad: ["bad", "Foto ruim"] }[q.level];
+  return `<span class="chip ${m[0]}"><span class="dot"></span>${m[1]}</span>`;
+}
 
 function vNova() {
   const p = profile(S.pid);
@@ -554,6 +627,7 @@ function vNova() {
     <div class="card">
       <div class="stack"><h2>Nova análise</h2><p class="lede small">Para <b>${esc(p.nome)}</b>. Use a data em que a foto foi tirada.</p></div>
       ${!p.consentimento ? `<div class="notice bad"><span class="ico">!</span><div>Registre no cadastro que ${esc(p.nome)} autorizou o uso das fotos antes de analisar. <button class="btn sm" data-act="p-edit:${esc(p.id)}">Abrir cadastro</button></div></div>` : ""}
+      ${recoveryNotice(p.id, d.data, "Esta foto está no período de recuperação de")}
       <div class="fields">
         <label class="f" for="d-data">Data da foto<input type="date" id="d-data" data-d="data" value="${esc(d.data)}" max="${today()}"${busy ? " disabled" : ""}></label>
         <div class="f">Região<div class="seg" role="group" aria-label="Região">${Object.entries(REGIOES).map(([k, l]) => `<button data-act="reg:${k}" aria-pressed="${d.regiao === k}"${busy ? " disabled" : ""}>${l}</button>`).join("")}</div></div>
@@ -577,7 +651,7 @@ function vNova() {
       ${S.sample && S.imgMax === 0 ? `<div class="notice warn"><span class="ico">!</span><div>${ERR.images_unavailable}</div></div>` : ""}
       <div id="busy">${busyHtml()}</div>
       <div class="row"><button class="btn primary" data-act="analisar"${canRun ? "" : " disabled"}>Analisar com IA</button>${d.url && !busy ? `<button class="btn ghost" data-act="clear-photo">Descartar foto</button>` : ""}</div>
-      <p class="small muted">A foto é enviada ao Claude pela sua conta do claude.ai. Leva de 30 a 90 segundos.</p>
+      <p class="small muted">A foto é enviada ao Claude pela sua conta do claude.ai. Leva de 30 a 90 segundos. Quando houver foto anterior, ela vai junto para comparar e confirmar que é a mesma pessoa.</p>
     </div>
   </section>`;
 }
@@ -592,29 +666,33 @@ function updateBusy() { const b = $("#busy"); if (b) b.innerHTML = busyHtml(); }
 function vEvolucao() {
   const p = profile(S.pid);
   if (!p) return needProfile();
-  const all = analysesOf(p.id);
-  const valid = all.filter((a) => a.skinScore != null);
-  if (!all.length) return `<section class="card empty"><h2>Sem histórico ainda</h2><p class="lede">A evolução aparece a partir da primeira análise de ${esc(p.nome)}.</p><button class="btn primary" data-act="tab:nova">Nova análise</button></section>`;
+  const all = analysesOf(p.id).filter((a) => !a.teste);
+  const valid = all.filter(inEvo);
+  const evs = eventosOf(p.id);
+  if (!all.length && !evs.length) return `<section class="card empty"><h2>Sem histórico ainda</h2><p class="lede">A evolução aparece a partir da primeira análise de ${esc(p.nome)}.</p><div class="row"><button class="btn primary" data-act="tab:nova">Nova análise</button><button class="btn" data-act="proc-new">Registrar procedimento</button></div></section>${S.procForm ? `<section class="card">${procFormHtml()}</section>` : ""}`;
   const lastDate = valid.length ? valid[valid.length - 1].data : today();
   const inPeriod = S.period === "tudo" ? valid : valid.filter((a) => daysBetween(a.data, lastDate) <= Number(S.period));
   const first = inPeriod[0], last = inPeriod[inPeriod.length - 1];
+  const procIn = first && last ? eventsBetween(p.id, first.data, last.data) : [];
   const withPhoto = all.filter((a) => photoSrc(a));
   if (!S.cmp.a || !withPhoto.find((a) => a.id === S.cmp.a)) S.cmp.a = withPhoto[0]?.id || null;
   if (!S.cmp.b || !withPhoto.find((a) => a.id === S.cmp.b)) S.cmp.b = withPhoto[withPhoto.length - 1]?.id || null;
   const A = all.find((a) => a.id === S.cmp.a), B = all.find((a) => a.id === S.cmp.b);
   const optList = (sel) => withPhoto.map((a) => `<option value="${esc(a.id)}"${a.id === sel ? " selected" : ""}>${fmt(a.data)} · ${REGIOES[a.regiao] || ""}${a.skinScore != null ? " · " + a.skinScore : ""}</option>`).join("");
   return `
+  ${pendingNotice(p.id)}
   <section class="card">
     <div class="row between"><h2>Evolução de ${esc(p.nome)}</h2>
       <div class="seg" role="group" aria-label="Período">${[["15", "15 dias"], ["30", "30"], ["60", "60"], ["90", "90"], ["tudo", "Tudo"]].map(([k, l]) => `<button data-act="period:${k}" aria-pressed="${S.period === k}">${l}</button>`).join("")}</div>
     </div>
-    ${inPeriod.length ? `<div class="row small muted">Skin Score · ${inPeriod.length} ${inPeriod.length === 1 ? "análise" : "análises"} de ${fmt(first.data)} a ${fmt(last.data)}</div>
+    ${inPeriod.length ? `<div class="row small muted">Skin Score · ${inPeriod.length} ${inPeriod.length === 1 ? "análise" : "análises"} de ${fmt(first.data)} a ${fmt(last.data)}${evs.length ? " · linhas tracejadas marcam procedimentos" : ""}</div>
     <div class="chart" id="chart"></div>` : `<p class="muted">Nenhuma análise neste período.</p>`}
+    ${procIn.length ? `<div class="notice warn"><span class="ico">!</span><div>Houve ${procIn.length === 1 ? "um procedimento" : procIn.length + " procedimentos"} neste período (${procIn.map((e) => `${esc(e.tipo.toLowerCase())} em ${fmtS(e.data)}`).join(", ")}). A variação não reflete só a rotina.</div></div>` : ""}
     ${inPeriod.length > 1 ? `<div class="tbl-wrap"><table><thead><tr><th>Indicador</th><th class="r">${fmtS(first.data)}</th><th class="r">${fmtS(last.data)}</th><th class="r">Variação</th></tr></thead><tbody>
       <tr><td><b>Skin Score</b></td><td class="r num">${first.skinScore}</td><td class="r num">${last.skinScore}</td><td class="r">${deltaHtml(last.skinScore, first.skinScore)}</td></tr>
       ${CATS.map(([k, l]) => { const a = catScore(first, k), b = catScore(last, k); return `<tr><td>${l}</td><td class="r num">${a ?? "—"}</td><td class="r num">${b ?? "—"}</td><td class="r">${deltaHtml(b, a) || "—"}</td></tr>`; }).join("")}
     </tbody></table></div>
-    <p class="small muted">Diferenças de até 5 pontos podem vir da luz ou do ângulo da foto, não da pele.</p>` : ""}
+    <p class="small muted">Diferenças de até ${LIM_OK} pontos podem vir da luz ou do ângulo da foto, não da pele.</p>` : ""}
   </section>
   <section class="grid2">
     <div class="card">
@@ -629,9 +707,29 @@ function vEvolucao() {
     </div>
     <div class="card">
       <h3>Todas as análises</h3>
-      <div class="list">${[...all].reverse().map((a) => `<button class="item" data-act="detail:${esc(a.id)}">${photoHtml(a, "thumb")}<span class="item-b"><span class="item-t">${fmt(a.data)}</span><span class="small muted">${REGIOES[a.regiao] || ""}${a.demo ? " · exemplo" : ""}${a.skinScore == null ? " · foto insuficiente" : ""}</span></span><span class="score-s">${a.skinScore ?? "—"}</span></button>`).join("")}</div>
+      ${all.length ? `<div class="list">${[...all].reverse().map((a) => `<button class="item" data-act="detail:${esc(a.id)}">${photoHtml(a, "thumb")}<span class="item-b"><span class="item-t">${fmt(a.data)}</span><span class="small muted">${REGIOES[a.regiao] || ""}${a.demo ? " · exemplo" : ""}${a.skinScore == null ? " · foto insuficiente" : ""}</span>${a.revisao ? `<span><span class="chip warn">Revisar</span></span>` : ""}</span><span class="score-s">${a.skinScore ?? "—"}</span></button>`).join("")}</div>` : `<p class="muted">Nenhuma análise ainda.</p>`}
     </div>
+  </section>
+  <section class="card">
+    <div class="row between"><h3>Procedimentos estéticos</h3>${S.procForm ? "" : `<button class="btn sm" data-act="proc-new">Registrar procedimento</button>`}</div>
+    <p class="small muted">Registre toxina, preenchimento, laser, peeling, cirurgia e afins. O app separa o efeito do procedimento da evolução pela rotina e ajusta a rotina durante a recuperação.</p>
+    ${S.procForm ? procFormHtml() : ""}
+    ${evs.length ? `<div class="list">${[...evs].reverse().map((e) => { const ask = S.confirm === "e:" + e.id; return `<div class="item" style="cursor:default"><span class="item-b"><span class="item-t">${esc(e.tipo)} · ${fmt(e.data)}</span><span class="small muted">${[e.area, `recuperação até ${fmt(addDays(e.data, e.dias || 14))}`, e.obs].filter(Boolean).map(esc).join(" · ")}</span></span>${ask ? `<span class="row"><button class="btn danger solid sm" data-act="e-del-yes:${esc(e.id)}">Excluir</button><button class="btn sm" data-act="cancel-confirm">Cancelar</button></span>` : `<button class="btn sm danger" data-act="e-del:${esc(e.id)}">Excluir</button>`}</div>`; }).join("")}</div>` : ""}
   </section>`;
+}
+
+function procFormHtml() {
+  const f = S.procForm;
+  return `<form id="procform" class="stack" novalidate>
+    <div class="fields">
+      <label class="f" for="pr-tipo">Procedimento<select id="pr-tipo" data-pr="tipo">${PROCS.map(([t]) => `<option${t === f.tipo ? " selected" : ""}>${t}</option>`).join("")}</select></label>
+      <label class="f" for="pr-data">Data<input type="date" id="pr-data" data-pr="data" value="${esc(f.data)}"></label>
+      <label class="f" for="pr-dias">Recuperação (dias)<input type="number" id="pr-dias" data-pr="dias" min="0" max="180" value="${esc(f.dias)}"></label>
+    </div>
+    <label class="f" for="pr-area">Área tratada<input type="text" id="pr-area" data-pr="area" value="${esc(f.area || "")}" placeholder="Ex.: testa e glabela"></label>
+    <label class="f" for="pr-obs">Observações<input type="text" id="pr-obs" data-pr="obs" value="${esc(f.obs || "")}" placeholder="Ex.: orientação de suspender ácidos por 10 dias"></label>
+    <div class="row"><button class="btn primary sm" type="submit">Salvar procedimento</button><button class="btn sm" type="button" data-act="proc-cancel">Cancelar</button></div>
+  </form>`;
 }
 
 function drawChart() {
@@ -649,11 +747,13 @@ function drawChart() {
   const grid = [0, 25, 50, 75, 100].map((v) => `<line class="grid" x1="${L}" x2="${W - R}" y1="${y(v)}" y2="${y(v)}"/><text class="ax" x="${L - 8}" y="${y(v) + 4}" text-anchor="end">${v}</text>`).join("");
   const xl = [pts[0], ...(pts.length > 2 ? [pts[Math.floor(pts.length / 2)]] : []), ...(pts.length > 1 ? [pts[pts.length - 1]] : [])]
     .map((q, i, arr) => `<text class="ax" x="${x(q.t)}" y="${H - 6}" text-anchor="${arr.length > 1 && i === 0 ? "start" : arr.length > 1 && i === arr.length - 1 ? "end" : "middle"}">${fmtS(q.d)}</text>`).join("");
+  const procs = pts.length > 1 ? eventosOf(p.id).filter((e) => dayMs(e.data) >= t0 && dayMs(e.data) <= t1)
+    .map((e) => `<line class="proc" x1="${x(dayMs(e.data))}" x2="${x(dayMs(e.data))}" y1="${T - 8}" y2="${H - B}"><title>${esc(e.tipo)} · ${fmt(e.data)}</title></line><text class="proc-l" x="${x(dayMs(e.data)) + 4}" y="${T - 10}">${esc(e.tipo.split(" ")[0])}</text>`).join("") : "";
   const line = pts.map((q, i) => `${i ? "L" : "M"}${x(q.t).toFixed(1)},${y(q.v).toFixed(1)}`).join(" ");
   const area = pts.length > 1 ? `<path class="ar" d="${line} L${x(pts[pts.length - 1].t).toFixed(1)},${y(0)} L${x(pts[0].t).toFixed(1)},${y(0)} Z"/>` : "";
   const end = pts[pts.length - 1];
   box.innerHTML = `<svg viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" role="img" aria-label="Skin Score ao longo do tempo">
-    ${grid}${xl}${area}<path class="ln" d="${line}"/>
+    ${grid}${xl}${procs}${area}<path class="ln" d="${line}"/>
     <line class="cross" id="cross" y1="${T}" y2="${H - B}" x1="-10" x2="-10" visibility="hidden"/>
     ${pts.map((q, i) => `<circle class="pt${i === pts.length - 1 ? " end" : ""}" cx="${x(q.t)}" cy="${y(q.v)}" r="${i === pts.length - 1 ? 5.5 : 4.5}"/>`).join("")}
     <text class="lab" x="${x(end.t)}" y="${y(end.v) - 12}" text-anchor="${pts.length > 1 ? "end" : "middle"}">${end.v}</text>
@@ -672,44 +772,79 @@ function drawChart() {
 }
 
 // ----- Detalhe
+function reviewHtml(a, p) {
+  if (!a.revisao) return "";
+  const others = S.profiles.filter((x) => x.id !== a.profileId);
+  const title = a.revisao.tipo === "pessoa" ? "Esta foto pode não ser de " + esc(p?.nome || "") : "Mudança grande demais para uma análise só";
+  return `<div class="notice warn"><span class="ico">!</span><div class="stack" style="gap:8px"><div><b>${title}.</b> ${esc(a.revisao.motivo || "")} Enquanto não for revisada, esta análise fica fora da evolução.</div>
+    <div class="row"><button class="btn sm primary" data-act="rev-ok:${esc(a.id)}">${a.revisao.tipo === "pessoa" ? "É " + esc(p?.nome || "a mesma pessoa") : "Manter na evolução"}</button>
+    ${others.length ? `<label class="who" for="move-to">Mover para <select id="move-to" data-move="1"><option value="">escolha…</option>${others.map((o) => `<option value="${esc(o.id)}"${S.moveTo === o.id ? " selected" : ""}>${esc(o.nome)}</option>`).join("")}</select></label><button class="btn sm" data-act="rev-move:${esc(a.id)}"${S.moveTo ? "" : " disabled"}>Mover</button>` : ""}
+    <button class="btn sm danger" data-act="a-del:${esc(a.id)}">Excluir</button></div></div></div>`;
+}
+
+function feedbackHtml(a, p) {
+  if (!S.fb || S.fb.id !== a.id) S.fb = { id: a.id, notasErradas: [], ...(a.feedback ? JSON.parse(JSON.stringify(a.feedback)) : {}) };
+  const f = S.fb;
+  const seg = (key, opts) => `<div class="seg small" role="group">${opts.map((o) => `<button data-act="fb:${key}:${esc(o)}" aria-pressed="${String(f[key]) === String(o)}">${esc(o)}</button>`).join("")}</div>`;
+  return `<section class="card">
+    <div class="row between"><h3>Opinião de ${esc(p?.nome || "")} sobre este resultado</h3>${a.feedback ? `<span class="chip good">Respondido ${fmtS(a.feedback.respondidoEm?.slice(0, 10))}</span>` : `<span class="chip">Etapa 1</span>`}</div>
+    <p class="small muted">Mostre o resultado à pessoa e registre as respostas dela. Isso mede se o app é útil e se as notas fazem sentido.</p>
+    <div class="fields">
+      <div class="q"><span>Entendeu o resultado? (1 a 5)</span>${seg("entendeu", [1, 2, 3, 4, 5])}</div>
+      <div class="q"><span>Concorda com o que foi apontado?</span>${seg("concorda", ["Sim", "Em parte", "Não"])}</div>
+    </div>
+    <div class="q"><span>Alguma nota pareceu errada?</span><div class="checks">${CATS.map(([k, l]) => `<label class="pill-check" for="fbn-${k}"><input type="checkbox" id="fbn-${k}" data-fbn="${k}"${(f.notasErradas || []).includes(k) ? " checked" : ""}>${l}</label>`).join("")}</div></div>
+    <div class="fields">
+      <div class="q"><span>Seguiria a rotina?</span>${seg("seguiria", ["Sim", "Talvez", "Não"])}</div>
+      <div class="q"><span>Pagaria por um app assim?</span>${seg("pagaria", ["Sim", "Talvez", "Não"])}</div>
+    </div>
+    <label class="f" for="fb-valor">Quanto pagaria por mês<select id="fb-valor" data-fb="valor"><option value="">—</option>${VALORES.map((v) => `<option${v === f.valor ? " selected" : ""}>${v}</option>`).join("")}</select></label>
+    <label class="f" for="fb-com">Comentário<textarea id="fb-com" data-fb="comentario" placeholder="O que a pessoa achou, o que faltou, o que confundiu">${esc(f.comentario || "")}</textarea></label>
+    <div class="row"><button class="btn primary sm" data-act="fb-save:${esc(a.id)}">Salvar respostas</button></div>
+  </section>`;
+}
+
 function vDetalhe() {
   const a = S.analyses.find((x) => x.id === S.detailId);
   if (!a) { S.tab = "evolucao"; return vEvolucao(); }
   const p = profile(a.profileId);
   const r = a.resultado || {};
-  const list = validOf(a.profileId);
-  const i = list.findIndex((x) => x.id === a.id);
-  const prev = i > 0 ? list[i - 1] : null;
+  const list = validOf(a.profileId).filter((x) => byDate(x, a) < 0);
+  const prev = list[list.length - 1] || null;
   const insuf = a.skinScore == null;
   const q = a.qualidade;
   const ctx = a.contexto || {};
   const ctxItems = [["Sono", ctx.sono && ctx.sono + " h"], ["Água", ctx.agua && ctx.agua + " copos"], ["Sol", ctx.sol], ["Estresse", ctx.estresse], ["Ciclo", ctx.ciclo], ["Produtos", ctx.produtos]].filter(([, v]) => v);
   const delAsk = S.confirm === "a:" + a.id;
+  const rec = recoveryOn(a.profileId, a.data);
+  const pessoa = { sim: ["good", "Mesma pessoa da foto anterior"], nao: ["bad", "Parece outra pessoa"], incerto: ["warn", "Mesma pessoa: incerto"] }[r.mesma_pessoa];
   return `
-  <div class="row"><button class="btn ghost" data-act="tab:evolucao">← Voltar</button></div>
+  <div class="row"><button class="btn ghost" data-act="tab:${a.teste ? "testes" : "evolucao"}">← Voltar</button></div>
+  ${reviewHtml(a, p)}
   <section class="grid2">
     <div class="card">
       <div class="row between"><h2>${esc(p?.nome || "")} · ${fmt(a.data)}</h2>${a.demo ? `<span class="chip gold">Exemplo</span>` : ""}</div>
-      <div class="row"><span class="chip">${REGIOES[a.regiao] || ""}</span>${confChip(a)}${r.filtro_suspeito ? `<span class="chip bad">Possível filtro na foto</span>` : ""}</div>
+      <div class="row"><span class="chip">${REGIOES[a.regiao] || ""}</span>${confChip(a)}${a.teste ? `<span class="chip gold">Teste de repetição · ${a.teste.condicao === "mesma" ? "mesma luz" : "luz diferente"}</span>` : ""}${pessoa ? `<span class="chip ${pessoa[0]}">${pessoa[1]}</span>` : ""}${r.filtro_suspeito ? `<span class="chip bad">Possível filtro na foto</span>` : ""}${rec ? `<span class="chip warn">Em recuperação: ${esc(rec.tipo.toLowerCase())}</span>` : ""}</div>
       ${photoHtml(a)}
       ${q?.items ? `<details><summary class="small muted">Qualidade medida da foto</summary><div style="margin-top:10px">${qualityHtml(q)}</div></details>` : ""}
     </div>
     <div class="stack">
       ${insuf ? `<div class="notice bad"><span class="ico">!</span><div><b>Foto insuficiente para avaliar.</b><ul>${(r.problemas_foto || ["Motivo não informado"]).map((x) => `<li>${esc(x)}</li>`).join("")}</ul>Peça uma nova foto seguindo o guia.</div></div>` : `
       <div class="card">
-        <div class="hero">${ring(a.skinScore)}<div class="stack"><p class="lede">${esc(r.resumo || "")}</p>${prev ? `<span class="chip">${deltaHtml(a.skinScore, prev.skinScore)} desde ${fmtS(prev.data)}</span>` : ""}</div></div>
-        ${barsHtml(a, prev, true)}
+        <div class="hero">${ring(a.skinScore)}<div class="stack"><p class="lede">${esc(r.resumo || "")}</p>${prev && !a.teste ? `<span class="chip">${deltaHtml(a.skinScore, prev.skinScore)} desde ${fmtS(prev.data)}</span>` : ""}</div></div>
+        ${barsHtml(a, a.teste ? null : prev, true)}
       </div>`}
       ${alertsHtml(a)}
       ${r.comparacao ? `<div class="card"><h3>Comparação com a foto anterior</h3><p>${esc(r.comparacao)}</p></div>` : ""}
       ${(r.problemas_foto || []).length && !insuf ? `<div class="notice warn"><span class="ico">!</span><div><b>Observações sobre a foto</b><ul>${r.problemas_foto.map((x) => `<li>${esc(x)}</li>`).join("")}</ul></div></div>` : ""}
     </div>
   </section>
-  ${!insuf ? `<section class="grid2">
+  ${!insuf && !a.teste ? `<section class="grid2">
     <div class="card"><h3>Pontos fortes</h3><ul class="guide">${(r.pontos_fortes || []).map((x) => `<li>${esc(x)}</li>`).join("") || "<li>—</li>"}</ul>
       <h3>Pontos de atenção</h3><ul class="guide">${(r.pontos_atencao || []).map((x) => `<li>${esc(x)}</li>`).join("") || "<li>—</li>"}</ul></div>
     <div class="card"><h3>Ingredientes indicados</h3>${ingredientsHtml(r)}</div>
   </section>` : ""}
+  ${!insuf && !a.teste ? feedbackHtml(a, p) : ""}
   <section class="card">
     <div class="row between"><h3>Registro</h3></div>
     <p class="small muted">${ctxItems.length ? ctxItems.map(([k, v]) => `<b>${k}:</b> ${esc(v)}`).join(" · ") : "Sem contexto informado."}</p>
@@ -731,13 +866,15 @@ function vRotina() {
   const rot = last?.resultado?.rotina;
   if (!rot) return `<section class="card empty"><h2>Rotina ainda não definida</h2><p class="lede">A rotina de ${esc(p.nome)} é montada a partir da primeira análise válida.</p><button class="btn primary" data-act="tab:nova">Nova análise</button></section>`;
   const t = today();
+  const rec = recoveryOn(p.id, t);
   const doc = S.checks[p.id] || { dias: {} };
   const done = new Set(doc.dias?.[t] || []);
   const daily = [...(rot.manha || []).map((_, i) => "m" + i), ...(rot.noite || []).map((_, i) => "n" + i)];
   const nDone = daily.filter((k) => done.has(k)).length;
-  const week = [...Array(7)].map((_, i) => { const d = new Date(); d.setDate(d.getDate() - (6 - i)); const s = `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`; const n = daily.filter((k) => (doc.dias?.[s] || []).includes(k)).length; return { s, n, lbl: "DSTQQSS"[d.getDay()] }; });
+  const week = [...Array(7)].map((_, i) => { const d = new Date(); d.setDate(d.getDate() - (6 - i)); const s = ymd(d); const n = daily.filter((k) => (doc.dias?.[s] || []).includes(k)).length; return { s, n, lbl: "DSTQQSS"[d.getDay()] }; });
   const block = (title, arr, pre, note) => `<div class="card"><div class="row between"><h3>${title}</h3>${note ? `<span class="small muted">${note}</span>` : ""}</div>${arr?.length ? `<ul class="steps">${arr.map((s, i) => { const k = pre + i; const on = done.has(k); return `<li class="step${on ? " done" : ""}"><input type="checkbox" id="st-${k}" data-act="chk:${k}"${on ? " checked" : ""}><label for="st-${k}"><span class="step-t">${esc(s.passo)}</span><br><span class="small">${esc(s.como || "")}</span>${s.por_que ? `<br><span class="small muted">${esc(s.por_que)}</span>` : ""}</label></li>`; }).join("")}</ul>` : `<p class="muted">—</p>`}</div>`;
   return `
+  ${rec ? `<div class="notice bad"><span class="ico">!</span><div><b>Rotina em pausa parcial até ${fmt(addDays(rec.data, rec.dias || 14))}</b> por causa de ${esc(rec.tipo.toLowerCase())} em ${fmt(rec.data)}. Nesse período: limpeza suave, hidratante calmante e protetor solar. Suspenda ácidos, retinoides, vitamina C pura e esfoliação, a menos que o profissional oriente diferente.</div></div>` : ""}
   <section class="card">
     <div class="row between"><div class="stack"><h2>Rotina de ${esc(p.nome)}</h2><p class="small muted">Baseada na análise de ${fmt(last.data)}${last.demo ? " (exemplo)" : ""}. Marque os passos feitos hoje.</p></div>
     <div class="stack" style="justify-items:end"><span class="chip gold num">${nDone} de ${daily.length} hoje</span>
@@ -758,8 +895,7 @@ function toggleCheck(k) {
   const set = new Set(doc.dias[t] || []);
   set.has(k) ? set.delete(k) : set.add(k);
   doc.dias[t] = [...set];
-  const cut = new Date(); cut.setDate(cut.getDate() - 45);
-  const cutS = `${cut.getFullYear()}-${pad(cut.getMonth() + 1)}-${pad(cut.getDate())}`;
+  const cutS = addDays(t, -45);
   for (const d of Object.keys(doc.dias)) if (d < cutS) delete doc.dias[d];
   if (S.db) S.checks[pid] = doc;
   queued(() => putDoc("checks", pid, doc));
@@ -792,6 +928,7 @@ function vProdutos() {
     <h2>Produtos para ${esc(p.nome)}</h2>
     <p class="lede small">Cada produto separa <b>por que foi indicado</b> (vem do perfil e da análise) da <b>informação de preço</b> (estimativa comercial). O app não vende nada e não recebe comissão.</p>
   </section>
+  ${recoveryNotice(p.id, today(), `${esc(p.nome)} fez`)}
   <section class="grid2">
   ${prods.map((pr) => { const q = pr.termo_busca || pr.nome || pr.ingrediente_chave; const pu = perUnit(pr); return `
     <article class="card prod">
@@ -849,6 +986,8 @@ function profileForm(ep) {
     </div>
     <div class="f">Objetivos<div class="checks">${OBJETIVOS.map((o, i) => `<label class="pill-check" for="pf-o${i}"><input type="checkbox" id="pf-o${i}" data-obj="${esc(o)}"${(ep.objetivos || []).includes(o) ? " checked" : ""}>${o}</label>`).join("")}</div></div>
     <label class="f" for="pf-obs">Observações (alergias, gestação, tratamentos em curso)<textarea id="pf-obs" data-pf="obs">${esc(ep.obs || "")}</textarea></label>
+    <label class="pill-check" for="pf-proc6"><input type="checkbox" id="pf-proc6" data-pf="procRecente"${ep.procRecente ? " checked" : ""}>Fez procedimento estético nos últimos 6 meses</label>
+    ${ep.procRecente ? `<p class="small muted">Depois de salvar, registre o procedimento na aba Evolução para o app levar em conta.</p>` : ""}
     <label class="pill-check" for="pf-cons"><input type="checkbox" id="pf-cons" data-pf="consentimento"${ep.consentimento ? " checked" : ""}>A pessoa autorizou o uso das fotos neste teste</label>
     <p class="small muted" id="pf-err" hidden></p>
     <div class="row"><button class="btn primary" type="submit">Salvar</button><button class="btn" type="button" data-act="p-cancel">Cancelar</button></div>
@@ -862,7 +1001,7 @@ async function saveProfile() {
   const id = ep.id || newId();
   const data = {
     nome: ep.nome.trim(), idade: ep.idade ? Number(ep.idade) : null, tipoPele: ep.tipoPele || TIPOS[0], fototipo: ep.fototipo || FOTOTIPOS[0],
-    objetivos: ep.objetivos || [], obs: ep.obs || "", consentimento: !!ep.consentimento,
+    objetivos: ep.objetivos || [], obs: ep.obs || "", consentimento: !!ep.consentimento, procRecente: !!ep.procRecente,
     criadoEm: ep.criadoEm || new Date().toISOString(), ...(ep.demo ? { demo: true } : {}),
   };
   try {
@@ -880,12 +1019,191 @@ async function deleteAnalysis(id) {
 async function deleteProfile(id) {
   try {
     for (const a of analysesOf(id)) await deleteAnalysis(a.id);
+    for (const col of ["eventos", "testes", "ocorrencias"]) for (const x of S[col].filter((x) => x.profileId === id)) await delDoc(col, x.id);
     if (S.checks[id] || S.db) await delDoc("checks", id).catch(() => {});
     await delDoc("profiles", id);
     if (S.pid === id) { S.pid = null; pickProfile(); }
     toast("Familiar excluído.");
   } catch (e) { toast("Não foi possível excluir tudo. Tente de novo."); }
   S.confirm = null; render();
+}
+
+// ----- Etapa 1
+function testResult(t) {
+  const as = (t.analises || []).map((id) => S.analyses.find((a) => a.id === id)).filter(Boolean);
+  const same = as.filter((a) => a.teste?.condicao === "mesma" && a.skinScore != null);
+  const diff = as.filter((a) => a.teste?.condicao === "diferente" && a.skinScore != null);
+  const get = (a, k) => k === "skin" ? a.skinScore : catScore(a, k);
+  const rows = [["skin", "Skin Score"], ...CATS].map(([k, l]) => {
+    const sv = same.map((a) => get(a, k)).filter((v) => v != null);
+    const dv = diff.map((a) => get(a, k)).filter((v) => v != null);
+    const spread = sv.length >= 2 ? Math.max(...sv) - Math.min(...sv) : null;
+    const luz = sv.length && dv.length ? Math.round(mean(dv) - mean(sv)) : null;
+    return { k, l, sv, dv, spread, luz };
+  });
+  const skin = rows[0];
+  const worst = rows.slice(1).filter((r) => r.spread != null).sort((a, b) => b.spread - a.spread)[0] || null;
+  return { as, same, diff, rows, skin, worst, falhas: as.length - same.length - diff.length };
+}
+
+function vTestes() {
+  const real = S.profiles.filter((p) => !p.demo);
+  const realAn = S.analyses.filter((a) => !a.demo);
+  const tests = [...S.testes].sort((a, b) => (b.criadoEm || "").localeCompare(a.criadoEm || ""));
+  const doneTests = tests.map((t) => ({ t, r: testResult(t) })).filter(({ r }) => r.skin.spread != null);
+  const peopleTested = new Set(doneTests.map(({ t }) => t.profileId)).size;
+  const stable = doneTests.filter(({ r }) => r.skin.spread <= LIM_OK).length;
+  const withAn = real.filter((p) => realAn.some((a) => a.profileId === p.id && a.skinScore != null));
+  const fotos = new Set(withAn.map((p) => p.fototipo).filter((f) => f && f !== FOTOTIPOS[0]));
+  const faixas = new Set(withAn.map((p) => !p.idade ? null : p.idade < 30 ? "até 29" : p.idade < 50 ? "30 a 49" : "50+").filter(Boolean));
+  const fbs = realAn.filter((a) => a.feedback);
+  const followUps = realAn.filter((a) => !a.teste && a.skinScore != null);
+  const ocs = [...S.ocorrencias].sort((a, b) => (b.criadoEm || "").localeCompare(a.criadoEm || ""));
+  const p = profile(S.pid);
+  const goal = (label, value, meta, ok, sub) => `<div class="goal"><span class="small muted">${label}</span><b>${value}</b><span class="row"><span class="chip ${ok ? "good" : ""}">${ok ? "Meta atingida" : "Meta: " + meta}</span></span>${sub ? `<span class="small muted">${sub}</span>` : ""}</div>`;
+  return `
+  <section class="card">
+    <div class="row between"><div class="stack" style="gap:4px"><h2>Etapa 1 · Teste com a família</h2><p class="lede small">Mede se as notas são estáveis, se funcionam para tons de pele diferentes e se as pessoas veem valor no app.</p></div>
+    ${S.downloads ? `<div class="row"><button class="btn sm" data-act="export:csv">Exportar planilha (CSV)</button><button class="btn sm" data-act="export:json">Exportar tudo (JSON)</button></div>` : ""}</div>
+    <div class="goals">
+      ${goal("Pessoas com teste de repetição", peopleTested, "3 pessoas", peopleTested >= 3, doneTests.length ? `${stable} de ${doneTests.length} testes estáveis (até ${LIM_OK} pontos)` : "")}
+      ${goal("Fototipos analisados", fotos.size, "3 fototipos", fotos.size >= 3, [...fotos].map((f) => f.split(" ·")[0]).join(", ") || "Informe o fototipo no cadastro")}
+      ${goal("Faixas de idade", faixas.size, "3 faixas", faixas.size >= 3, [...faixas].join(", "))}
+      ${goal("Questionários respondidos", fbs.length, "10 respostas", fbs.length >= 10, `${followUps.length} análises de acompanhamento`)}
+      ${goal("Ocorrências registradas", ocs.length, "registrar tudo", false, "Erros, fotos ruins e revisões entram sozinhos")}
+    </div>
+  </section>
+
+  <section class="card">
+    <h3>Teste de repetição</h3>
+    <p class="small">Mostra quanto a nota varia só por tirar a foto de novo. Cada foto é analisada de forma independente, sem a foto anterior, e não entra na evolução.</p>
+    <ol class="guide">${GUIA_TESTE.map((g) => `<li>${esc(g)}</li>`).join("")}</ol>
+    <div class="row"><button class="btn sm" data-act="copy-test-guide">Copiar instruções do teste</button></div>
+    <div class="divider"></div>
+    ${!p ? `<p class="muted">Cadastre um familiar para fazer o teste.</p>` : testDraftHtml(p)}
+  </section>
+
+  ${tests.length ? `<section class="stack">${tests.map((t) => testCardHtml(t)).join("")}</section>` : ""}
+
+  <section class="grid2">
+    <div class="card">${feedbackSummaryHtml(fbs)}</div>
+    <div class="card">
+      <h3>Diário de ocorrências</h3>
+      <label class="f" for="oc-note">Anotar algo${p ? " sobre " + esc(p.nome) : ""}<textarea id="oc-note" data-note="1" placeholder="Ex.: não entendeu o que é firmeza aparente; foto chegou cortada">${esc(S.noteDraft)}</textarea></label>
+      <div class="row"><button class="btn sm" data-act="oc-add"${S.noteDraft.trim() ? "" : " disabled"}>Registrar</button></div>
+      ${ocs.length ? `<div class="list">${ocs.slice(0, 40).map((o) => { const op = profile(o.profileId); return `<div class="item" style="cursor:default"><span class="item-b"><span class="item-t small">${esc(o.tipo)}${op ? " · " + esc(op.nome) : ""}</span><span class="small">${esc(o.detalhe)}</span><span class="small muted">${o.criadoEm ? fmt(o.criadoEm.slice(0, 10)) : ""}${o.auto ? " · automático" : ""}</span></span><button class="btn ghost sm" data-act="oc-del:${esc(o.id)}" aria-label="Excluir ocorrência">✕</button></div>`; }).join("")}</div>` : `<p class="muted small">Nenhuma ocorrência ainda.</p>`}
+    </div>
+  </section>`;
+}
+
+function ensureTestDraft(p) {
+  if (!S.testDraft || S.testDraft.pid !== p.id) {
+    S.testDraft = { pid: p.id, slots: [{ condicao: "mesma" }, { condicao: "mesma" }, { condicao: "mesma" }, { condicao: "diferente" }] };
+  }
+  return S.testDraft;
+}
+function testDraftHtml(p) {
+  const td = ensureTestDraft(p);
+  const busy = !!S.busy;
+  const filled = td.slots.filter((s) => s.blob);
+  const sameN = filled.filter((s) => s.condicao === "mesma").length;
+  const canRun = S.sample && S.imgMax > 0 && p.consentimento && !busy && sameN >= 2;
+  return `<div class="stack">
+    <div class="row between"><b>Novo teste para ${esc(p.nome)}</b><label class="btn sm" for="file-multi">Escolher várias fotos de uma vez</label></div>
+    <input type="file" id="file-multi" accept="image/jpeg,image/png,image/webp" multiple hidden>
+    ${!p.consentimento ? `<div class="notice bad"><span class="ico">!</span><div>Registre o consentimento de ${esc(p.nome)} no cadastro antes do teste.</div></div>` : ""}
+    <div class="slots">${td.slots.map((s, i) => `<div class="slot">
+      <span class="small"><b>Foto ${i + 1}</b> · ${s.condicao === "mesma" ? "mesma luz" : "luz diferente"}</span>
+      ${s.url ? `<img class="photo" src="${esc(s.url)}" alt="Foto ${i + 1} do teste">${qualityChip(s.q)}` : `<label class="drop" for="file-t${i}">Escolher foto</label>`}
+      <input type="file" id="file-t${i}" data-slot="${i}" accept="image/jpeg,image/png,image/webp" hidden>
+      ${busy ? "" : `<div class="row">${s.url ? `<label class="btn sm ghost" for="file-t${i}">Trocar</label>` : ""}${td.slots.length > 2 ? `<button class="btn sm ghost" data-act="slot-del:${i}">Remover</button>` : ""}</div>`}
+    </div>`).join("")}</div>
+    ${busy ? "" : `<div class="row"><button class="btn sm" data-act="slot-add:mesma">+ Foto com a mesma luz</button><button class="btn sm" data-act="slot-add:diferente">+ Foto com luz diferente</button></div>`}
+    <div id="busy">${busyHtml()}</div>
+    <div class="row"><button class="btn primary" data-act="run-test"${canRun ? "" : " disabled"}>Analisar ${filled.length || ""} ${filled.length === 1 ? "foto" : "fotos"}</button><span class="small muted">São necessárias pelo menos 2 fotos com a mesma luz. Cada foto leva de 30 a 90 segundos.</span></div>
+  </div>`;
+}
+
+function spreadCell(v) {
+  if (v == null) return `<td class="r muted">—</td>`;
+  const l = level(v);
+  return `<td class="r num cell-${l}">${v}</td>`;
+}
+function testCardHtml(t) {
+  const p = profile(t.profileId);
+  const r = testResult(t);
+  const ask = S.confirm === "t:" + t.id;
+  const l = level(r.skin.spread);
+  const verdict = l == null ? ["", "Sem resultado suficiente"] : l === "ok" ? ["good", "Estável"] : l === "warn" ? ["warn", "Oscila"] : ["bad", "Instável"];
+  const cols = [...r.same, ...r.diff];
+  return `<article class="card">
+    <div class="row between"><div class="stack" style="gap:2px"><h3>${esc(p?.nome || "Familiar excluído")} · ${fmt(t.data)}</h3><span class="small muted">${r.same.length} fotos com a mesma luz, ${r.diff.length} com luz diferente${r.falhas ? `, ${r.falhas} sem nota` : ""}${t.status === "incompleto" ? " · teste interrompido" : ""}</span></div>
+      <span class="chip ${verdict[0]}"><span class="dot"></span>${verdict[1]}${r.skin.spread != null ? ` · variação de ${r.skin.spread} pontos` : ""}</span></div>
+    ${r.worst && r.worst.spread > LIM_OK ? `<p class="small">Categoria que mais oscilou: <b>${esc(r.worst.l)}</b> (${r.worst.spread} pontos).</p>` : ""}
+    <div class="tbl-wrap"><table><thead><tr><th>Indicador</th>${cols.map((a, i) => `<th class="r"><button class="btn ghost sm" data-act="detail:${esc(a.id)}">${a.teste.condicao === "mesma" ? "Luz igual " + (i + 1) : "Luz dif."}</button></th>`).join("")}<th class="r">Variação</th><th class="r">Efeito da luz</th></tr></thead><tbody>
+      ${r.rows.map((row) => `<tr><td>${row.k === "skin" ? "<b>Skin Score</b>" : esc(row.l)}</td>${cols.map((a) => { const v = row.k === "skin" ? a.skinScore : catScore(a, row.k); return `<td class="r num">${v ?? "—"}</td>`; }).join("")}${spreadCell(row.spread)}<td class="r num">${row.luz == null ? "—" : (row.luz > 0 ? "+" : "") + row.luz}</td></tr>`).join("")}
+    </tbody></table></div>
+    <p class="small muted">Variação = maior menos menor nota entre as fotos com a mesma luz. Verde até ${LIM_OK}, amarelo até ${LIM_WARN}, vermelho acima. Efeito da luz = média da foto com luz diferente menos média das fotos com a mesma luz.</p>
+    <div class="row">${ask ? `<span class="small">Excluir este teste e as fotos dele?</span><button class="btn danger solid sm" data-act="t-del-yes:${esc(t.id)}">Excluir</button><button class="btn sm" data-act="cancel-confirm">Cancelar</button>` : `<button class="btn sm danger" data-act="t-del:${esc(t.id)}">Excluir teste</button>`}</div>
+  </article>`;
+}
+
+function feedbackSummaryHtml(fbs) {
+  if (!fbs.length) return `<h3>Questionário</h3><p class="muted small">Nenhuma resposta ainda. Depois de cada análise, abra o resultado e registre a opinião da pessoa no fim da página.</p>`;
+  const f = fbs.map((a) => a.feedback);
+  const dist = (key, opts) => { const n = f.filter((x) => x[key]).length || 1; return `<div class="dist">${opts.map((o) => { const c = f.filter((x) => String(x[key]) === String(o)).length; return `<div class="dist-row"><span>${esc(o)}</span><span class="track"><span class="fill" style="width:${(c / n) * 100}%"></span></span><span class="num small">${c}</span></div>`; }).join("")}</div>`; };
+  const ent = mean(f.map((x) => Number(x.entendeu)).filter(Boolean));
+  const erradas = CATS.map(([k, l]) => [l, f.filter((x) => (x.notasErradas || []).includes(k)).length]).filter(([, c]) => c).sort((a, b) => b[1] - a[1]);
+  const coms = fbs.filter((a) => a.feedback.comentario);
+  return `<h3>Questionário · ${fbs.length} ${fbs.length === 1 ? "resposta" : "respostas"}</h3>
+    <p>Entendimento médio: <b class="num">${ent != null ? ent.toFixed(1).replace(".", ",") : "—"}</b> de 5</p>
+    <div class="stack"><span class="small muted">Concorda com o resultado</span>${dist("concorda", ["Sim", "Em parte", "Não"])}</div>
+    <div class="stack"><span class="small muted">Seguiria a rotina</span>${dist("seguiria", ["Sim", "Talvez", "Não"])}</div>
+    <div class="stack"><span class="small muted">Pagaria</span>${dist("pagaria", ["Sim", "Talvez", "Não"])}</div>
+    <div class="stack"><span class="small muted">Quanto pagaria por mês</span>${dist("valor", VALORES)}</div>
+    ${erradas.length ? `<div class="stack"><span class="small muted">Notas apontadas como erradas</span><p class="small">${erradas.map(([l, c]) => `${l} (${c})`).join(", ")}</p></div>` : ""}
+    ${coms.length ? `<div class="stack"><span class="small muted">Comentários</span><ul class="guide">${coms.slice(-8).map((a) => `<li>${esc(a.feedback.comentario)} <span class="muted">· ${esc(profile(a.profileId)?.nome || "")}</span></li>`).join("")}</ul></div>` : ""}`;
+}
+
+async function deleteTest(id) {
+  const t = S.testes.find((x) => x.id === id); if (!t) return;
+  try {
+    for (const aid of t.analises || []) await deleteAnalysis(aid);
+    await delDoc("testes", id);
+    toast("Teste excluído.");
+  } catch { toast("Não foi possível excluir o teste. Tente de novo."); }
+  S.confirm = null; renderMain();
+}
+
+// ----- Export
+function csvCell(v) { return `"${String(v ?? "").replace(/"/g, '""')}"`; }
+async function exportData(kind) {
+  if (!S.downloads) return;
+  const stamp = today();
+  let filename, data;
+  if (kind === "csv") {
+    const head = ["pessoa", "idade", "fototipo", "data", "regiao", "tipo", "teste_id", "condicao_luz", "skin_score", ...CATS.map(([k]) => k), "confianca", "qualidade_foto", "mesma_pessoa", "revisao", "em_recuperacao", "fb_entendeu", "fb_concorda", "fb_notas_erradas", "fb_seguiria", "fb_pagaria", "fb_valor", "fb_comentario"];
+    const rows = [...S.analyses].filter((a) => !a.demo).sort(byDate).map((a) => {
+      const p = profile(a.profileId) || {}; const fb = a.feedback || {}; const rec = recoveryOn(a.profileId, a.data);
+      return [p.nome, p.idade, p.fototipo, a.data, REGIOES[a.regiao], a.teste ? "teste de repetição" : "acompanhamento", a.teste?.id, a.teste ? (a.teste.condicao === "mesma" ? "mesma" : "diferente") : "", a.skinScore,
+        ...CATS.map(([k]) => catScore(a, k)), a.resultado?.confianca, a.qualidade?.level, a.resultado?.mesma_pessoa, a.revisao?.tipo, rec ? rec.tipo : "",
+        fb.entendeu, fb.concorda, (fb.notasErradas || []).join(" "), fb.seguiria, fb.pagaria, fb.valor, fb.comentario].map(csvCell).join(";");
+    });
+    filename = `myskin-etapa1-${stamp}.csv`;
+    data = "﻿" + [head.map(csvCell).join(";"), ...rows].join("\r\n");
+  } else {
+    const strip = (a) => { const { qualidade, ...rest } = a; return { ...rest, qualidade: qualidade ? { level: qualidade.level, medidas: qualidade.medidas } : null }; };
+    data = JSON.stringify({
+      exportadoEm: new Date().toISOString(),
+      observacao: "Dados do protótipo MY Skin AI (etapa 1). Fotos não incluídas.",
+      familiares: S.profiles.filter((p) => !p.demo), analises: S.analyses.filter((a) => !a.demo).map(strip),
+      procedimentos: S.eventos, testes: S.testes.map((t) => { const r = testResult(t); return { ...t, variacaoSkinScore: r.skin.spread, variacaoPorCategoria: Object.fromEntries(r.rows.slice(1).map((x) => [x.k, x.spread])) }; }),
+      ocorrencias: S.ocorrencias,
+    }, null, 2);
+    filename = `myskin-etapa1-${stamp}.json`;
+  }
+  try { await S.downloads.save({ filename, data }); toast("Arquivo salvo."); }
+  catch (e) { if (e?.code !== "declined") toast("Não foi possível gerar o arquivo aqui."); }
 }
 
 // ---------- Image processing & quality ----------
@@ -916,15 +1234,15 @@ function measure(px, w, h, W, H) {
   for (let i = 0; i < w * h; i++) lum[i] = 0.2126 * px[i * 4] + 0.7152 * px[i * 4 + 1] + 0.0722 * px[i * 4 + 2];
   // central region, where the face usually is
   const x0 = Math.floor(w * .25), x1 = Math.floor(w * .75), y0 = Math.floor(h * .2), y1 = Math.floor(h * .8);
-  let sum = 0, n = 0, hi = 0, lo = 0, rs = 0, gs = 0, bs = 0, left = 0, right = 0, nl = 0, nr = 0;
+  let sum = 0, n = 0, hi = 0, lo = 0, rs = 0, bs = 0, left = 0, right = 0, nl = 0, nr = 0;
   const xm = (x0 + x1) / 2;
   for (let y = y0; y < y1; y++) for (let x = x0; x < x1; x++) {
     const i = y * w + x, L = lum[i]; sum += L; n++;
     if (L >= 250) hi++; if (L <= 8) lo++;
-    rs += px[i * 4]; gs += px[i * 4 + 1]; bs += px[i * 4 + 2];
+    rs += px[i * 4]; bs += px[i * 4 + 2];
     if (x < xm) { left += L; nl++; } else { right += L; nr++; }
   }
-  const mean = sum / n, hiPct = (hi / n) * 100, loPct = (lo / n) * 100;
+  const avg = sum / n, hiPct = (hi / n) * 100, loPct = (lo / n) * 100;
   const side = Math.abs(left / nl - right / nr);
   const rb = (rs / n) / Math.max(1, bs / n);
   // sharpness: variance of Laplacian
@@ -938,56 +1256,77 @@ function measure(px, w, h, W, H) {
   const minSide = Math.min(W, H);
   const items = [
     { k: "Resolução", v: `${W}×${H}`, s: minSide < 480 ? "bad" : minSide < 900 ? "warn" : "ok", tip: "Peça a foto original, enviada como documento." },
-    { k: "Iluminação", v: `${Math.round(mean)}/255`, s: mean < 55 || mean > 225 ? "bad" : mean < 85 || mean > 200 ? "warn" : "ok", tip: mean < 85 ? "Foto escura. Peça uma foto de frente para a janela, de dia." : "Foto clara demais. Evite sol direto e flash." },
+    { k: "Iluminação", v: `${Math.round(avg)}/255`, s: avg < 55 || avg > 225 ? "bad" : avg < 85 || avg > 200 ? "warn" : "ok", tip: avg < 85 ? "Foto escura. Peça uma foto de frente para a janela, de dia." : "Foto clara demais. Evite sol direto e flash." },
     { k: "Áreas estouradas", v: `${hiPct.toFixed(1)}%`, s: hiPct > 12 ? "bad" : hiPct > 4 ? "warn" : "ok", tip: "Reflexo forte ou flash apagando a textura da pele." },
     { k: "Sombra lateral", v: `${Math.round(side)}`, s: side > 55 ? "bad" : side > 30 ? "warn" : "ok", tip: "Um lado do rosto mais escuro. A luz deve vir de frente." },
     { k: "Nitidez (estimada)", v: `${Math.round(lap)}`, s: lap < 12 ? "bad" : lap < 35 ? "warn" : "ok", tip: "Foto tremida ou fora de foco. Apoie o celular e toque no rosto para focar." },
     { k: "Cor da luz", v: rb < 0.95 ? "fria" : rb > 2.1 ? "quente" : "neutra", s: rb < 0.9 || rb > 2.4 ? "warn" : "ok", tip: "Luz muito azulada ou amarelada altera a leitura de manchas e vermelhidão." },
   ];
   if (loPct > 25) items.push({ k: "Áreas muito escuras", v: `${loPct.toFixed(0)}%`, s: "warn", tip: "Parte do rosto sem luz." });
-  const level = items.some((i) => i.s === "bad") ? "bad" : items.filter((i) => i.s === "warn").length ? "warn" : "ok";
-  return { items, level, medidas: { brilho: Math.round(mean), estourado: +hiPct.toFixed(1), sombra: Math.round(side), nitidez: Math.round(lap), corRB: +rb.toFixed(2), largura: W, altura: H } };
+  const lvl = items.some((i) => i.s === "bad") ? "bad" : items.filter((i) => i.s === "warn").length ? "warn" : "ok";
+  return { items, level: lvl, medidas: { brilho: Math.round(avg), estourado: +hiPct.toFixed(1), sombra: Math.round(side), nitidez: Math.round(lap), corRB: +rb.toFixed(2), largura: W, altura: H } };
+}
+
+function checkFile(file) {
+  if (!/^image\/(jpeg|png|webp)$/.test(file.type)) { toast("Use uma foto JPG, PNG ou WebP. Fotos HEIC do iPhone: envie como JPG."); return false; }
+  if (file.size > 20 * 1024 * 1024) { toast(ERR.image_too_big); return false; }
+  return true;
 }
 
 async function onFile(file) {
-  if (!file) return;
-  if (!/^image\/(jpeg|png|webp)$/.test(file.type)) { toast("Use uma foto JPG, PNG ou WebP. Fotos HEIC do iPhone: envie como JPG."); return; }
-  if (file.size > 20 * 1024 * 1024) { toast(ERR.image_too_big); return; }
+  if (!file || !checkFile(file)) return;
   const d = ensureDraft();
   try {
     const r = await processImage(file);
     if (d.url) URL.revokeObjectURL(d.url);
     Object.assign(d, r, { force: false });
-    if (file.lastModified) {
-      const lm = new Date(file.lastModified); const s = `${lm.getFullYear()}-${pad(lm.getMonth() + 1)}-${pad(lm.getDate())}`;
-      if (s <= today() && s > "2000-01-01") d.data = s;
-    }
   } catch { toast("Não foi possível abrir esta imagem."); }
   renderMain();
 }
 
+async function onSlotFiles(files, startIdx) {
+  const td = S.testDraft; if (!td) return;
+  let i = startIdx;
+  for (const file of files) {
+    if (!checkFile(file)) continue;
+    if (startIdx == null) { i = td.slots.findIndex((s) => !s.blob); if (i < 0) { td.slots.push({ condicao: "mesma" }); i = td.slots.length - 1; } }
+    try {
+      const r = await processImage(file);
+      if (td.slots[i].url) URL.revokeObjectURL(td.slots[i].url);
+      Object.assign(td.slots[i], r);
+    } catch { toast("Não foi possível abrir uma das imagens."); }
+    if (startIdx != null) break;
+  }
+  renderMain();
+}
+
 // ---------- AI analysis ----------
-function buildPrompt(p, d, prev, prevHasImage) {
-  const ctx = Object.entries(d.ctx).filter(([, v]) => v).map(([k, v]) => `${k}: ${v}`).join("; ") || "não informado";
+function buildPrompt(p, d, prev, prevHasImage, isTest) {
+  const ctx = Object.entries(d.ctx || {}).filter(([, v]) => v).map(([k, v]) => `${k}: ${v}`).join("; ") || "não informado";
   const prevNotes = prev ? CATS.map(([k, l]) => `${l} ${catScore(prev, k) ?? "—"}`).join(", ") : "";
+  const evs = eventosOf(p.id).filter((e) => e.data <= d.data && e.data >= addDays(d.data, -180));
+  const procTxt = evs.length ? evs.map((e) => `${e.tipo} em ${fmt(e.data)}${e.area ? " (" + e.area + ")" : ""}, recuperação estimada de ${e.dias || 14} dias`).join("; ") : (p.procRecente ? "a pessoa informou procedimento estético nos últimos 6 meses, sem detalhes" : "nenhum registrado");
   return `Você é o motor de avaliação visual do protótipo MY Skin AI, um app de cuidados com a pele (uso cosmético, NÃO é diagnóstico médico). Responda em português do Brasil.
 
 IMAGEM 1: foto atual, região "${REGIOES[d.regiao]}", tirada em ${fmt(d.data)}.${prevHasImage ? `
-IMAGEM 2: foto anterior da mesma pessoa e região, tirada em ${fmt(prev.data)}.` : ""}
+IMAGEM 2: foto anterior da mesma região, tirada em ${fmt(prev.data)}, que está no cadastro da mesma pessoa.` : ""}
 
 PERFIL: idade ${p.idade || "não informada"}; tipo de pele percebido: ${p.tipoPele || "não sei"}; fototipo: ${p.fototipo || "não informado"}; objetivos: ${(p.objetivos || []).join(", ") || "não informados"}; observações: ${p.obs || "nenhuma"}.
+PROCEDIMENTOS ESTÉTICOS RECENTES: ${procTxt}.
 CONTEXTO DO DIA: ${ctx}.
-QUALIDADE MEDIDA NA FOTO (métricas automáticas): ${JSON.stringify(d.q.medidas)}.
-${prev ? `ANÁLISE ANTERIOR (${fmt(prev.data)}): ${prevNotes}.` : "Esta é a primeira análise desta pessoa."}
+QUALIDADE MEDIDA NA FOTO (métricas automáticas): ${JSON.stringify(d.q?.medidas || {})}.
+${isTest ? "Esta análise faz parte de um teste de repetição: avalie SOMENTE esta foto, de forma independente." : prev ? `ANÁLISE ANTERIOR (${fmt(prev.data)}): ${prevNotes}.` : "Esta é a primeira análise desta pessoa."}
 
 ESCALA DAS NOTAS (0 a 100, sempre "maior = aparência melhor" naquela categoria):
 90-100 quase nenhum sinal visível; 75-89 sinais leves; 60-74 moderados; 40-59 evidentes; abaixo de 40 muito evidentes.
 Em manchas, linhas, vermelhidão e oleosidade, nota alta significa POUCO sinal. Não ajuste a escala pela idade; a idade serve só para contextualizar o texto. Use null quando a categoria não puder ser avaliada nesta foto.
-CONSISTÊNCIA: seja conservador. Diferença de luz, ângulo ou distância não é mudança da pele.${prev ? " Só altere uma nota em mais de 5 pontos em relação à análise anterior se a mudança for claramente visível apesar dessas diferenças." : ""}
+CONSISTÊNCIA: seja conservador. Diferença de luz, ângulo ou distância não é mudança da pele.${prev && !isTest ? " Só altere uma nota em mais de 5 pontos em relação à análise anterior se a mudança for claramente visível apesar dessas diferenças." : ""}
+PROCEDIMENTOS: se houver procedimento recente, considere que vermelhidão, inchaço ou descamação podem ser temporários, e não atribua ao cuidado diário mudanças que venham do procedimento. Durante a recuperação, a rotina deve ser só limpeza suave, hidratante calmante e protetor solar, sem ácidos, retinoides ou esfoliação.${prevHasImage ? `
+VERIFICAÇÃO: compare a IMAGEM 1 com a IMAGEM 2 apenas para dizer se parecem ser a mesma pessoa. Não diga quem é. Lembre que luz, maquiagem, cabelo e procedimentos mudam a aparência. Responda em "mesma_pessoa" com "sim", "nao" ou "incerto".` : ""}
 
 REGRAS:
 - Se a imagem não mostrar um rosto humano, ou a qualidade não permitir avaliar, use "qualidade_suficiente": false, todas as notas null, e explique em "problemas_foto".
-- Aponte sinais de filtro, "modo beleza" ou edição em "filtro_suspeito".
+- Aponte sinais de filtro, "modo beleza" ou edição em "filtro_suspeito". Se parecer foto de uma tela ou de outra foto, diga em "problemas_foto".
 - Não identifique a pessoa. Não nomeie doenças como certeza; use "aparência de".
 - Em "alertas", só quando houver algo que mereça dermatologista: pinta irregular ou que parece ter mudado, ferida que não cicatriza, lesão que sangra, inflamação intensa, acne nodular ou cística, descamação extensa. Caso contrário, lista vazia.
 - Não recomende medicamentos de prescrição (tretinoína, isotretinoína, hidroquinona, antibióticos, corticoides). Se parecer indicado, diga para conversar com um dermatologista.
@@ -998,7 +1337,8 @@ Responda SOMENTE com um objeto JSON neste formato:
 {
   "qualidade_suficiente": true,
   "rosto_visivel": true,
-  "filtro_suspeito": false,
+  "filtro_suspeito": false,${prevHasImage ? `
+  "mesma_pessoa": "sim" | "nao" | "incerto",` : ""}
   "problemas_foto": ["frases curtas sobre limitações da foto, se houver"],
   "confianca": "alta" | "media" | "baixa",
   "notas": {
@@ -1007,7 +1347,7 @@ ${CATS.map(([k]) => `    "${k}": { "nota": 0-100 ou null, "obs": "uma frase curt
   "resumo": "2 a 3 frases acolhedoras e objetivas",
   "pontos_fortes": ["..."],
   "pontos_atencao": ["..."],
-  "comparacao": ${prev ? '"o que mudou visivelmente desde a análise anterior, considerando a qualidade das fotos"' : "null"},
+  "comparacao": ${prev && !isTest ? '"o que mudou visivelmente desde a análise anterior, considerando a qualidade das fotos e procedimentos"' : "null"},
   "alertas": [],
   "rotina": {
     "manha": [{ "passo": "Limpeza", "como": "produto/tipo e modo de uso", "por_que": "motivo ligado à análise" }],
@@ -1031,52 +1371,123 @@ function normalize(res) {
   for (const k of ["problemas_foto", "pontos_fortes", "pontos_atencao", "alertas", "ingredientes", "produtos"]) if (!Array.isArray(res[k])) res[k] = [];
   res.produtos = res.produtos.map((p) => ({ ...p, preco_min: Number.isFinite(Number(p.preco_min)) ? Number(p.preco_min) : null, preco_max: Number.isFinite(Number(p.preco_max)) ? Number(p.preco_max) : null }));
   res.confianca = String(res.confianca || "").toLowerCase().replace("é", "e");
+  const mp = String(res.mesma_pessoa || "").toLowerCase().replace("ã", "a");
+  res.mesma_pessoa = ["sim", "nao", "incerto"].includes(mp) ? mp : null;
   return res;
 }
 
+// One photo -> Claude -> saved analysis document. Throws a sample error on failure.
+async function runAnalysis(p, d, { prev = null, teste = null, signal, onProgress } = {}) {
+  const images = [d.blob];
+  let prevHasImage = false;
+  if (!teste && prev?.fotoId && S.imgMax >= 2) {
+    try { const r = await fetch("/_blob/" + prev.fotoId); if (r.ok) { images.push(await r.blob()); prevHasImage = true; } } catch {}
+  }
+  const ask = (withPrev) => S.sample.json(buildPrompt(p, d, teste ? null : prev, withPrev, !!teste), {
+    images: withPrev ? images : [d.blob], signal, modelTier: "default", onText: onProgress,
+  });
+  let raw;
+  try { raw = await ask(prevHasImage); }
+  catch (e) {
+    // A comparison between two faces can be declined; retry once with the current photo only.
+    if (e?.code === "refused" && prevHasImage) { prevHasImage = false; raw = await ask(false); }
+    else throw e;
+  }
+  const res = normalize(raw);
+  if (!prevHasImage) res.mesma_pessoa = null;
+  const id = newId();
+  let fotoId = null;
+  if (S.assets) {
+    try { fotoId = (await S.assets.upload(d.blob, { type: "image/jpeg" })).id; }
+    catch { toast("A foto não pôde ser guardada. A análise foi salva sem ela."); }
+  } else localUrls[id] = URL.createObjectURL(d.blob);
+  const skinScore = computeScore(res);
+  let revisao = null;
+  if (!teste && skinScore != null) {
+    if (res.mesma_pessoa === "nao" || res.mesma_pessoa === "incerto") {
+      revisao = { tipo: "pessoa", motivo: res.mesma_pessoa === "nao" ? `A IA achou que a foto não parece ser da mesma pessoa da análise de ${fmt(prev.data)}.` : `A IA não teve certeza de que é a mesma pessoa da análise de ${fmt(prev.data)}.` };
+    } else if (prev && !eventsBetween(p.id, prev.data, d.data).length) {
+      const ds = skinScore - prev.skinScore;
+      const cat = CATS.map(([k, l]) => [l, catScore({ resultado: res }, k), catScore(prev, k)]).filter(([, a, b]) => a != null && b != null).map(([l, a, b]) => [l, a - b]).sort((x, y) => Math.abs(y[1]) - Math.abs(x[1]))[0];
+      if (Math.abs(ds) > SALTO_SCORE) revisao = { tipo: "salto", motivo: `O Skin Score mudou ${ds > 0 ? "+" : ""}${ds} pontos desde ${fmt(prev.data)}. Pode ser foto de outra pessoa, luz muito diferente ou um procedimento não registrado.` };
+      else if (cat && Math.abs(cat[1]) > SALTO_CAT) revisao = { tipo: "salto", motivo: `${cat[0]} mudou ${cat[1] > 0 ? "+" : ""}${cat[1]} pontos desde ${fmt(prev.data)}. Confira luz, ângulo ou procedimento não registrado.` };
+    }
+  }
+  const doc = {
+    profileId: p.id, data: d.data, regiao: d.regiao, fotoId,
+    qualidade: d.q, contexto: d.ctx || {}, resultado: res, skinScore,
+    comparadoCom: teste ? null : prev?.id || null, revisao, teste,
+    criadoEm: new Date().toISOString(),
+  };
+  await putDoc("analyses", id, doc);
+  if (revisao) logOcorrencia(p.id, "revisão", revisao.motivo);
+  if (skinScore == null) logOcorrencia(p.id, "foto insuficiente", (res.problemas_foto || []).join("; ") || "sem motivo informado");
+  return { id, doc };
+}
+
+function startBusy(msg) {
+  const ctl = new AbortController();
+  S.busy = { ctl, msg, secs: 0, timer: setInterval(() => { if (S.busy) { S.busy.secs++; updateBusy(); } }, 1000) };
+  return ctl;
+}
+function stopBusy() { clearInterval(S.busy?.timer); S.busy = null; }
+
 async function analisar() {
-  const d = S.draft, p = profile(d.pid);
+  const d = S.draft, p = profile(d?.pid);
   if (!d?.blob || !p || !S.sample || S.busy) return;
   const prior = validOf(p.id).filter((a) => a.regiao === d.regiao && a.data <= d.data);
   const prev = prior[prior.length - 1] || null;
-  const images = [d.blob];
-  let prevHasImage = false;
-  if (prev?.fotoId && S.imgMax >= 2) {
-    try { const r = await fetch("/_blob/" + prev.fotoId); if (r.ok) { images.push(await r.blob()); prevHasImage = true; } } catch {}
-  }
-  const ctl = new AbortController();
-  S.busy = { ctl, msg: "Enviando foto e aguardando o Claude…", secs: 0, timer: setInterval(() => { if (S.busy) { S.busy.secs++; updateBusy(); } }, 1000) };
+  if (d.q?.level === "bad") logOcorrencia(p.id, "foto ruim analisada", d.q.items.filter((i) => i.s === "bad").map((i) => i.k).join(", "));
+  const ctl = startBusy("Enviando foto e aguardando o Claude…");
   renderMain();
-  let fotoId = null;
   try {
-    const raw = await S.sample.json(buildPrompt(p, d, prev, prevHasImage), {
-      images, signal: ctl.signal, modelTier: "default",
-      onText: () => { if (S.busy && S.busy.msg[0] !== "R") { S.busy.msg = "Recebendo o resultado…"; updateBusy(); } },
+    const { id } = await runAnalysis(p, d, {
+      prev, signal: ctl.signal,
+      onProgress: () => { if (S.busy && S.busy.msg[0] !== "R") { S.busy.msg = "Recebendo o resultado…"; updateBusy(); } },
     });
-    const res = normalize(raw);
-    S.busy.msg = "Salvando…"; updateBusy();
-    const id = newId();
-    if (S.assets) {
-      try { fotoId = (await S.assets.upload(d.blob, { type: "image/jpeg" })).id; }
-      catch { toast("A foto não pôde ser guardada. A análise foi salva sem ela."); }
-    } else localUrls[id] = d.url;
-    const doc = {
-      profileId: p.id, data: d.data, regiao: d.regiao, fotoId,
-      qualidade: d.q, contexto: d.ctx, resultado: res, skinScore: computeScore(res),
-      comparadoCom: prev?.id || null, criadoEm: new Date().toISOString(),
-    };
-    await putDoc("analyses", id, doc);
-    clearInterval(S.busy.timer); S.busy = null;
-    if (!S.assets) d.url = null; // keep the blob URL alive for the local copy
+    stopBusy();
+    if (d.url) URL.revokeObjectURL(d.url);
     S.draft = null; S.detailId = id; S.tab = "detalhe"; S.confirm = null;
     window.scrollTo({ top: 0 });
     render();
   } catch (e) {
-    clearInterval(S.busy?.timer); S.busy = null;
-    if (fotoId && S.assets) S.assets.delete(fotoId).catch(() => {});
-    renderMain();
-    if (e?.code !== "cancelled") toast(ERR[e?.code] || "Falha temporária na análise. Tente de novo.");
+    stopBusy(); renderMain();
+    if (e?.code !== "cancelled") { toast(ERR[e?.code] || "Falha temporária na análise. Tente de novo."); logOcorrencia(p.id, "erro na análise", `${e?.code || "erro"}: ${e?.message || ""}`); }
   }
+}
+
+async function runTest() {
+  const td = S.testDraft, p = profile(td?.pid);
+  if (!td || !p || !S.sample || S.busy) return;
+  const slots = td.slots.filter((s) => s.blob);
+  const testId = newId();
+  const ctl = startBusy(`Foto 1 de ${slots.length}…`);
+  renderMain();
+  const ids = [];
+  let status = "concluido";
+  const data = today();
+  for (let i = 0; i < slots.length; i++) {
+    if (ctl.signal.aborted) { status = "incompleto"; break; }
+    S.busy.msg = `Analisando foto ${i + 1} de ${slots.length}…`; updateBusy();
+    const s = slots[i];
+    try {
+      const { id } = await runAnalysis(p, { data, regiao: "frontal", blob: s.blob, q: s.q, ctx: {} }, { teste: { id: testId, condicao: s.condicao, ordem: i + 1 }, signal: ctl.signal });
+      ids.push(id);
+    } catch (e) {
+      if (e?.code === "cancelled") { status = "incompleto"; break; }
+      status = "incompleto";
+      logOcorrencia(p.id, "erro no teste", `foto ${i + 1}: ${e?.code || "erro"}`);
+      if (["not_granted", "sampling_disabled", "rate_limited", "session_expired", "images_unavailable"].includes(e?.code)) { toast(ERR[e.code]); break; }
+    }
+  }
+  stopBusy();
+  if (ids.length) {
+    await putDoc("testes", testId, { profileId: p.id, data, analises: ids, status, criadoEm: new Date().toISOString() });
+    for (const s of td.slots) if (s.url) URL.revokeObjectURL(s.url);
+    S.testDraft = null;
+    toast(status === "concluido" ? "Teste concluído." : "Teste salvo com as fotos analisadas até aqui.");
+  }
+  renderMain();
 }
 
 // ---------- After render hooks ----------
@@ -1094,6 +1505,25 @@ function afterRender() {
   }
   const pf = $("#pform");
   if (pf) pf.addEventListener("submit", (e) => { e.preventDefault(); saveProfile(); });
+  const prf = $("#procform");
+  if (prf) prf.addEventListener("submit", (e) => { e.preventDefault(); saveProc(); });
+}
+
+async function saveProc() {
+  const f = S.procForm, p = profile(S.pid);
+  if (!f || !p) return;
+  if (!f.data) { toast("Informe a data do procedimento."); return; }
+  try {
+    await putDoc("eventos", newId(), { profileId: p.id, tipo: f.tipo, data: f.data, dias: Number(f.dias) || 0, area: f.area || "", obs: f.obs || "", criadoEm: new Date().toISOString() });
+    S.procForm = null; toast("Procedimento registrado."); renderMain();
+  } catch { toast("Não foi possível salvar. Tente de novo."); }
+}
+
+async function saveFeedback(id) {
+  const f = S.fb; if (!f || f.id !== id) return;
+  const { id: _, ...rest } = f;
+  try { await patchDoc("analyses", id, { feedback: { ...rest, respondidoEm: new Date().toISOString() } }); toast("Respostas salvas."); }
+  catch { toast("Não foi possível salvar as respostas."); }
 }
 
 // ---------- Events ----------
@@ -1102,7 +1532,7 @@ document.addEventListener("click", (e) => {
   const [act, arg] = el.dataset.act.split(/:(.*)/s);
   switch (act) {
     case "tab": S.tab = arg; S.confirm = null; if (arg !== "perfis") S.editProfile = null; render(); window.scrollTo({ top: 0 }); break;
-    case "detail": S.detailId = arg; S.tab = "detalhe"; S.confirm = null; render(); window.scrollTo({ top: 0 }); break;
+    case "detail": S.detailId = arg; S.tab = "detalhe"; S.confirm = null; S.moveTo = ""; render(); window.scrollTo({ top: 0 }); break;
     case "period": S.period = arg; renderMain(); break;
     case "reg": ensureDraft().regiao = arg; renderMain(); break;
     case "force": S.draft.force = el.checked; renderMain(); break;
@@ -1113,34 +1543,65 @@ document.addEventListener("click", (e) => {
     case "p-new": S.tab = "perfis"; S.editProfile = { tipoPele: TIPOS[0], fototipo: FOTOTIPOS[0], objetivos: [], consentimento: false }; render(); break;
     case "p-edit": { const p = profile(arg); if (p) { S.tab = "perfis"; S.editProfile = JSON.parse(JSON.stringify(p)); render(); window.scrollTo({ top: 0 }); } break; }
     case "p-cancel": S.editProfile = null; renderMain(); break;
-    case "p-del": case "a-del": S.confirm = (act === "p-del" ? "p:" : "a:") + arg; renderMain(); break;
+    case "p-del": case "a-del": case "e-del": case "t-del": S.confirm = act[0] + ":" + arg; renderMain(); break;
     case "cancel-confirm": S.confirm = null; renderMain(); break;
     case "p-del-yes": deleteProfile(arg); break;
-    case "a-del-yes": deleteAnalysis(arg).then(() => { S.confirm = null; S.tab = "evolucao"; toast("Análise excluída."); render(); }).catch(() => toast("Não foi possível excluir. Tente de novo.")); break;
-    case "copy-guide": {
-      const text = "Como tirar a foto para o MY Skin AI:\n" + GUIA.map((g, i) => `${i + 1}. ${g}`).join("\n");
-      navigator.clipboard?.writeText(text).then(() => toast("Guia copiado. Cole no WhatsApp da família."), () => toast("Não deu para copiar. Selecione o texto do guia e copie."));
+    case "a-del-yes": deleteAnalysis(arg).then(() => { S.confirm = null; if (S.tab === "detalhe") S.tab = "evolucao"; toast("Análise excluída."); render(); }).catch(() => toast("Não foi possível excluir. Tente de novo.")); break;
+    case "e-del-yes": delDoc("eventos", arg).then(() => { S.confirm = null; toast("Procedimento excluído."); renderMain(); }).catch(() => toast("Não foi possível excluir.")); break;
+    case "t-del-yes": deleteTest(arg); break;
+    case "proc-new": S.procForm = { tipo: PROCS[0][0], data: today(), dias: PROCS[0][1], area: "", obs: "" }; renderMain(); break;
+    case "proc-cancel": S.procForm = null; renderMain(); break;
+    case "rev-ok": patchDoc("analyses", arg, { revisao: null, revisaoConfirmada: new Date().toISOString() }).then(() => { toast("Análise confirmada e incluída na evolução."); renderMain(); }); break;
+    case "rev-move": {
+      const to = profile(S.moveTo); if (!to) break;
+      patchDoc("analyses", arg, { profileId: to.id, revisao: null, comparadoCom: null, feedback: null }).then(() => { toast(`Análise movida para ${to.nome}.`); logOcorrencia(to.id, "foto movida", `Análise movida para ${to.nome}.`); S.moveTo = ""; S.pid = to.id; render(); });
       break;
     }
+    case "fb": { const [k, v] = arg.split(/:(.*)/s); if (S.fb) { S.fb[k] = k === "entendeu" ? Number(v) : v; renderMain(); } break; }
+    case "fb-save": saveFeedback(arg); break;
+    case "slot-add": S.testDraft?.slots.push({ condicao: arg }); renderMain(); break;
+    case "slot-del": { const s = S.testDraft?.slots[Number(arg)]; if (s?.url) URL.revokeObjectURL(s.url); S.testDraft?.slots.splice(Number(arg), 1); renderMain(); break; }
+    case "run-test": runTest(); break;
+    case "oc-add": { const t = S.noteDraft.trim(); if (!t) break; queued(() => putDoc("ocorrencias", newId(), { profileId: S.pid, tipo: "anotação", detalhe: t.slice(0, 500), criadoEm: new Date().toISOString(), auto: false })); S.noteDraft = ""; renderMain(); break; }
+    case "oc-del": queued(() => delDoc("ocorrencias", arg)); break;
+    case "export": exportData(arg); break;
+    case "copy-guide": copyText("Como tirar a foto para o MY Skin AI:\n" + GUIA.map((g, i) => `${i + 1}. ${g}`).join("\n"), "Guia copiado. Cole no WhatsApp da família."); break;
+    case "copy-test-guide": copyText("Teste de repetição do MY Skin AI:\n" + GUIA_TESTE.map((g, i) => `${i + 1}. ${g}`).join("\n") + "\n\nComo tirar cada foto:\n" + GUIA.slice(0, 6).map((g) => `- ${g}`).join("\n"), "Instruções copiadas. Cole no WhatsApp."); break;
   }
 });
+function copyText(text, ok) {
+  if (!navigator.clipboard) { toast("Não deu para copiar. Selecione o texto e copie."); return; }
+  navigator.clipboard.writeText(text).then(() => toast(ok), () => toast("Não deu para copiar. Selecione o texto e copie."));
+}
 
 document.addEventListener("change", (e) => {
   const t = e.target;
-  if (t.id === "pid") { S.pid = t.value; lsSet("msa.pid", t.value); S.confirm = null; S.cmp = { a: null, b: null, cut: 50 }; if (S.tab === "detalhe") S.tab = "evolucao"; render(); return; }
+  if (t.id === "pid") { S.pid = t.value; lsSet("msa.pid", t.value); S.confirm = null; S.procForm = null; S.cmp = { a: null, b: null, cut: 50 }; if (S.tab === "detalhe") S.tab = "evolucao"; render(); return; }
   if (t.id === "file") { onFile(t.files?.[0]); t.value = ""; return; }
+  if (t.id === "file-multi") { onSlotFiles([...(t.files || [])], null); t.value = ""; return; }
+  if (t.dataset.slot != null) { onSlotFiles([...(t.files || [])], Number(t.dataset.slot)); t.value = ""; return; }
   if (t.dataset.cmp) { S.cmp[t.dataset.cmp] = t.value; renderMain(); return; }
+  if (t.dataset.move) { S.moveTo = t.value; renderMain(); return; }
+  if (t.dataset.pr === "tipo" && S.procForm) { S.procForm.tipo = t.value; S.procForm.dias = (PROCS.find(([n]) => n === t.value) || [0, 14])[1]; renderMain(); return; }
+  if (t.dataset.pf === "procRecente" && S.editProfile) { S.editProfile.procRecente = t.checked; renderMain(); return; }
   handleField(t);
 });
 document.addEventListener("input", (e) => {
   const t = e.target;
   if (t.id === "cmp-range") { S.cmp.cut = Number(t.value); $("#cmpbox")?.style.setProperty("--cut", t.value + "%"); return; }
+  if (t.dataset.note) { const had = !!S.noteDraft.trim(); S.noteDraft = t.value; const btn = document.querySelector('[data-act="oc-add"]'); if (btn && had !== !!t.value.trim()) btn.disabled = !t.value.trim(); return; }
   handleField(t);
 });
 function handleField(t) {
   if (t.dataset.d && S.draft) S.draft[t.dataset.d] = t.value;
   else if (t.dataset.ctx && S.draft) S.draft.ctx[t.dataset.ctx] = t.value;
   else if (t.dataset.pf && S.editProfile) S.editProfile[t.dataset.pf] = t.type === "checkbox" ? t.checked : t.value;
+  else if (t.dataset.pr && S.procForm) S.procForm[t.dataset.pr] = t.value;
+  else if (t.dataset.fb && S.fb) S.fb[t.dataset.fb] = t.value;
+  else if (t.dataset.fbn && S.fb) {
+    const set = new Set(S.fb.notasErradas || []); t.checked ? set.add(t.dataset.fbn) : set.delete(t.dataset.fbn);
+    S.fb.notasErradas = CATS.map(([k]) => k).filter((k) => set.has(k));
+  }
   else if (t.dataset.obj && S.editProfile) {
     const set = new Set(S.editProfile.objetivos || []); t.checked ? set.add(t.dataset.obj) : set.delete(t.dataset.obj);
     S.editProfile.objetivos = OBJETIVOS.filter((o) => set.has(o));
@@ -1152,14 +1613,16 @@ render();
 (async () => {
   const c = window.claude;
   const use = (n) => (c?.use ? c.use(n).catch(() => null) : Promise.resolve(null));
-  const [db, assets, sample] = await Promise.all([use("db"), use("assets"), use("sample")]);
-  S.db = db; S.assets = assets; S.sample = sample;
+  const [db, assets, sample, downloads] = await Promise.all([use("db"), use("assets"), use("sample"), use("downloads")]);
+  S.db = db; S.assets = assets; S.sample = sample; S.downloads = downloads;
   if (sample) { try { S.imgMax = (await sample.limits())?.images?.maxCount || 0; } catch { S.imgMax = 0; } }
   if (!db) { S.runtime = "local"; pickProfile(); render(); return; }
   const ready = () => { if (S.loaded.p && S.loaded.a && S.runtime === "loading") { S.runtime = "db"; pickProfile(); render(); } else if (S.runtime === "db") onData(); };
   const fail = (e) => { if (e?.code === "revoked") toast("O acesso aos dados foi encerrado nesta visualização."); else toast("Falha ao carregar dados. Recarregue a página."); };
-  db.collection("profiles").onSnapshot((q) => { S.profiles = q.docs.map((d) => ({ id: d.id, ...d.data() })); S.loaded.p = true; ready(); }, fail);
-  db.collection("analyses").onSnapshot((q) => { S.analyses = q.docs.map((d) => ({ id: d.id, ...d.data() })); S.loaded.a = true; ready(); }, fail);
+  const toRows = (q) => q.docs.map((d) => ({ id: d.id, ...d.data() }));
+  db.collection("profiles").onSnapshot((q) => { S.profiles = toRows(q); S.loaded.p = true; ready(); }, fail);
+  db.collection("analyses").onSnapshot((q) => { S.analyses = toRows(q); S.loaded.a = true; ready(); }, fail);
+  for (const col of ["eventos", "testes", "ocorrencias"]) db.collection(col).onSnapshot((q) => { S[col] = toRows(q); ready(); }, fail);
   db.collection("checks").onSnapshot((q) => { const m = {}; q.docs.forEach((d) => { m[d.id] = d.data(); }); S.checks = m; if (S.runtime === "db" && S.tab === "rotina") renderMain(); }, fail);
 })();
 })();

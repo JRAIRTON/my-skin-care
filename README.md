@@ -8,6 +8,7 @@ Protótipo para avaliar a viabilidade do MY Skin AI com a família (spec v3.0, 2
   e comparação antes/depois, rotina com checklist diário e produtos com pesquisa de preço.
 - `prototipo/seed/` — dados fictícios ("Ana (exemplo)") usados para demonstração.
 - `docs/avaliacao.md` — avaliação de viabilidade e melhorias sugeridas.
+- `docs/etapa1-protocolo.md` — protocolo do teste com a família (etapa 1): metas, passo a passo e critério de decisão.
 
 ## Como funciona o protótipo
 
@@ -18,4 +19,8 @@ Protótipo para avaliar a viabilidade do MY Skin AI com a família (spec v3.0, 2
    O Skin Score é a média das categorias, calculada no app para ser estável.
 5. Dados ficam no banco do artefato; fotos no armazenamento do artefato (privado).
 
-Sem backend próprio e sem chave de API: o artefato usa as capacidades `db`, `assets` e `sample` do claude.ai.
+A aba **Etapa 1** reúne o teste de repetição, o questionário, o diário de ocorrências e a exportação
+(CSV/JSON). O app também verifica se a foto parece ser da mesma pessoa, segura saltos improváveis na nota
+para revisão e considera procedimentos estéticos registrados.
+
+Sem backend próprio e sem chave de API: o artefato usa as capacidades `db`, `assets`, `sample` e `downloads` do claude.ai.
