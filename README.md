@@ -9,6 +9,7 @@ Protótipo para avaliar a viabilidade do MY Skin AI com a família (spec v3.0, 2
 - `prototipo/seed/` — dados fictícios ("Ana (exemplo)") usados para demonstração.
 - `docs/avaliacao.md` — avaliação de viabilidade e melhorias sugeridas.
 - `docs/caracteristicas.md` — o que o protótipo avalia, como e com quais limites.
+- `docs/etapa1-conclusao.md` — conclusão da etapa 1 com os 2 perfis testados.
 - `docs/etapa1-protocolo.md` — protocolo do teste com a família (etapa 1): metas, passo a passo e critério de decisão.
 
 ## Como funciona o protótipo
