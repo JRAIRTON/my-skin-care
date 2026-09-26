@@ -396,7 +396,7 @@ const LIM_OK = 5, LIM_WARN = 10, SALTO_SCORE = 10, SALTO_CAT = 15;
 
 // ---------- State ----------
 const S = {
-  profiles: [], analyses: [], checks: {}, eventos: [], testes: [], ocorrencias: [],
+  profiles: [], analyses: [], checks: {}, eventos: [], testes: [], ocorrencias: [], fila: [],
   pid: null, tab: "inicio", detailId: null, period: "tudo",
   db: null, assets: null, sample: null, downloads: null, imgMax: 0, runtime: "loading",
   loaded: { p: false, a: false },
@@ -405,7 +405,7 @@ const S = {
   diag: { host: false, use: {}, perms: null, limits: null, limitsErr: null },
 };
 const localUrls = {};
-const COLS = ["profiles", "analyses", "eventos", "testes", "ocorrencias"];
+const COLS = ["profiles", "analyses", "eventos", "testes", "ocorrencias", "fila"];
 
 // ---------- Helpers ----------
 const $ = (s, r = document) => r.querySelector(s);
@@ -632,6 +632,65 @@ async function readLimits(sample) {
   catch (e) { S.imgMax = null; S.diag.limitsErr = "erro: " + (e?.code || e?.message || "desconhecido"); }
 }
 
+// Plan B: when this view cannot send photos to Claude, the photos go to a queue that
+// Claude Code analyses with the same rubric and writes back into this app's database.
+const aiImagesBlocked = () => S.runtime !== "loading" && (!S.sample || S.imgMax === 0);
+const PEDIDO_FILA = "Analise as fotos pendentes do MY Skin AI";
+function planB(p, ready, act, n) {
+  if (!aiImagesBlocked() || !S.assets || !S.db) return "";
+  const ok = ready && p?.consentimento;
+  return `<div class="notice"><span class="ico">i</span><div class="stack" style="gap:8px"><div><b>Plano B: análise pelo Claude Code.</b> Esta página não consegue enviar fotos ao Claude. As fotos ficam guardadas no app, numa fila, e o Claude Code analisa com as mesmas regras e grava o resultado aqui.</div>
+    <div class="row"><button class="btn sm primary" data-act="${act}"${ok ? "" : " disabled"}>Enviar ${n > 1 ? n + " fotos" : "a foto"} para a fila</button></div></div></div>`;
+}
+function queueHtml(pid) {
+  const pend = S.fila.filter((f) => f.status === "pendente" && (!pid || f.profileId === pid));
+  if (!pend.length) return "";
+  const nf = pend.reduce((s, f) => s + (f.itens || []).length, 0);
+  return `<div class="notice warn"><span class="ico">…</span><div class="stack" style="gap:8px"><div><b>${nf} ${nf === 1 ? "foto aguardando" : "fotos aguardando"} análise</b> (${pend.map((f) => `${f.tipo === "teste" ? "teste de repetição" : "análise"} de ${esc(profile(f.profileId)?.nome || "")}`).join(", ")}). Na conversa do Claude Code, escreva: <b>“${PEDIDO_FILA}”</b>. O resultado aparece aqui sozinho quando ficar pronto.</div>
+    <div class="row"><button class="btn sm" data-act="copy-fila">Copiar o pedido</button></div></div></div>`;
+}
+async function enqueue(p, tipo, fotos, extra = {}) {
+  const ctl = startBusy("Enviando fotos para a fila…"); renderMain();
+  const itens = [];
+  try {
+    for (let i = 0; i < fotos.length; i++) {
+      if (ctl.signal.aborted) throw { code: "cancelled" };
+      S.busy.msg = `Guardando foto ${i + 1} de ${fotos.length}…`; updateBusy();
+      const f = fotos[i];
+      let mapas = null;
+      try { const m = colorMaps(await createImageBitmap(f.blob)); if (m.pigPct != null) mapas = { pigmentoPct: +m.pigPct.toFixed(1), vermelhoPct: +m.redPct.toFixed(1), pelePct: +m.skinPct.toFixed(0) }; } catch {}
+      const up = await S.assets.upload(f.blob, { type: "image/jpeg" });
+      itens.push({ fotoId: up.id, ordem: i + 1, condicao: f.condicao || null, qualidade: f.q ? { level: f.q.level, medidas: f.q.medidas, items: f.q.items } : null, mapas });
+    }
+    const id = newId(), now = new Date().toISOString();
+    if (tipo === "teste") await putDoc("testes", extra.testeId, { profileId: p.id, data: extra.data, analises: [], status: "aguardando", criadoEm: now });
+    await putDoc("fila", id, { profileId: p.id, tipo, status: "pendente", itens, criadoEm: now, ...extra });
+    stopBusy();
+    return true;
+  } catch (e) {
+    stopBusy();
+    for (const it of itens) S.assets.delete(it.fotoId).catch(() => {});
+    if (e?.code !== "cancelled") toast("Não foi possível enviar as fotos. Tente de novo.");
+    renderMain();
+    return false;
+  }
+}
+async function enqueueTest() {
+  const td = S.testDraft, p = profile(td?.pid); if (!p || S.busy) return;
+  const fotos = td.slots.filter((s) => s.blob);
+  if (await enqueue(p, "teste", fotos, { testeId: newId(), data: today() })) {
+    for (const s of td.slots) if (s.url) URL.revokeObjectURL(s.url);
+    S.testDraft = null; toast("Fotos na fila. Agora peça a análise ao Claude Code."); renderMain();
+  }
+}
+async function enqueueOne() {
+  const d = S.draft, p = profile(d?.pid); if (!p || !d?.blob || S.busy) return;
+  if (await enqueue(p, "analise", [{ blob: d.blob, q: d.q }], { data: d.data, regiao: d.regiao, tipoFoto: d.tipoFoto || "comum", contexto: d.ctx || {} })) {
+    if (d.url) URL.revokeObjectURL(d.url);
+    S.draft = null; toast("Foto na fila. Agora peça a análise ao Claude Code."); renderMain();
+  }
+}
+
 function needProfile() {
   return `<section class="card empty"><h2>Comece cadastrando um familiar</h2><p class="lede">Cada pessoa tem seu histórico de fotos, Skin Score, rotina e produtos.</p><button class="btn primary" data-act="p-new">Cadastrar familiar</button></section>`;
 }
@@ -649,12 +708,13 @@ function vInicio() {
   const list = validOf(p.id);
   const last = list[list.length - 1], prev = list[list.length - 2];
   if (!last) {
-    return `${pendingNotice(p.id)}<section class="card empty"><h2>${esc(p.nome)} ainda não tem análises</h2><p class="lede">Peça uma foto do rosto seguindo o guia e suba aqui. A primeira análise vira a linha de base para acompanhar a evolução.</p><div class="row"><button class="btn primary" data-act="tab:nova">Nova análise</button><button class="btn" data-act="tab:perfis">Ver guia de foto</button></div></section>`;
+    return `${queueHtml(p.id)}${pendingNotice(p.id)}<section class="card empty"><h2>${esc(p.nome)} ainda não tem análises</h2><p class="lede">Peça uma foto do rosto seguindo o guia e suba aqui. A primeira análise vira a linha de base para acompanhar a evolução.</p><div class="row"><button class="btn primary" data-act="tab:nova">Nova análise</button><button class="btn" data-act="tab:perfis">Ver guia de foto</button></div></section>`;
   }
   const since = daysBetween(last.data, today());
   const r = last.resultado || {};
   const procBetween = prev ? eventsBetween(p.id, prev.data, last.data) : [];
   return `
+  ${queueHtml(p.id)}
   ${pendingNotice(p.id)}
   ${recoveryNotice(p.id, today(), `${esc(p.nome)} fez`)}
   <section class="grid2">
@@ -719,6 +779,7 @@ function vNova() {
   const canRun = !busy && !why.length;
   const ctx = d.ctx;
   return `
+  ${queueHtml(p.id)}
   <section class="grid2">
     <div class="card">
       <div class="stack"><h2>Nova análise</h2><p class="lede small">Para <b>${esc(p.nome)}</b>. Use a data em que a foto foi tirada.</p></div>
@@ -749,6 +810,7 @@ function vNova() {
       ${bad && !busy && !special ? `<div class="notice bad"><span class="ico">!</span><div>A foto tem problemas que podem distorcer o resultado. O ideal é pedir outra. <label class="pill-check" style="margin-top:6px"><input type="checkbox" id="force" data-act="force"${d.force ? " checked" : ""}> Analisar mesmo assim</label></div></div>` : ""}
       <div id="busy">${busyHtml()}</div>
       <div class="row"><button class="btn primary" data-act="analisar"${canRun ? "" : " disabled"}>Analisar com IA</button>${d.url && !busy ? `<button class="btn ghost" data-act="clear-photo">Descartar foto</button>` : ""}</div>
+      ${busy ? "" : planB(p, !!d.blob, "enqueue-one", 1)}
       ${busy ? "" : whyHtml(why)}
       <p class="small muted">A foto é enviada ao Claude pela sua conta do claude.ai. Leva de 30 a 90 segundos. Quando houver foto anterior, ela vai junto para comparar e confirmar que é a mesma pessoa.</p>
     </div>
@@ -1168,7 +1230,8 @@ async function deleteAnalysis(id) {
 async function deleteProfile(id) {
   try {
     for (const a of analysesOf(id)) await deleteAnalysis(a.id);
-    for (const col of ["eventos", "testes", "ocorrencias"]) for (const x of S[col].filter((x) => x.profileId === id)) await delDoc(col, x.id);
+    for (const f of S.fila.filter((x) => x.profileId === id)) for (const it of f.itens || []) if (it.fotoId && S.assets) await S.assets.delete(it.fotoId).catch(() => {});
+    for (const col of ["eventos", "testes", "ocorrencias", "fila"]) for (const x of S[col].filter((x) => x.profileId === id)) await delDoc(col, x.id);
     if (S.checks[id] || S.db) await delDoc("checks", id).catch(() => {});
     await delDoc("profiles", id);
     if (S.pid === id) { S.pid = null; pickProfile(); }
@@ -1223,6 +1286,7 @@ function vTestes() {
     </div>
   </section>
 
+  ${queueHtml(null)}
   <section class="card">
     <h3>Teste de repetição</h3>
     <p class="small">Mostra quanto a nota varia só por tirar a foto de novo. Cada foto é analisada de forma independente, sem a foto anterior, e não entra na evolução.</p>
@@ -1271,6 +1335,7 @@ function testDraftHtml(p) {
     ${busy ? "" : `<div class="row"><button class="btn sm" data-act="slot-add:mesma">+ Foto com a mesma luz</button><button class="btn sm" data-act="slot-add:diferente">+ Foto com luz diferente</button></div>`}
     <div id="busy">${busyHtml()}</div>
     <div class="row"><button class="btn primary" data-act="run-test"${canRun ? "" : " disabled"}>Analisar ${filled.length || ""} ${filled.length === 1 ? "foto" : "fotos"}</button><span class="small muted">Cada foto leva de 30 a 90 segundos.</span></div>
+    ${busy ? "" : planB(p, sameN >= 2, "enqueue-test", filled.length)}
     ${busy ? "" : whyHtml(why)}
   </div>`;
 }
@@ -1282,6 +1347,11 @@ function spreadCell(v) {
 }
 function testCardHtml(t) {
   const p = profile(t.profileId);
+  if (t.status === "aguardando") {
+    const ask = S.confirm === "t:" + t.id;
+    return `<article class="card"><div class="row between"><h3>${esc(p?.nome || "Familiar excluído")} · ${fmt(t.data)}</h3><span class="chip warn"><span class="dot"></span>Aguardando análise pelo Claude Code</span></div>
+      <div class="row">${ask ? `<span class="small">Excluir este teste e as fotos dele?</span><button class="btn danger solid sm" data-act="t-del-yes:${esc(t.id)}">Excluir</button><button class="btn sm" data-act="cancel-confirm">Cancelar</button>` : `<button class="btn sm danger" data-act="t-del:${esc(t.id)}">Excluir teste</button>`}</div></article>`;
+  }
   const r = testResult(t);
   const ask = S.confirm === "t:" + t.id;
   const l = level(r.skin.spread);
@@ -1320,6 +1390,10 @@ async function deleteTest(id) {
   const t = S.testes.find((x) => x.id === id); if (!t) return;
   try {
     for (const aid of t.analises || []) await deleteAnalysis(aid);
+    for (const f of S.fila.filter((x) => x.testeId === id)) {
+      for (const it of f.itens || []) if (it.fotoId && S.assets) await S.assets.delete(it.fotoId).catch(() => {});
+      await delDoc("fila", f.id);
+    }
     await delDoc("testes", id);
     toast("Teste excluído.");
   } catch { toast("Não foi possível excluir o teste. Tente de novo."); }
@@ -1817,6 +1891,9 @@ document.addEventListener("click", (e) => {
     case "slot-del": { const s = S.testDraft?.slots[Number(arg)]; if (s?.url) URL.revokeObjectURL(s.url); S.testDraft?.slots.splice(Number(arg), 1); renderMain(); break; }
     case "run-test": runTest(); break;
     case "ask-sample": askSample(); break;
+    case "enqueue-test": enqueueTest(); break;
+    case "enqueue-one": enqueueOne(); break;
+    case "copy-fila": copyText(PEDIDO_FILA, "Pedido copiado. Cole na conversa do Claude Code."); break;
     case "oc-add": { const t = S.noteDraft.trim(); if (!t) break; queued(() => putDoc("ocorrencias", newId(), { profileId: S.pid, tipo: "anotação", detalhe: t.slice(0, 500), criadoEm: new Date().toISOString(), auto: false })); S.noteDraft = ""; renderMain(); break; }
     case "oc-del": queued(() => delDoc("ocorrencias", arg)); break;
     case "export": exportData(arg); break;
@@ -1882,7 +1959,7 @@ render();
   const toRows = (q) => q.docs.map((d) => ({ id: d.id, ...d.data() }));
   db.collection("profiles").onSnapshot((q) => { S.profiles = toRows(q); S.loaded.p = true; ready(); }, fail);
   db.collection("analyses").onSnapshot((q) => { S.analyses = toRows(q); S.loaded.a = true; ready(); }, fail);
-  for (const col of ["eventos", "testes", "ocorrencias"]) db.collection(col).onSnapshot((q) => { S[col] = toRows(q); ready(); }, fail);
+  for (const col of ["eventos", "testes", "ocorrencias", "fila"]) db.collection(col).onSnapshot((q) => { S[col] = toRows(q); ready(); }, fail);
   db.collection("checks").onSnapshot((q) => { const m = {}; q.docs.forEach((d) => { m[d.id] = d.data(); }); S.checks = m; if (S.runtime === "db" && S.tab === "rotina") renderMain(); }, fail);
 })();
 })();
