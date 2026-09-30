@@ -45,17 +45,24 @@ sites das marcas e às bases de ingredientes estava bloqueado neste ambiente. Es
 
 | Produto | Ativos declarados | Tamanho | Preço (R$) | Faixa | Para | Alternativa mais barata |
 |---|---|---|---|---|---|---|
-| **Episol (Mantecorp)** Episol Sec OC FPS 60 | FPS 60, toque seco, versões com cor | 60 g | 89–103 | médio | Reduzir manchas, Acne e oleosidade | Nivea Sun Beauty Expert com cor FPS 50 |
-| **Isdin** Fusion Water FPS 60 | FPS 60, textura fluida | 50 ml | 68–95 | médio | Reduzir manchas | Nivea Sun Beauty Expert com cor FPS 50 |
-| **La Roche-Posay** Anthelios Airlicium FPS 70 | FPS 70, toque seco | tamanho a conferir | 68 | médio | Reduzir manchas, Acne e oleosidade | Sallve Protetor Solar Toque Seco FPS 50 |
+| **Episol (Mantecorp)** Episol Sec OC FPS 60 | FPS 60, toque seco, versões com cor | 60 g | 89–103 | médio | Reduzir manchas, Acne e oleosidade | Anasol Protetor Solar Facial Oil Control FPS 75 |
+| **Isdin** Fusion Water FPS 60 | FPS 60, textura fluida | 50 ml | 68–95 | médio | Reduzir manchas | Anasol Protetor Solar Facial FPS 50 Toque Seco |
+| **La Roche-Posay** Anthelios Airlicium FPS 70 | FPS 70, toque seco | tamanho a conferir | 68 | médio | Reduzir manchas, Acne e oleosidade | Anasol Protetor Solar Facial Oil Control FPS 75 |
 | **Sallve** Protetor Solar Toque Seco FPS 50 | FPS 50, niacinamida | tamanho a conferir | 65 | econômico | Acne e oleosidade | — |
 | **Neutrogena** Sun Fresh Derm Care Pele Negra FPS 70 (com cor) | FPS 70, com cor para peles negras | 40 g | 50 | econômico | Reduzir manchas, Uniformizar o tom | — |
 | **Nivea** Sun Beauty Expert com cor FPS 50 | FPS 50, cor universal, toque seco | 50 g | 46 | econômico | Reduzir manchas | — |
-| **Sallve** Vitamina C 10% + FPS 30 | vitamina C 10%, niacinamida, FPS 30 | 40 g | 110 | premium | Uniformizar o tom, Hidratação | Nivea Sun Beauty Expert com cor FPS 50 |
+| **Sallve** Vitamina C 10% + FPS 30 | vitamina C 10%, niacinamida, FPS 30 | 40 g | 110 | premium | Uniformizar o tom, Hidratação | Anasol Protetor Solar Facial FPS 50 Toque Seco |
+| **Anasol** Protetor Solar Facial FPS 50 Toque Seco | FPS 50, toque seco | 60 g | 33–45 | econômico | Reduzir manchas | — |
+| **Anasol** Protetor Solar Facial Oil Control FPS 75 | FPS 75, antioleosidade | 60 g | 42 | econômico | Reduzir manchas, Acne e oleosidade | — |
+| **Anasol** Base Facial Multifunção FPS 60 (com cor, média) | FPS 60, com cor | 60 g | 63 | econômico | Reduzir manchas, Uniformizar o tom | — |
+| **Anasol** Protetor Solar Facial FPS 99 | FPS 99 | 60 g | 65–108 | médio | Reduzir manchas | Anasol Protetor Solar Facial FPS 50 Toque Seco |
 
 - **Episol (Mantecorp) Episol Sec OC FPS 60:** Tem versões com cor (média e média escura).
 - **Neutrogena Sun Fresh Derm Care Pele Negra FPS 70 (com cor):** Opção com cor para fototipos V e VI; a cor também protege da luz visível.
 - **Sallve Vitamina C 10% + FPS 30:** FPS 30: o mínimo recomendado; em sol forte, usar protetor de FPS mais alto.
+- **Anasol Protetor Solar Facial FPS 50 Toque Seco:** Opção mais barata do catálogo com FPS 50.
+- **Anasol Base Facial Multifunção FPS 60 (com cor, média):** Com cor: também protege da luz visível; conferir o tom antes de comprar.
+- **Anasol Protetor Solar Facial FPS 99:** FPS muito alto não dispensa reaplicação.
 
 ## Sérum
 
@@ -89,7 +96,7 @@ sites das marcas e às bases de ingredientes estava bloqueado neste ambiente. Es
 
 | Objetivo | Manhã | Noite | Custo aproximado (R$) |
 |---|---|---|---|
-| Oleosidade e poros | Principia GL-01 + Principia NC-10 + Sallve Toque Seco FPS 50 | Principia GL-01 + Neutrogena Hydro Boost | 44 + 59 + 65 + 60 = 228 |
+| Oleosidade e poros | Principia GL-01 + Principia NC-10 + Anasol Oil Control FPS 75 | Principia GL-01 + Neutrogena Hydro Boost | 44 + 59 + 42 + 60 = 205 |
 | Manchas e tom | CeraVe Loção de Limpeza + Principia VC-10 + Nivea Beauty Expert com cor FPS 50 | Principia AM-10 (dias alternados) + Principia AH-2 | 69 + 69 + 46 + 67 + 54 = 305 |
 | Linhas finas | Principia VC-10 + Isdin Fusion Water | Principia RN-0,3 (dias alternados) + CeraVe Loção Hidratante | 69 + 68 + 59 + 76 = 272 |
 | Vermelhidão e pele sensível | CeraVe Loção de Limpeza + Nivea Beauty Expert com cor FPS 50 | Ácido azelaico 10% manipulado + Creamy Calming Cream | 69 + 46 + 34 + 55 = 204 |

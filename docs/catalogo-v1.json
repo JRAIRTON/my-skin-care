@@ -307,7 +307,7 @@
    "Drogafuji",
    "Drogaria Minas-Brasil"
   ],
-  "alternativa": "fps-nivea-beauty",
+  "alternativa": "fps-anasol-oil-control",
   "data_preco": "2026-09-30",
   "inci": "a conferir",
   "anvisa": "a conferir"
@@ -334,7 +334,7 @@
    "Drogarias Pacheco",
    "Drogaria Firme Forte"
   ],
-  "alternativa": "fps-nivea-beauty",
+  "alternativa": "fps-anasol-fps50",
   "data_preco": "2026-09-30",
   "inci": "a conferir",
   "anvisa": "a conferir"
@@ -361,7 +361,7 @@
   "fontes": [
    "Amazon"
   ],
-  "alternativa": "fps-sallve-toque-seco",
+  "alternativa": "fps-anasol-oil-control",
   "data_preco": "2026-09-30",
   "inci": "a conferir",
   "anvisa": "a conferir"
@@ -466,7 +466,112 @@
   "fontes": [
    "site Sallve"
   ],
-  "alternativa": "fps-nivea-beauty",
+  "alternativa": "fps-anasol-fps50",
+  "data_preco": "2026-09-30",
+  "inci": "a conferir",
+  "anvisa": "a conferir"
+ },
+ {
+  "id": "fps-anasol-fps50",
+  "categoria": "Protetor solar",
+  "marca": "Anasol",
+  "produto": "Protetor Solar Facial FPS 50 Toque Seco",
+  "ativos": "FPS 50, toque seco",
+  "tamanho": "60 g",
+  "preco_min": 33,
+  "preco_max": 45,
+  "faixa": "econômico",
+  "objetivos": [
+   "Reduzir manchas"
+  ],
+  "pele": [
+   "todas"
+  ],
+  "obs": "Opção mais barata do catálogo com FPS 50.",
+  "fontes": [
+   "Drogaria Primus",
+   "Ultrafarma"
+  ],
+  "alternativa": null,
+  "data_preco": "2026-09-30",
+  "inci": "a conferir",
+  "anvisa": "a conferir"
+ },
+ {
+  "id": "fps-anasol-oil-control",
+  "categoria": "Protetor solar",
+  "marca": "Anasol",
+  "produto": "Protetor Solar Facial Oil Control FPS 75",
+  "ativos": "FPS 75, antioleosidade",
+  "tamanho": "60 g",
+  "preco_min": 42,
+  "preco_max": 42,
+  "faixa": "econômico",
+  "objetivos": [
+   "Reduzir manchas",
+   "Acne e oleosidade"
+  ],
+  "pele": [
+   "oleosa",
+   "mista"
+  ],
+  "obs": null,
+  "fontes": [
+   "Droga Raia"
+  ],
+  "alternativa": null,
+  "data_preco": "2026-09-30",
+  "inci": "a conferir",
+  "anvisa": "a conferir"
+ },
+ {
+  "id": "fps-anasol-multifuncao-cor",
+  "categoria": "Protetor solar",
+  "marca": "Anasol",
+  "produto": "Base Facial Multifunção FPS 60 (com cor, média)",
+  "ativos": "FPS 60, com cor",
+  "tamanho": "60 g",
+  "preco_min": 63,
+  "preco_max": 63,
+  "faixa": "econômico",
+  "objetivos": [
+   "Reduzir manchas",
+   "Uniformizar o tom"
+  ],
+  "pele": [
+   "todas"
+  ],
+  "obs": "Com cor: também protege da luz visível; conferir o tom antes de comprar.",
+  "fontes": [
+   "Droga Raia"
+  ],
+  "alternativa": null,
+  "data_preco": "2026-09-30",
+  "inci": "a conferir",
+  "anvisa": "a conferir"
+ },
+ {
+  "id": "fps-anasol-fps99",
+  "categoria": "Protetor solar",
+  "marca": "Anasol",
+  "produto": "Protetor Solar Facial FPS 99",
+  "ativos": "FPS 99",
+  "tamanho": "60 g",
+  "preco_min": 65,
+  "preco_max": 108,
+  "faixa": "médio",
+  "objetivos": [
+   "Reduzir manchas"
+  ],
+  "pele": [
+   "todas"
+  ],
+  "obs": "FPS muito alto não dispensa reaplicação.",
+  "fontes": [
+   "Droga Raia",
+   "Drogaria Lecer"
+  ],
+  "alternativa": "fps-anasol-fps50",
   "data_preco": "2026-09-30",
   "inci": "a conferir",
   "anvisa": "a conferir"
