@@ -1,5 +1,9 @@
 # Etapa 2 — Validação com dermatologista
 
+> **Decisão de 30/09/2026:** não será contratado dermatologista. A etapa foi executada pelo Claude Code:
+> ver `etapa2-avaliacao-tecnica.md`, `metodo-myskin-v1.md` e `ingredientes-v1.md`. A ficha às cegas continua
+> disponível caso surja um avaliador independente no futuro.
+
 Objetivo: dar ao MY Skin AI uma base de conhecimento revisada por um profissional e medir, pela
 primeira vez, se as notas da IA concordam com a avaliação de um dermatologista.
 
@@ -7,10 +11,10 @@ primeira vez, se as notas da IA concordam com a avaliação de um dermatologista
 
 | # | Entrega | Quem | Material de partida |
 |---|---|---|---|
-| 1 | Escala de notas revisada, com critério de cada faixa por categoria | Dermatologista | `etapa2-metodo-rascunho.md` |
+| 1 | Escala de notas revisada, com critério de cada faixa por categoria | Dermatologista | `metodo-myskin-v1.md` |
 | 2 | Avaliação às cegas das 16 fotos da etapa 1 | Dermatologista | Ficha de avaliação (PDF com fotos codificadas + planilha) |
 | 3 | Relatório de concordância IA × dermatologista | Claude Code | Planilha preenchida + notas da IA (`etapa2-notas-ia.csv`) |
-| 4 | Tabela de ingredientes revisada | Dermatologista | `etapa2-ingredientes-rascunho.md` |
+| 4 | Tabela de ingredientes revisada | Dermatologista | `ingredientes-v1.md` |
 | 5 | Documento "Método MY Skin" (versão 1) | Claude Code, com revisão do dermatologista | Entregas 1, 3 e 4 |
 
 ## Passo a passo

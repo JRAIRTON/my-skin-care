@@ -1,8 +1,9 @@
-# Tabela de ingredientes — rascunho para revisão do dermatologista
+# Tabela de ingredientes — versão 1
 
-Versão 0 (30/09/2026). Base para a IA escolher ingredientes em vez de citar de memória.
-Concentrações são as usuais em cosméticos; tudo deve ser confirmado pelo dermatologista,
-inclusive o que é permitido sem prescrição no Brasil.
+30/09/2026. Revisada pelo Claude Code; não foi revisada por dermatologista. É a lista da qual a IA
+do protótipo escolhe ingredientes (ela não deve citar ingredientes fora desta tabela).
+Concentrações são as usuais em cosméticos vendidos no Brasil. Limites regulatórios exatos devem ser
+conferidos nas listas de substâncias da ANVISA antes do lançamento.
 
 ## Por objetivo
 
@@ -11,9 +12,9 @@ inclusive o que é permitido sem prescrição no Brasil.
 | Proteção (todos) | Protetor solar de amplo espectro | FPS 30 ou mais | Base de toda rotina; reaplicar a cada 2 a 3 horas em exposição |
 | Manchas e tom | Vitamina C (ácido ascórbico) | 10–20% | Pode arder; oxida com luz e ar |
 | | Niacinamida | 2–10% | Boa tolerância |
-| | Ácido tranexâmico (tópico) | 2–5% | Confirmar uso cosmético |
+| | Ácido tranexâmico (tópico) | 2–5% | Presente em cosméticos clareadores; boa tolerância |
 | | Alfa-arbutin | 1–2% | |
-| | Ácido azelaico | até 10% em cosméticos | 15–20% é medicamento; confirmar |
+| | Ácido azelaico | até 10% em cosméticos | 15–20% é medicamento (exige prescrição) |
 | Linhas e firmeza | Retinol | 0,1–1% | Começar baixo, à noite; evitar na gestação |
 | | Retinal (retinaldeído) | 0,05–0,1% | Evitar na gestação |
 | | Peptídeos | variável | Evidência mais fraca |
@@ -26,7 +27,7 @@ inclusive o que é permitido sem prescrição no Brasil.
 | Vermelhidão e sensibilidade | Niacinamida | 2–5% | |
 | | Centella asiática | variável | |
 | | Pantenol | 1–5% | |
-| | Ácido azelaico | até 10% | Confirmar |
+| | Ácido azelaico | até 10% | Útil também para vermelhidão |
 | Hidratação | Glicerina | variável | |
 | | Ácido hialurônico | 0,1–2% | |
 | | Ceramidas | variável | Reforçam a barreira da pele |
@@ -54,8 +55,19 @@ Quando parecerem indicados, a orientação é conversar com um dermatologista.
 | Após procedimento (laser, peeling, microagulhamento) | Só limpeza suave, hidratante calmante e protetor; retomar ativos quando o profissional liberar |
 | Pele sensível ou com vermelhidão | Um ativo novo por vez, teste em pequena área, preferir niacinamida, pantenol, centella |
 
-## Pontos em aberto para o dermatologista
+## Ordem de introdução
 
-1. Concentrações e limites regulatórios no Brasil para ácido azelaico, ácido tranexâmico e retinal.
-2. Ordem de introdução dos ativos para cada objetivo.
-3. O que mudar para fototipos IV a VI (risco de mancha pós-inflamatória).
+1. Semanas 1 e 2: limpeza suave, hidratante e protetor solar (base).
+2. A partir da semana 3: um ativo principal para o objetivo mais importante, em dias alternados.
+3. Aumentar para uso diário se não houver irritação em 2 semanas.
+4. Só então um segundo ativo, em horário diferente (por exemplo, vitamina C de manhã e retinol à noite).
+
+## Fototipos IV a VI
+
+Maior risco de mancha pós-inflamatória. Preferir ativos suaves (niacinamida, ácido azelaico,
+ácido mandélico), introduzir mais devagar, evitar esfoliação agressiva e reforçar o protetor solar
+(com cor, que também protege da luz visível).
+
+## Em aberto
+
+- Conferir na ANVISA os limites de ácido salicílico, retinal e ácido tranexâmico em cosméticos.
