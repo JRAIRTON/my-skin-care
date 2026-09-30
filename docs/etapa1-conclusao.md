@@ -1,6 +1,7 @@
 # Etapa 1 — Conclusão (teste com a família)
 
-Data: 26/09/2026 · Escopo: 2 perfis (aron, 39 anos; airton, 41 anos), 8 fotos, 2 testes de repetição.
+Atualizado em 30/09/2026 · Escopo: 4 perfis (aron, 39; airton, 41; meiri, 36; fernanda, 40),
+16 fotos, 4 testes de repetição (3 fotos com a mesma luz + 1 com luz diferente por pessoa).
 As análises foram feitas pelo Claude Code a partir da fila do protótipo (plano B), porque a página
 do claude.ai não permite enviar imagens ao Claude.
 
@@ -8,68 +9,70 @@ do claude.ai não permite enviar imagens ao Claude.
 
 | Indicador | Meta | Resultado | Situação |
 |---|---|---|---|
-| Pessoas com teste de repetição | 3 a 5 | 2 | Não atingida |
-| Variação do Skin Score com a mesma luz | até 5 pontos | 1 ponto (aron) e 1 ponto (airton) | Atingida, com ressalvas |
-| Fototipos diferentes | 3 ou mais | Não informado nos cadastros | Não medida |
-| Faixas de idade | 3 | 1 (30 a 49) | Não atingida |
+| Pessoas com teste de repetição | 3 a 5 | 4 (2 homens, 2 mulheres) | Atingida |
+| Variação do Skin Score com a mesma luz | até 5 pontos | 1 · 1 · 1 · 0 | Atingida nos 4, com ressalvas |
+| Variação por categoria com a mesma luz | até 5 pontos | 3 de 4 testes; meiri teve 6 em oleosidade | Parcial |
+| Fototipos diferentes | 3 ou mais | Não informado nos cadastros; pelas fotos, todos claros a médios | Não atingida |
+| Faixas de idade | 3 | 1 (todos entre 36 e 41 anos) | Não atingida |
 | Questionários respondidos | 10 ou mais | 0 | Não medida |
-| Ocorrências registradas | registrar tudo | 0 no app; problemas abaixo registrados neste documento | Parcial |
+| Ocorrências registradas | registrar tudo | 1 no app (foto no perfil errado) + problemas de captura abaixo | Parcial |
 
 ## Resultados dos testes de repetição
 
-| | aron | airton |
-|---|---|---|
-| Skin Score (fotos com a mesma luz) | 74 · 75 · 74 | 72 · 73 · 72 |
-| Variação do Skin Score | 1 | 1 |
-| Maior variação por categoria | 2 (textura, poros, brilho) | 4 (oleosidade) |
-| Efeito da luz diferente no Skin Score | −1 | 0 |
-| Maior efeito da luz por categoria | −4 (tom e oleosidade) | −3 (poros) |
-| Idade aparente da pele | ~37 (34 a 41) | ~40 (36 a 44) |
-| Tipo de pele pela foto | mista | oleosa |
-| Principais pontos de atenção | poros no nariz, vermelhidão leve ao lado do nariz, brilho na testa | oleosidade forte na zona T, poros, vermelhidão nas bochechas |
+| | aron | airton | meiri | fernanda |
+|---|---|---|---|---|
+| Skin Score (mesma luz) | 74 · 75 · 74 | 72 · 73 · 72 | 77 · 76 · 76 | 76 · 76 · 76 |
+| Variação do Skin Score | 1 | 1 | 1 | **0** |
+| Maior variação por categoria | 2 | 4 (oleosidade) | **6 (oleosidade)** | 1 |
+| Efeito da luz diferente no Skin Score | −1 | 0 | +1 | 0 |
+| Maior efeito da luz por categoria | −4 (tom, oleosidade) | −3 (poros) | −3 (brilho) | ±2 (vermelhidão, tom, brilho) |
+| Captura das fotos "mesma luz" | distância variou | foto 2 em outro ambiente; contraluz | foto 1 em outro ambiente; sombra lateral | **correta** |
+| Idade aparente × idade real | ~37 × 39 | ~40 × 41 | ~36 × 36 | ~40 × 40 |
+| Tipo de pele pela foto × questionário | mista × não respondido | oleosa × incompleto | mista × normal | normal × normal |
+| Principal ponto de atenção | poros, vermelhidão no nariz | oleosidade forte na zona T | oleosidade na testa, sardas | vermelhidão nas bochechas |
 
 ## O que a etapa mostrou
 
-1. **O Skin Score foi estável; as categorias, menos.** O total variou 1 ponto nos dois testes, mas
-   categorias isoladas oscilaram até 4 pontos com a mesma luz e até 4 com luz diferente. Tom,
-   oleosidade, brilho e poros são os mais sensíveis à luz.
-2. **A estabilidade provavelmente está superestimada.** As 4 fotos de cada pessoa foram avaliadas em
+1. **Com captura correta, a análise foi estável.** No único teste com as 3 fotos realmente na mesma
+   condição (fernanda), o Skin Score não variou e nenhuma categoria variou mais de 1 ponto.
+2. **O maior risco é a captura, não a IA.** Em 3 dos 4 testes, as fotos marcadas como "mesma luz"
+   foram tiradas em lugares ou distâncias diferentes. Nesses casos, oleosidade e brilho oscilaram
+   até 4 e 6 pontos. Houve ainda contraluz, sombra lateral e barba cobrindo metade do rosto.
+3. **Oleosidade, brilho, tom e poros são as categorias mais sensíveis à luz.** Firmeza, linhas e
+   hidratação quase não mudaram.
+4. **Fotos no perfil errado acontecem.** Um teste inteiro da fernanda foi enviado no perfil do
+   airton. Foi detectado na análise, mas o teste de repetição do app não confere a pessoa.
+5. **Idade aparente plausível.** Nos 4 perfis, a estimativa ficou a no máximo 2 anos da idade real.
+6. **Tipo de pele coerente.** Onde o questionário estava completo, foto e questionário coincidiram
+   em 1 de 2 casos (fernanda); a divergência da meiri (mista × normal) é explicável pela testa oleosa.
+7. **A estabilidade provavelmente está superestimada.** As fotos de cada pessoa foram avaliadas em
    sequência pelo mesmo analisador, que lembrava das notas anteriores. O fluxo automático do app, com
    análises independentes, não pôde ser testado.
-3. **O maior risco é a captura da foto, não a IA.** Nos 2 perfis houve problema de captura: barba
-   cobrindo metade do rosto (os dois), contraluz e troca de ambiente numa foto marcada como "mesma luz"
-   (airton), distância diferente entre fotos (aron). O guia de texto não bastou.
-4. **Limite técnico da plataforma.** A página publicada no claude.ai não envia imagens ao Claude.
-   O plano B (fila analisada pelo Claude Code) funcionou, mas não serve para o produto. O app
-   definitivo precisa de servidor próprio chamando a API de IA, como já previa o projeto.
-5. **Mapa de pigmentação inválido com barba.** Marcou 22% a 26% da pele como mancha porque conta os
-   pelos. Precisa excluir pelos antes de ser usado.
-6. **Coerência clínica plausível.** A análise do airton apontou oleosidade como principal ponto, o
-   mesmo objetivo que ele declarou no cadastro. Nenhum alerta para dermatologista foi necessário;
-   pintas pequenas foram apontadas apenas para observação.
+8. **Mapas de cor não confiáveis.** O mapa de pigmentação marcou 14% a 26% da pele como mancha,
+   contando pelos, sobrancelhas e fios de cabelo, inclusive nas mulheres. Precisa ser refeito.
+9. **Limite da plataforma.** A página publicada no claude.ai não envia imagens ao Claude. O app
+   definitivo precisa de servidor próprio chamando a API de IA.
 
 ## O que não foi avaliado
 
 - Valor percebido e disposição a pagar (nenhum questionário).
-- Diversidade: dois homens de 39 e 41 anos, fototipo não informado, ambos com barba.
+- Diversidade de fototipo (todos claros a médios) e de idade (todos entre 36 e 41 anos).
+- Concordância com um dermatologista.
 - Evolução ao longo do tempo, rotina e produtos (testes de repetição não geram rotina).
-- Mulheres, peles sem barba, peles mais claras ou mais escuras, outras idades.
 
 ## Conclusão
 
-**Viabilidade técnica: parcialmente demonstrada.** Com fotos na mesma condição, a avaliação foi
-consistente e coerente com o que as pessoas relatam. **Viabilidade de produto: ainda não medida**,
-porque faltaram questionários e diversidade de perfis.
+**Viabilidade técnica: demonstrada em condição controlada.** Com fotos tiradas corretamente, a
+avaliação foi estável, a idade aparente foi plausível e os pontos de atenção foram coerentes com o que
+as pessoas relatam. **Viabilidade de produto: ainda não medida.**
 
-Pelo critério do protocolo (variação ≤ 5 → seguir para as etapas 2 e 3), a recomendação é
-**seguir, com condições**:
+Pelo critério do protocolo (variação ≤ 5 → seguir), a recomendação é **seguir para a etapa 2**, com
+estas condições para o app definitivo e para as próximas rodadas de teste:
 
-1. Tratar a captura como requisito central do app definitivo: câmera guiada com detecção de rosto,
-   bloqueio de contraluz e foto de referência sobreposta ("foto fantasma").
-2. Refazer o teste de repetição com análises independentes quando houver backend com API, e medir a
-   variação real.
-3. Na etapa 2, levar ao dermatologista estas 8 análises (exportação CSV) para a primeira medida de
-   concordância.
-4. Ampliar a amostra antes de decisões de negócio: pelo menos 3 mulheres, 1 pessoa acima de 50 e
-   1 abaixo de 30, fototipos variados, e questionário respondido após cada resultado.
-5. Corrigir o mapa de pigmentação para ignorar pelos.
+1. Captura guiada obrigatória: detecção de rosto, bloqueio de contraluz e sombra lateral, distância
+   fixa e foto de referência sobreposta.
+2. Confirmação da pessoa antes do envio e checagem de "mesma pessoa" também no teste de repetição.
+3. Refazer os testes com análises independentes quando houver servidor com API.
+4. Ampliar a amostra: fototipos IV a VI, pessoas abaixo de 30 e acima de 50, e questionário
+   respondido após cada resultado.
+5. Refazer o mapa de pigmentação excluindo pelos e cabelo, ou retirá-lo até lá.

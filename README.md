@@ -10,6 +10,10 @@ Protótipo para avaliar a viabilidade do MY Skin AI com a família (spec v3.0, 2
 - `docs/avaliacao.md` — avaliação de viabilidade e melhorias sugeridas.
 - `docs/caracteristicas.md` — o que o protótipo avalia, como e com quais limites.
 - `docs/etapa1-conclusao.md` — conclusão da etapa 1 com os 2 perfis testados.
+- `docs/etapa2-plano.md` — etapa 2: validação com dermatologista (entregas, passo a passo, critérios, perguntas).
+- `docs/etapa2-metodo-rascunho.md` — rascunho do método de notas para revisão.
+- `docs/etapa2-ingredientes-rascunho.md` — rascunho da tabela de ingredientes para revisão.
+- `docs/etapa2-ficha-dermatologista.csv` e `docs/etapa2-notas-ia.csv` — ficha de avaliação às cegas (fotos F01–F16) e notas da IA pelos mesmos códigos. As fotos não ficam no repositório.
 - `docs/etapa1-protocolo.md` — protocolo do teste com a família (etapa 1): metas, passo a passo e critério de decisão.
 
 ## Como funciona o protótipo
