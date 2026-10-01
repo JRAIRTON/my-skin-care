@@ -15,6 +15,9 @@ Protótipo para avaliar a viabilidade do MY Skin AI com a família (spec v3.0, 2
 - `docs/metodo-myskin-v1.md` — Método MY Skin v1 (grau de 0 a 4 por categoria, depois a nota), aplicado no protótipo.
 - `docs/ingredientes-v1.md` — tabela de ingredientes v1 usada pela IA do protótipo.
 - `docs/catalogo-v1.md` e `docs/catalogo-v1.json` — etapa 4: catálogo de 34 produtos com ativos, tamanho e preço pesquisado; a IA recomenda só deste catálogo.
+- `docs/etapa6-*.md` — etapa 6 (validação de mercado): plano e critérios de decisão, concorrência e mercado, pesquisa para o Google Forms e roteiro de entrevista.
+- `prototipo/apresentacao.html` — página de apresentação para divulgar a pesquisa.
+- `scripts/analise_pesquisa.py` — analisa o CSV do Google Forms (critérios de decisão e preço por Van Westendorp).
 - `docs/juridico/` — etapa 3: análise de enquadramento (ANVISA, LGPD, CDC, lojas), termos de uso, política de privacidade, termo de consentimento, RIPD e termo de participação no teste.
 - `docs/etapa2-ficha-dermatologista.csv` e `docs/etapa2-notas-ia.csv` — ficha de avaliação às cegas (fotos F01–F16) e notas da IA pelos mesmos códigos. As fotos não ficam no repositório.
 - `docs/etapa1-protocolo.md` — protocolo do teste com a família (etapa 1): metas, passo a passo e critério de decisão.
