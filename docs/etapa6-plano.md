@@ -1,5 +1,9 @@
 # Etapa 6 — Validação de mercado
 
+> **Decisão de 01/10/2026:** etapa pulada por decisão do projeto. A pesquisa não foi aplicada; os
+> materiais (pesquisa, roteiro, página de apresentação, script de análise e análise da concorrência)
+> ficam prontos para uso futuro. Demanda e preço seguem **não validados**.
+
 01/10/2026. Objetivo: descobrir, antes de investir no app definitivo, se existe demanda e quanto as
 pessoas pagariam. A etapa 1 não respondeu a isso (nenhum questionário foi preenchido).
 
