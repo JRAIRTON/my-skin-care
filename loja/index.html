@@ -1,0 +1,510 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Firma Tropical · Creme Firmador Corporal</title>
+<meta name="description" content="Creme corporal firmador com cafeína, guaraná e manteiga de cupuaçu. Pele mais firme, macia e com aparência da celulite suavizada.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700&family=Manrope:wght@400;500;600;700;800&display=swap">
+<style>
+:root {
+  --bg: #FFF8F0; --surface: #FFFFFF; --surface-2: #FDEEDC; --ink: #2B1A12; --ink-2: #5C4436; --muted: #8A7264;
+  --line: #F0DDC8; --coral: #E8603C; --coral-ink: #B8401F; --sun: #F6B23C; --leaf: #2F7D5B; --on-coral: #FFFFFF;
+  --display: "Fraunces", Georgia, serif; --body: "Manrope", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --radius: 18px; --shadow: 0 14px 40px rgba(120, 60, 20, .10);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark; --bg: #1A120D; --surface: #241912; --surface-2: #2E2017; --ink: #FBEFE3; --ink-2: #E0CBB8;
+    --muted: #B09684; --line: #3A2A1F; --coral: #F07A55; --coral-ink: #FF9C7A; --sun: #F6B23C; --leaf: #5BB98D; --on-coral: #1A0E08;
+    --shadow: 0 14px 40px rgba(0, 0, 0, .35);
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark; --bg: #1A120D; --surface: #241912; --surface-2: #2E2017; --ink: #FBEFE3; --ink-2: #E0CBB8;
+  --muted: #B09684; --line: #3A2A1F; --coral: #F07A55; --coral-ink: #FF9C7A; --sun: #F6B23C; --leaf: #5BB98D; --on-coral: #1A0E08;
+  --shadow: 0 14px 40px rgba(0, 0, 0, .35);
+}
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body { margin: 0; background: var(--bg); color: var(--ink); font-family: var(--body); font-size: 16px; line-height: 1.6; -webkit-font-smoothing: antialiased; overflow-x: hidden; }
+img, svg { max-width: 100%; display: block; }
+a { color: inherit; }
+button { font: inherit; cursor: pointer; }
+.wrap { max-width: 1120px; margin: 0 auto; padding-inline: 16px; }
+@media (min-width: 720px) { .wrap { padding-inline: 24px; } }
+h1, h2, h3 { font-family: var(--display); font-weight: 700; margin: 0; text-wrap: balance; line-height: 1.1; }
+h1 { font-size: clamp(36px, 6.4vw, 64px); letter-spacing: -.01em; }
+h2 { font-size: clamp(28px, 4.2vw, 42px); }
+h3 { font-size: 20px; }
+p { margin: 0; }
+.eyebrow { font-size: 12px; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; color: var(--coral-ink); }
+.lede { font-size: 18px; color: var(--ink-2); max-width: 52ch; }
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 10px; border: 0; border-radius: 999px; padding: 15px 26px; font-weight: 800; font-size: 16px; text-decoration: none; transition: transform .15s, background .15s; }
+.btn:active { transform: scale(.98); }
+.btn-primary { background: var(--coral); color: var(--on-coral); }
+.btn-primary:hover { background: var(--coral-ink); }
+.btn-ghost { background: transparent; color: var(--ink); border: 1.5px solid var(--ink); }
+.btn-ghost:hover { background: var(--ink); color: var(--bg); }
+.btn-block { width: 100%; }
+
+/* barra de aviso */
+.promo { background: var(--ink); color: var(--bg); text-align: center; font-size: 13.5px; font-weight: 600; padding: 9px 16px; }
+.promo b { color: var(--sun); }
+
+/* topo */
+header.top { position: sticky; top: 0; z-index: 30; background: color-mix(in srgb, var(--bg) 88%, transparent); backdrop-filter: blur(10px); border-bottom: 1px solid var(--line); }
+header.top .wrap { display: flex; align-items: center; justify-content: space-between; gap: 16px; height: 64px; }
+.logo { font-family: var(--display); font-weight: 700; font-size: 22px; text-decoration: none; display: flex; align-items: center; gap: 8px; }
+.logo i { width: 26px; height: 26px; border-radius: 50%; background: radial-gradient(circle at 35% 35%, var(--sun), var(--coral)); display: inline-block; }
+nav.menu { display: none; gap: 24px; font-weight: 600; font-size: 15px; }
+nav.menu a { text-decoration: none; color: var(--ink-2); }
+nav.menu a:hover { color: var(--coral-ink); }
+@media (min-width: 860px) { nav.menu { display: flex; } }
+.cart-btn { position: relative; background: var(--surface); border: 1px solid var(--line); border-radius: 999px; padding: 9px 16px; display: flex; align-items: center; gap: 8px; font-weight: 700; color: var(--ink); }
+.cart-btn .count { background: var(--coral); color: var(--on-coral); border-radius: 999px; min-width: 22px; height: 22px; font-size: 12px; display: grid; place-items: center; padding-inline: 6px; }
+
+/* hero */
+.hero { padding-block: 40px 64px; display: grid; gap: 36px; align-items: center; }
+@media (min-width: 900px) { .hero { grid-template-columns: 1.05fr .95fr; padding-block: 64px 88px; } }
+.hero h1 em { font-style: italic; color: var(--coral-ink); }
+.hero .lede { margin-top: 18px; }
+.hero .actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 28px; }
+.rating { display: flex; align-items: center; gap: 10px; margin-top: 22px; font-size: 14px; color: var(--muted); flex-wrap: wrap; }
+.badges { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 22px; }
+.badges span { background: var(--surface); border: 1px solid var(--line); border-radius: 999px; padding: 6px 12px; font-size: 13px; font-weight: 600; color: var(--ink-2); }
+.stage { position: relative; aspect-ratio: 1 / 1; border-radius: 32px; background: radial-gradient(circle at 70% 25%, var(--sun) 0 18%, transparent 19%), linear-gradient(160deg, #FFD9B8, #F59A6E 60%, #E8603C); overflow: hidden; box-shadow: var(--shadow); }
+.stage .leaf { position: absolute; opacity: .9; }
+.stage .jar { position: absolute; left: 50%; bottom: 9%; transform: translateX(-50%); width: 66%; }
+.stage .tag { position: absolute; top: 18px; left: 18px; background: rgba(255,255,255,.92); color: #2B1A12; font-weight: 800; font-size: 13px; padding: 8px 14px; border-radius: 999px; }
+
+/* faixa rolante */
+.marquee { background: var(--coral); color: var(--on-coral); overflow: hidden; white-space: nowrap; padding-block: 14px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; font-size: 14px; }
+.marquee div { display: inline-block; animation: slide 30s linear infinite; }
+.marquee span { margin-inline: 22px; }
+@keyframes slide { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+@media (prefers-reduced-motion: reduce) { .marquee div { animation: none; } }
+
+section.block { padding-block: 72px; }
+.head { display: grid; gap: 12px; margin-bottom: 36px; max-width: 680px; }
+.head.center { text-align: center; margin-inline: auto; justify-items: center; }
+
+/* benefícios */
+.grid-4 { display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr)); }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 24px; display: grid; gap: 10px; align-content: start; }
+.card .ico { width: 48px; height: 48px; border-radius: 14px; background: var(--surface-2); display: grid; place-items: center; font-size: 24px; }
+.card p { color: var(--ink-2); font-size: 15px; }
+
+/* ingredientes */
+.ingredients { background: var(--surface-2); }
+.ing-list { display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr)); }
+.ing { display: grid; grid-template-columns: 56px 1fr; gap: 16px; background: var(--surface); border-radius: var(--radius); padding: 20px; border: 1px solid var(--line); }
+.ing .dot { width: 56px; height: 56px; border-radius: 50%; }
+.ing h3 { font-size: 18px; margin-bottom: 4px; }
+.ing p { color: var(--ink-2); font-size: 15px; }
+
+/* resultados */
+.timeline { display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr)); counter-reset: t; }
+.timeline .card::before { counter-increment: t; content: "0" counter(t); font-family: var(--display); font-size: 34px; color: var(--coral); line-height: 1; }
+.disclaimer { font-size: 13px; color: var(--muted); margin-top: 18px; max-width: 80ch; }
+
+/* modo de usar */
+.howto { display: grid; gap: 32px; align-items: center; }
+@media (min-width: 900px) { .howto { grid-template-columns: 1fr 1fr; } }
+.steps { list-style: none; padding: 0; margin: 0; display: grid; gap: 14px; }
+.steps li { display: grid; grid-template-columns: 40px 1fr; gap: 14px; align-items: start; }
+.steps li b { width: 40px; height: 40px; border-radius: 50%; background: var(--coral); color: var(--on-coral); display: grid; place-items: center; font-family: var(--display); }
+.steps li p { color: var(--ink-2); }
+.steps li strong { color: var(--ink); display: block; }
+.scent { background: var(--surface); border: 1px solid var(--line); border-radius: 28px; padding: 28px; display: grid; gap: 16px; box-shadow: var(--shadow); }
+.notes { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; text-align: center; }
+.notes div { background: var(--surface-2); border-radius: 14px; padding: 14px 8px; font-size: 13px; color: var(--ink-2); }
+.notes b { display: block; color: var(--ink); font-size: 15px; }
+
+/* ofertas */
+.offers { display: grid; gap: 18px; grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr)); align-items: stretch; }
+.offer { position: relative; background: var(--surface); border: 2px solid var(--line); border-radius: 24px; padding: 28px 24px 24px; display: grid; gap: 14px; align-content: start; }
+.offer.best { border-color: var(--coral); box-shadow: var(--shadow); }
+.offer .flag { position: absolute; top: -14px; left: 50%; transform: translateX(-50%); background: var(--coral); color: var(--on-coral); font-size: 12px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; padding: 6px 14px; border-radius: 999px; white-space: nowrap; }
+.offer .qty { font-size: 14px; color: var(--muted); font-weight: 600; }
+.offer .old { color: var(--muted); text-decoration: line-through; font-size: 15px; }
+.offer .price { font-family: var(--display); font-size: 40px; line-height: 1; }
+.offer .price small { font-size: 16px; font-family: var(--body); color: var(--muted); font-weight: 600; }
+.offer .each { font-size: 14px; color: var(--leaf); font-weight: 700; }
+.offer ul { list-style: none; padding: 0; margin: 0; display: grid; gap: 6px; font-size: 14.5px; color: var(--ink-2); }
+.offer ul li::before { content: "✓ "; color: var(--leaf); font-weight: 800; }
+.offer .btn { margin-top: auto; }
+.trust { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px 28px; margin-top: 28px; font-size: 14px; color: var(--ink-2); font-weight: 600; }
+
+/* faq */
+.faq { max-width: 780px; margin-inline: auto; display: grid; gap: 12px; }
+details { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 18px 22px; }
+summary { font-weight: 700; cursor: pointer; list-style: none; display: flex; justify-content: space-between; gap: 16px; }
+summary::-webkit-details-marker { display: none; }
+summary::after { content: "+"; font-size: 22px; line-height: 1; color: var(--coral-ink); }
+details[open] summary::after { content: "–"; }
+details p { margin-top: 12px; color: var(--ink-2); }
+
+/* rodapé */
+.final { background: var(--ink); color: var(--bg); border-radius: 32px; padding: 48px 24px; text-align: center; display: grid; gap: 16px; justify-items: center; }
+.final p { color: color-mix(in srgb, var(--bg) 75%, transparent); max-width: 52ch; }
+footer { padding-block: 48px; font-size: 13.5px; color: var(--muted); display: grid; gap: 14px; }
+footer .cols { display: flex; flex-wrap: wrap; gap: 12px 28px; }
+footer a { text-decoration: none; }
+footer a:hover { color: var(--coral-ink); }
+
+/* carrinho */
+.overlay { position: fixed; inset: 0; background: rgba(20, 10, 5, .45); z-index: 50; opacity: 0; pointer-events: none; transition: opacity .2s; }
+.overlay.open { opacity: 1; pointer-events: auto; }
+aside.cart { position: fixed; top: 0; right: 0; height: 100%; width: min(420px, 100%); background: var(--bg); z-index: 60; transform: translateX(100%); transition: transform .25s; display: flex; flex-direction: column; box-shadow: var(--shadow); }
+aside.cart.open { transform: none; }
+.cart-head { display: flex; justify-content: space-between; align-items: center; padding: 18px 20px; border-bottom: 1px solid var(--line); }
+.cart-head button { background: none; border: 0; font-size: 26px; color: var(--ink); line-height: 1; }
+.cart-items { flex: 1; overflow-y: auto; padding: 16px 20px; display: grid; gap: 12px; align-content: start; }
+.item { display: grid; grid-template-columns: 1fr auto; gap: 8px; background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 14px; }
+.item .name { font-weight: 700; }
+.item .sub { font-size: 13px; color: var(--muted); }
+.stepper { display: inline-flex; align-items: center; border: 1px solid var(--line); border-radius: 999px; overflow: hidden; margin-top: 6px; }
+.stepper button { background: none; border: 0; width: 32px; height: 32px; color: var(--ink); font-size: 18px; }
+.stepper span { min-width: 24px; text-align: center; font-weight: 700; }
+.item .remove { background: none; border: 0; color: var(--muted); font-size: 13px; text-decoration: underline; justify-self: end; }
+.item .line-total { font-weight: 800; text-align: right; }
+.cart-foot { border-top: 1px solid var(--line); padding: 18px 20px 22px; display: grid; gap: 12px; }
+.ship-bar { font-size: 13.5px; color: var(--ink-2); }
+.ship-bar i { display: block; height: 6px; background: var(--surface-2); border-radius: 3px; margin-top: 6px; overflow: hidden; }
+.ship-bar i b { display: block; height: 100%; background: var(--leaf); border-radius: 3px; transition: width .3s; }
+.total { display: flex; justify-content: space-between; font-size: 18px; font-weight: 800; }
+.empty { text-align: center; color: var(--muted); padding-block: 40px; }
+.cart-foot input { width: 100%; padding: 12px 14px; border-radius: 12px; border: 1px solid var(--line); background: var(--surface); color: var(--ink); font: inherit; }
+.small-note { font-size: 12.5px; color: var(--muted); text-align: center; }
+
+
+/* barra fixa de compra no celular */
+.buybar { position: fixed; bottom: 0; left: 0; right: 0; z-index: 25; background: var(--surface); border-top: 1px solid var(--line); padding: 10px 16px; display: flex; align-items: center; justify-content: space-between; gap: 12px; transform: translateY(100%); transition: transform .25s; }
+.buybar.show { transform: none; }
+.buybar .p { font-weight: 800; }
+.buybar .p small { display: block; font-weight: 500; color: var(--muted); font-size: 12px; }
+@media (min-width: 900px) { .buybar { display: none; } }
+</style>
+</head>
+<body>
+
+<div class="promo">Frete grátis acima de <b>R$ 199</b> · 10% OFF no Pix · Leve 3 e pague menos</div>
+
+<header class="top">
+  <div class="wrap">
+    <a class="logo" href="#"><i></i>Firma Tropical</a>
+    <nav class="menu" aria-label="Seções">
+      <a href="#beneficios">Benefícios</a>
+      <a href="#ingredientes">Ingredientes</a>
+      <a href="#como-usar">Como usar</a>
+      <a href="#comprar">Ofertas</a>
+      <a href="#duvidas">Dúvidas</a>
+    </nav>
+    <button class="cart-btn" id="openCart" aria-label="Abrir sacola">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M6 7h12l-1 13H7L6 7z"/><path d="M9 7a3 3 0 0 1 6 0"/></svg>
+      Sacola <span class="count" id="cartCount">0</span>
+    </button>
+  </div>
+</header>
+
+<main>
+  <section class="wrap hero">
+    <div>
+      <p class="eyebrow">Creme corporal firmador · 240 g</p>
+      <h1>Pele mais firme, lisinha e com <em>cheiro de verão</em> o ano todo.</h1>
+      <p class="lede">Cafeína, guaraná e manteiga de cupuaçu numa textura que derrete na pele, ajuda a suavizar a aparência da celulite e deixa um perfume tropical que todo mundo pergunta qual é.</p>
+      <div class="actions">
+        <a class="btn btn-primary" href="#comprar">Quero o meu</a>
+        <a class="btn btn-ghost" href="#ingredientes">Ver ingredientes</a>
+      </div>
+      <div class="badges">
+        <span>🌿 Vegano</span><span>🐰 Cruelty-free</span><span>🧪 Dermatologicamente testado</span><span>🇧🇷 Feito no Brasil</span>
+      </div>
+    </div>
+
+    <div class="stage" aria-hidden="true">
+      <span class="tag">Novo · Maracujá &amp; Baunilha</span>
+      <svg class="leaf" style="left:-6%;top:12%;width:44%" viewBox="0 0 200 200"><path d="M20 180C40 80 110 20 190 10c-10 80-70 150-170 170z" fill="#2F7D5B"/><path d="M20 180C70 120 120 60 190 10" stroke="#1F5A40" stroke-width="4" fill="none"/></svg>
+      <svg class="leaf" style="right:-8%;top:38%;width:38%;transform:scaleX(-1) rotate(-20deg)" viewBox="0 0 200 200"><path d="M20 180C40 80 110 20 190 10c-10 80-70 150-170 170z" fill="#3C9670"/><path d="M20 180C70 120 120 60 190 10" stroke="#24684A" stroke-width="4" fill="none"/></svg>
+      <svg class="jar" viewBox="0 0 300 260">
+        <defs>
+          <linearGradient id="jarBody" x1="0" x2="1"><stop offset="0" stop-color="#F7C948"/><stop offset=".5" stop-color="#FFE08A"/><stop offset="1" stop-color="#E9B43A"/></linearGradient>
+          <linearGradient id="lid" x1="0" x2="1"><stop offset="0" stop-color="#C9441F"/><stop offset=".5" stop-color="#F07A55"/><stop offset="1" stop-color="#B8401F"/></linearGradient>
+        </defs>
+        <ellipse cx="150" cy="248" rx="120" ry="10" fill="rgba(80,30,10,.25)"/>
+        <rect x="30" y="80" width="240" height="168" rx="26" fill="url(#jarBody)"/>
+        <rect x="22" y="30" width="256" height="62" rx="18" fill="url(#lid)"/>
+        <rect x="22" y="80" width="256" height="10" fill="rgba(0,0,0,.12)"/>
+        <text x="150" y="152" text-anchor="middle" font-family="Fraunces, Georgia, serif" font-weight="700" font-size="34" fill="#7A2E12">Firma</text>
+        <text x="150" y="186" text-anchor="middle" font-family="Fraunces, Georgia, serif" font-style="italic" font-size="26" fill="#7A2E12">Tropical</text>
+        <text x="150" y="222" text-anchor="middle" font-family="Manrope, sans-serif" font-weight="700" font-size="12" letter-spacing="3" fill="#9A4A22">CREME FIRMADOR · 240 g</text>
+      </svg>
+    </div>
+  </section>
+
+  <div class="marquee" aria-hidden="true"><div>
+    <span>Firmeza</span>✦<span>Maciez</span>✦<span>Hidratação 24h</span>✦<span>Absorção rápida</span>✦<span>Perfume que fica</span>✦
+    <span>Firmeza</span>✦<span>Maciez</span>✦<span>Hidratação 24h</span>✦<span>Absorção rápida</span>✦<span>Perfume que fica</span>✦
+  </div></div>
+
+  <section class="wrap block" id="beneficios">
+    <div class="head">
+      <p class="eyebrow">Por que você vai amar</p>
+      <h2>Um ritual de 2 minutos que vira o momento favorito do dia</h2>
+    </div>
+    <div class="grid-4">
+      <div class="card"><div class="ico">✨</div><h3>Aparência mais firme</h3><p>Ativos que ajudam a melhorar a firmeza e a elasticidade da pele de bumbum, coxas, abdômen e braços.</p></div>
+      <div class="card"><div class="ico">🍑</div><h3>Celulite suavizada</h3><p>Com uso contínuo e massagem, a textura de "casca de laranja" fica visivelmente mais uniforme.</p></div>
+      <div class="card"><div class="ico">💧</div><h3>Hidratação 24h</h3><p>Manteigas e óleos amazônicos nutrem sem pesar. A pele fica macia e com brilho saudável.</p></div>
+      <div class="card"><div class="ico">🌺</div><h3>Perfume tropical</h3><p>Maracujá, baunilha e um toque de coco. Fica na pele por horas, sem ser enjoativo.</p></div>
+    </div>
+  </section>
+
+  <section class="block ingredients" id="ingredientes">
+    <div class="wrap">
+      <div class="head">
+        <p class="eyebrow">Fórmula</p>
+        <h2>Ativos do Brasil, escolhidos a dedo</h2>
+        <p class="lede">Nada de mistério: estes são os ativos principais e o que cada um faz na sua pele.</p>
+      </div>
+      <div class="ing-list">
+        <div class="ing"><div class="dot" style="background:radial-gradient(circle at 35% 35%,#E7B07A,#7A3E1A)"></div><div><h3>Cafeína</h3><p>Clássico dos cremes firmadores: estimula a circulação local e ajuda a reduzir a aparência da celulite.</p></div></div>
+        <div class="ing"><div class="dot" style="background:radial-gradient(circle at 35% 35%,#FF8A6B,#9B1C1C)"></div><div><h3>Extrato de guaraná</h3><p>Fonte natural de cafeína e antioxidantes. Potencializa o efeito tonificante da fórmula.</p></div></div>
+        <div class="ing"><div class="dot" style="background:radial-gradient(circle at 35% 35%,#FFF1D6,#D9A55B)"></div><div><h3>Manteiga de cupuaçu</h3><p>Hidratação profunda e duradoura, melhora a elasticidade e deixa a pele com toque aveludado.</p></div></div>
+        <div class="ing"><div class="dot" style="background:radial-gradient(circle at 35% 35%,#9C6BC9,#3B1660)"></div><div><h3>Óleo de açaí</h3><p>Rico em ácidos graxos e antioxidantes que ajudam a proteger a pele e manter a barreira saudável.</p></div></div>
+        <div class="ing"><div class="dot" style="background:radial-gradient(circle at 35% 35%,#A8E0A0,#2F7D5B)"></div><div><h3>Centella asiática</h3><p>Apoia a firmeza e o aspecto uniforme da pele. Muito usada em produtos para celulite e estrias.</p></div></div>
+        <div class="ing"><div class="dot" style="background:radial-gradient(circle at 35% 35%,#FFE89A,#E2A21B)"></div><div><h3>Niacinamida</h3><p>Uniformiza o tom, fortalece a barreira e melhora a textura com o uso diário.</p></div></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="wrap block" id="resultados">
+    <div class="head">
+      <p class="eyebrow">O que esperar</p>
+      <h2>Resultado é constância: veja a evolução</h2>
+    </div>
+    <div class="timeline">
+      <div class="card"><h3>Na 1ª aplicação</h3><p>Pele hidratada, macia e perfumada. Absorve rápido e não deixa a roupa grudando.</p></div>
+      <div class="card"><h3>Em 2 semanas</h3><p>Textura mais lisinha e pele com aspecto mais viçoso e uniforme.</p></div>
+      <div class="card"><h3>Em 4 semanas</h3><p>Aparência da pele mais firme e celulite visivelmente mais suave, com uso 2× ao dia.</p></div>
+      <div class="card"><h3>Em 8 semanas</h3><p>Resultado consolidado. Mantenha o ritual para preservar a firmeza.</p></div>
+    </div>
+    <p class="disclaimer">Produto cosmético. Os resultados variam de pessoa para pessoa e dependem do uso contínuo, associado a hidratação, alimentação equilibrada e atividade física. Não substitui tratamento médico.</p>
+  </section>
+
+  <section class="block" id="como-usar" style="background:var(--surface-2)">
+    <div class="wrap howto">
+      <div>
+        <div class="head" style="margin-bottom:24px">
+          <p class="eyebrow">Como usar</p>
+          <h2>Massagem é metade do resultado</h2>
+        </div>
+        <ol class="steps">
+          <li><b>1</b><p><strong>Pele limpa e levemente úmida</strong>Aplique logo após o banho, quando a pele absorve melhor.</p></li>
+          <li><b>2</b><p><strong>Massageie de baixo para cima</strong>Movimentos circulares e firmes em coxas, bumbum, quadril e abdômen, por 1 a 2 minutos.</p></li>
+          <li><b>3</b><p><strong>Duas vezes ao dia</strong>Manhã e noite. A constância é o que traz o efeito firmador.</p></li>
+          <li><b>4</b><p><strong>Lave as mãos depois</strong>Evite contato com os olhos. Faça um teste em pequena área antes do primeiro uso.</p></li>
+        </ol>
+      </div>
+      <div class="scent">
+        <p class="eyebrow">Fragrância</p>
+        <h3>Maracujá &amp; Baunilha</h3>
+        <p style="color:var(--ink-2)">Um perfume solar, doce na medida e com frescor de fruta. Pensado para ficar na pele por horas.</p>
+        <div class="notes">
+          <div><b>Saída</b>Maracujá</div>
+          <div><b>Corpo</b>Flor de laranjeira</div>
+          <div><b>Fundo</b>Baunilha e coco</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="wrap block" id="comprar">
+    <div class="head center">
+      <p class="eyebrow">Ofertas</p>
+      <h2>Escolha seu kit</h2>
+      <p class="lede">Quanto mais potes, menor o preço por unidade. Um pote de 240 g rende cerca de 1 mês de uso diário.</p>
+    </div>
+    <div class="offers" id="offers"></div>
+    <div class="trust">
+      <span>🔒 Compra segura</span><span>🚚 Envio para todo o Brasil</span><span>↩️ 7 dias para arrependimento</span><span>💳 Pix, cartão ou boleto</span>
+    </div>
+  </section>
+
+  <section class="wrap block" id="duvidas">
+    <div class="head center">
+      <p class="eyebrow">Dúvidas frequentes</p>
+      <h2>Perguntas que sempre chegam</h2>
+    </div>
+    <div class="faq">
+      <details><summary>Em quanto tempo vejo resultado?</summary><p>A hidratação e o perfume são imediatos. A melhora na firmeza e na aparência da celulite costuma ficar visível entre 4 e 8 semanas de uso 2× ao dia, com massagem.</p></details>
+      <details><summary>O creme elimina a celulite?</summary><p>Não. Nenhum cosmético elimina a celulite. O Firma Tropical ajuda a suavizar a aparência e a melhorar a firmeza da pele. Para resultado maior, combine com hidratação, alimentação equilibrada e exercícios.</p></details>
+      <details><summary>Posso usar na gravidez ou amamentando?</summary><p>Por conter cafeína, recomendamos consultar seu médico antes de usar durante a gestação ou a amamentação.</p></details>
+      <details><summary>Serve para pele sensível?</summary><p>A fórmula é dermatologicamente testada, mas por ser perfumada, faça um teste numa pequena área por 24h antes do primeiro uso. Suspenda em caso de irritação.</p></details>
+      <details><summary>Mancha a roupa ou deixa a pele grudando?</summary><p>Não. A textura é leve e absorve em poucos minutos. Espere 2 a 3 minutos antes de se vestir.</p></details>
+      <details><summary>Qual o prazo de entrega?</summary><p>Enviamos em até 2 dias úteis. O prazo da transportadora varia de 3 a 10 dias úteis conforme a região. Você recebe o código de rastreio pelo WhatsApp e e-mail.</p></details>
+      <details><summary>E se eu não gostar?</summary><p>Pelo Código de Defesa do Consumidor, você tem 7 dias após o recebimento para desistir da compra online e receber o valor de volta.</p></details>
+    </div>
+  </section>
+
+  <section class="wrap" style="padding-bottom:24px">
+    <div class="final">
+      <p class="eyebrow" style="color:var(--sun)">Seu verão começa agora</p>
+      <h2>Pele firme, macia e cheirosa</h2>
+      <p>Comece hoje o seu ritual. Frete grátis acima de R$ 199 e 10% de desconto no Pix.</p>
+      <a class="btn btn-primary" href="#comprar">Ver ofertas</a>
+    </div>
+  </section>
+</main>
+
+<footer class="wrap">
+  <div class="cols">
+    <a href="#beneficios">Benefícios</a><a href="#ingredientes">Ingredientes</a><a href="#como-usar">Como usar</a><a href="#duvidas">Dúvidas</a>
+    <a id="footerWhats" href="#">Atendimento pelo WhatsApp</a>
+  </div>
+  <p>Firma Tropical · Creme Corporal Firmador 240 g. Produto cosmético. Uso externo. Mantenha fora do alcance de crianças.</p>
+  <p id="legal"></p>
+</footer>
+
+<div class="buybar" id="buybar">
+  <div class="p"><span id="buybarPrice"></span><small>ou 3× sem juros</small></div>
+  <a class="btn btn-primary" href="#comprar">Comprar</a>
+</div>
+
+<div class="overlay" id="overlay"></div>
+<aside class="cart" id="cart" aria-label="Sacola" aria-hidden="true">
+  <div class="cart-head"><h3>Sua sacola</h3><button id="closeCart" aria-label="Fechar">×</button></div>
+  <div class="cart-items" id="cartItems"></div>
+  <div class="cart-foot" id="cartFoot">
+    <div class="ship-bar" id="shipBar"></div>
+    <div class="total"><span>Total</span><span id="cartTotal">R$ 0,00</span></div>
+    <div class="small-note" id="pixNote"></div>
+    <input id="cep" inputmode="numeric" maxlength="9" placeholder="Seu CEP (opcional)" autocomplete="postal-code">
+    <button class="btn btn-primary btn-block" id="checkout">Finalizar pelo WhatsApp</button>
+    <p class="small-note">Você fecha o pedido com nossa equipe: forma de pagamento, frete e prazo.</p>
+  </div>
+</aside>
+
+<script>
+// ===== Configuração da loja: edite aqui =====
+const LOJA = {
+  nome: "Firma Tropical",
+  whatsapp: "5511999999999",          // DDI + DDD + número, só dígitos
+  freteGratisAcima: 199,
+  descontoPix: 0.10,
+  parcelasSemJuros: 3,
+  razaoSocial: "Sua Empresa LTDA · CNPJ 00.000.000/0001-00",
+  kits: [
+    { id: "kit1", nome: "1 pote", qtd: 1, preco: 129.90, de: 149.90, extras: ["240 g · cerca de 1 mês de uso", "Envio em até 2 dias úteis"] },
+    { id: "kit3", nome: "Kit 3 potes", qtd: 3, preco: 329.90, de: 449.70, destaque: "Mais vendido", extras: ["Tratamento completo de 3 meses", "Frete grátis", "Luva de massagem de brinde"] },
+    { id: "kit2", nome: "Kit 2 potes", qtd: 2, preco: 239.90, de: 299.80, extras: ["2 meses de ritual", "Frete grátis"] }
+  ]
+};
+// ============================================
+
+const brl = v => v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+const $ = id => document.getElementById(id);
+
+let cart = {};
+try { cart = JSON.parse(localStorage.getItem("ft-cart") || "{}") || {}; } catch (e) { cart = {}; }
+const save = () => { try { localStorage.setItem("ft-cart", JSON.stringify(cart)); } catch (e) {} };
+const kit = id => LOJA.kits.find(k => k.id === id);
+
+function renderOffers() {
+  const order = ["kit1", "kit3", "kit2"];
+  $("offers").innerHTML = order.map(kit).filter(Boolean).map(k => `
+    <div class="offer ${k.destaque ? "best" : ""}">
+      ${k.destaque ? `<span class="flag">${k.destaque}</span>` : ""}
+      <h3>${k.nome}</h3>
+      <div class="qty">${k.qtd} × 240 g</div>
+      <div>
+        ${k.de ? `<div class="old">${brl(k.de)}</div>` : ""}
+        <div class="price">${brl(k.preco).replace(/,(\d\d)$/, "<small>,$1</small>")}</div>
+      </div>
+      <div class="each">${k.qtd > 1 ? brl(k.preco / k.qtd) + " por pote · " : ""}${brl(k.preco * (1 - LOJA.descontoPix))} no Pix</div>
+      <ul>${k.extras.map(e => `<li>${e}</li>`).join("")}</ul>
+      <button class="btn ${k.destaque ? "btn-primary" : "btn-ghost"} btn-block" data-add="${k.id}">Adicionar à sacola</button>
+    </div>`).join("");
+}
+
+function renderCart() {
+  const ids = Object.keys(cart).filter(id => kit(id) && cart[id] > 0);
+  const total = ids.reduce((s, id) => s + kit(id).preco * cart[id], 0);
+  const count = ids.reduce((s, id) => s + cart[id], 0);
+  $("cartCount").textContent = count;
+  $("cartItems").innerHTML = ids.length ? ids.map(id => {
+    const k = kit(id);
+    return `<div class="item">
+      <div><div class="name">${k.nome}</div><div class="sub">${brl(k.preco)} cada</div>
+        <div class="stepper"><button data-dec="${id}" aria-label="Diminuir">−</button><span>${cart[id]}</span><button data-inc="${id}" aria-label="Aumentar">+</button></div></div>
+      <div style="display:grid;align-content:space-between"><div class="line-total">${brl(k.preco * cart[id])}</div><button class="remove" data-rm="${id}">Remover</button></div>
+    </div>`;
+  }).join("") : `<div class="empty">Sua sacola está vazia.<br><a href="#comprar" data-close>Ver ofertas</a></div>`;
+  $("cartFoot").style.display = ids.length ? "" : "none";
+  $("cartTotal").textContent = brl(total);
+  $("pixNote").textContent = `${brl(total * (1 - LOJA.descontoPix))} no Pix · ou ${LOJA.parcelasSemJuros}× de ${brl(total / LOJA.parcelasSemJuros)} sem juros`;
+  const falta = LOJA.freteGratisAcima - total;
+  $("shipBar").innerHTML = (falta > 0 ? `Faltam <b>${brl(falta)}</b> para o frete grátis` : `🎉 Você ganhou <b>frete grátis</b>`) +
+    `<i><b style="width:${Math.min(100, total / LOJA.freteGratisAcima * 100)}%"></b></i>`;
+}
+
+function toggleCart(open) {
+  $("cart").classList.toggle("open", open);
+  $("overlay").classList.toggle("open", open);
+  $("cart").setAttribute("aria-hidden", String(!open));
+  document.body.style.overflow = open ? "hidden" : "";
+}
+
+document.addEventListener("click", e => {
+  const el = e.target.closest("[data-add],[data-inc],[data-dec],[data-rm],[data-close]");
+  if (!el) return;
+  const d = el.dataset;
+  if (d.add) { cart[d.add] = (cart[d.add] || 0) + 1; toggleCart(true); }
+  if (d.inc) cart[d.inc]++;
+  if (d.dec) cart[d.dec] = Math.max(0, cart[d.dec] - 1);
+  if (d.rm) delete cart[d.rm];
+  if (d.close !== undefined) toggleCart(false);
+  save(); renderCart();
+});
+
+$("openCart").onclick = () => toggleCart(true);
+$("closeCart").onclick = () => toggleCart(false);
+$("overlay").onclick = () => toggleCart(false);
+document.addEventListener("keydown", e => { if (e.key === "Escape") toggleCart(false); });
+
+$("cep").addEventListener("input", e => {
+  const d = e.target.value.replace(/\D/g, "").slice(0, 8);
+  e.target.value = d.length > 5 ? d.slice(0, 5) + "-" + d.slice(5) : d;
+});
+
+$("checkout").onclick = () => {
+  const ids = Object.keys(cart).filter(id => kit(id) && cart[id] > 0);
+  if (!ids.length) return;
+  const total = ids.reduce((s, id) => s + kit(id).preco * cart[id], 0);
+  const linhas = ids.map(id => `• ${cart[id]}× ${kit(id).nome} — ${brl(kit(id).preco * cart[id])}`);
+  const cep = $("cep").value.trim();
+  const msg = [`Olá! Quero fazer um pedido do ${LOJA.nome}:`, ...linhas, `Total: ${brl(total)} (${brl(total * (1 - LOJA.descontoPix))} no Pix)`, cep ? `CEP: ${cep}` : ""].filter(Boolean).join("\n");
+  window.open(`https://wa.me/${LOJA.whatsapp}?text=${encodeURIComponent(msg)}`, "_blank", "noopener");
+};
+
+$("footerWhats").href = `https://wa.me/${LOJA.whatsapp}`;
+$("footerWhats").target = "_blank";
+$("legal").textContent = `© ${new Date().getFullYear()} ${LOJA.razaoSocial}`;
+$("buybarPrice").textContent = "a partir de " + brl(Math.min(...LOJA.kits.map(k => k.preco / k.qtd)));
+
+// mostra a barra de compra no celular depois do topo e antes das ofertas
+const io = new IntersectionObserver(entries => {
+  const vis = {}; entries.forEach(en => vis[en.target.id || "hero"] = en.isIntersecting);
+  Object.assign(io.state, vis);
+  $("buybar").classList.toggle("show", !io.state.hero && !io.state.comprar);
+});
+io.state = { hero: true, comprar: false };
+io.observe(document.querySelector(".hero")); io.observe($("comprar"));
+
+renderOffers(); renderCart();
+</script>
+</body>
+</html>

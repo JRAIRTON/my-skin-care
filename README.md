@@ -6,6 +6,9 @@ Protótipo para avaliar a viabilidade do MY Skin AI com a família (spec v3.0, 2
   Perfis por familiar, upload de foto do rosto, checagem automática de qualidade,
   análise por IA (Claude, pela conta de quem abre), Skin Score, evolução com gráfico
   e comparação antes/depois, rotina com checklist diário e produtos com pesquisa de preço.
+- `loja/index.html` — loja (landing page de venda) do creme corporal firmador "Firma Tropical": benefícios,
+  ingredientes, modo de usar, kits com preço, FAQ e sacola que fecha o pedido pelo WhatsApp. Preços, kits,
+  número do WhatsApp e razão social ficam no objeto `LOJA` no início do script.
 - `prototipo/seed/` — dados fictícios ("Ana (exemplo)") usados para demonstração.
 - `docs/avaliacao.md` — avaliação de viabilidade e melhorias sugeridas.
 - `docs/caracteristicas.md` — o que o protótipo avalia, como e com quais limites.
