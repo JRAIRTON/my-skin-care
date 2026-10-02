@@ -59,22 +59,23 @@ MÉTODO (Método MY Skin v1): para cada categoria, PRIMEIRO escolha o grau de 0 
 Faixas: grau 0 = 90 a 100; grau 1 = 75 a 89; grau 2 = 60 a 74; grau 3 = 40 a 59; grau 4 = 0 a 39.
 Grau 0 significa que o sinal está AUSENTE: nesse caso a nota deve ser 90 ou mais. Não puxe as notas para o meio da escala.
 {chr(10).join(f"- {k} ({NOMES[k]}). Graus: " + "; ".join(f"{i} = {g}" for i, g in enumerate(GRAUS[k])) for k in CATS)}
-Nota sempre "maior = aparência melhor". Não ajuste a escala pela idade. Use grau e nota null quando a categoria não puder ser avaliada nesta foto (por exemplo, área coberta por barba).
+Nota sempre "maior = aparência melhor". Não ajuste a escala pela idade. Use avaliavel false (com grau e nota 0) quando a categoria não puder ser avaliada nesta foto (por exemplo, área coberta por barba).
 Seja conservador: diferença de luz, ângulo ou distância não é mudança da pele.
-Estime também a idade aparente da pele (idade que a pele aparenta, não idade biológica), ou null se a foto não permitir.
+Estime também a idade aparente da pele (idade que a pele aparenta, não idade biológica), ou 0 se a foto não permitir.
 Responda com o JSON pedido."""
 
-NULL_INT = {"anyOf": [{"type": "integer"}, {"type": "null"}]}
+# the API caps union-typed (nullable) fields, so "not assessable" is a boolean flag and is turned back into null in analisa_api
+INT = {"type": "integer"}
 SCHEMA = {
     "type": "object",
     "properties": {
         "notas": {
             "type": "object",
-            "properties": {k: {"type": "object", "properties": {"grau": NULL_INT, "nota": NULL_INT}, "required": ["grau", "nota"], "additionalProperties": False} for k in CATS},
+            "properties": {k: {"type": "object", "properties": {"avaliavel": {"type": "boolean"}, "grau": INT, "nota": INT}, "required": ["avaliavel", "grau", "nota"], "additionalProperties": False} for k in CATS},
             "required": CATS, "additionalProperties": False,
         },
         "confianca": {"type": "string", "enum": ["alta", "media", "baixa"]},
-        "idade_aparente": NULL_INT,
+        "idade_aparente": INT,
     },
     "required": ["notas", "confianca", "idade_aparente"], "additionalProperties": False,
 }
@@ -110,7 +111,12 @@ def analisa_api(client, modelo, img_b64):
     if resp.stop_reason == "refusal":
         raise RuntimeError("recusa do modelo")
     text = next(b.text for b in resp.content if b.type == "text")
-    return json.loads(text), resp.usage.input_tokens, resp.usage.output_tokens
+    bruto = json.loads(text)
+    for v in bruto["notas"].values():
+        if not v.pop("avaliavel", True):
+            v["grau"] = v["nota"] = None
+    bruto["idade_aparente"] = bruto.get("idade_aparente") or None
+    return bruto, resp.usage.input_tokens, resp.usage.output_tokens
 
 
 def analisa_simulado(pessoa, rng):
@@ -141,7 +147,8 @@ def roda(args):
     if saida.exists():  # resume: skip runs already saved
         for linha in saida.read_text().splitlines():
             r = json.loads(linha)
-            feitos.add((r["modelo"], r["codigo"], r["rep"]))
+            if not r.get("erro"):  # failed runs are retried on resume
+                feitos.add((r["modelo"], r["codigo"], r["rep"]))
     tarefas = [(m, c, rep) for m in args.modelos for c in fotos for rep in range(1, args.repeticoes + 1) if (m, c, rep) not in feitos]
     print(f"{len(tarefas)} análises a fazer ({len(feitos)} já salvas).", file=sys.stderr)
     if args.simular:
@@ -189,7 +196,11 @@ def roda(args):
 
 
 def relatorio(args):
-    regs = [json.loads(l) for l in Path(args.saida).read_text().splitlines()]
+    ultimo = {}  # a retried run supersedes its earlier failed attempt
+    for l in Path(args.saida).read_text().splitlines():
+        r = json.loads(l)
+        ultimo[(r["modelo"], r["codigo"], r["rep"])] = r
+    regs = list(ultimo.values())
     ok = [r for r in regs if r["notas"]]
     modelos = [m for m in args.modelos if any(r["modelo"] == m for r in ok)]
     L = ["# Etapa 5 — Resultados da validação ampliada da IA", "",

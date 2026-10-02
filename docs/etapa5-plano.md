@@ -43,8 +43,5 @@ Teste sem custo: acrescentar `--simular` (respostas falsas, só para conferir o 
 
 ## Situação em 02/10/2026
 
-- Mapa lido do app e 16 fotos baixadas; fluxo conferido com `--simular` (144 análises, sem erro).
-- Corrigido: antes, a simulação gravava no mesmo arquivo da execução real, e a execução real seguinte
-  pularia todas as análises como "já salvas", gerando o relatório com notas falsas.
-- **Execução real pendente:** a sessão não tinha `ANTHROPIC_API_KEY`. Cadastrar a variável no
-  ambiente e rodar numa sessão nova (passos 1 a 3 acima). Ainda não há resultados nem escolha de modelo.
+Executada: 144 análises, US$ 2,66. Recomendação: **Claude Sonnet 5**. Ver `etapa5-conclusao.md` e
+`etapa5-resultados.md`.
