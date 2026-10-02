@@ -4,8 +4,9 @@
 
 ## Execução
 
-144 análises independentes (16 fotos × 3 repetições × 3 modelos), sem erros. Custo real: US$ 2,66,
-mais US$ 0,06 de um piloto com uma foto. O limite era US$ 8.
+144 análises independentes (16 fotos × 3 repetições × 3 modelos), sem erros, por US$ 2,66, mais
+US$ 0,06 de um piloto com uma foto. Depois, mais 48 análises só com o Claude Sonnet 5.5, por US$ 0,68.
+O limite era US$ 8.
 
 ## Metas por modelo
 
@@ -14,20 +15,31 @@ mais US$ 0,06 de um piloto com uma foto. O limite era US$ 8.
 | Claude Haiku 4.5 | 4,8 ✗ | 7,7 ✗ | 55% ✗ | US$ 0,0054 | Não |
 | Claude Sonnet 5 | 1,1 ✓ | 1,7 ✓ | 73% ✓ | US$ 0,0143 | **Sim** |
 | Claude Opus 5 | 1,1 ✓ | 2,7 ✓ | 55% ✗ | US$ 0,0357 | Não |
+| Claude Sonnet 5.5 | 0,8 ✓ | 2,0 ✓ | 78% ✓ | US$ 0,0143 | **Sim** |
 
 ## Recomendação
 
-**Usar o Claude Sonnet 5 (`claude-sonnet-5`) no app.** É o único dos três que cumpre as três metas, e
-custa cerca de US$ 0,014 por análise (mais ou menos R$ 0,08).
+**Usar o Claude Sonnet 5.5 (`claude-sonnet-5-5`) no app.** Ele e o Sonnet 5 são os únicos que cumprem as
+três metas, e os dois custam o mesmo: cerca de US$ 0,014 por análise (mais ou menos R$ 0,08). O
+Sonnet 5.5 se sai melhor nas duas medidas principais:
+
+- **Repetibilidade:** a mesma foto varia em média 0,8 ponto (1,1 no Sonnet 5), no máximo 2 pontos.
+- **Faixa clínica:** 78% das notas ficam dentro da faixa (73% no Sonnet 5).
+
+Na estabilidade entre fotos com a mesma luz e no efeito da luz, o Sonnet 5 fica um pouco à frente
+(1,7 contra 2,0 e 1,9 contra 2,2), mas a diferença é pequena e os dois estão bem dentro das metas. O
+Sonnet 5.5 também é o modelo mais novo, então deve ter suporte por mais tempo.
+
+Comparação com os demais modelos:
 
 - **Haiku 4.5:** é instável. A mesma foto chegou a variar 13 pontos entre repetições, e o modelo dá
   notas abaixo da faixa clínica em 29% dos casos.
 - **Opus 5:** é tão estável quanto o Sonnet, mas é mais severo. 44% das notas ficaram abaixo da faixa
   clínica, e ele custa 2,5 vezes mais.
-- **Efeito da luz:** no Sonnet, a luz diferente mudou o Skin Score em no máximo 1,9 ponto. No Haiku e
-  no Opus, chegou a cerca de 4 pontos.
-- **Ganho sobre a etapa 2:** o acerto da faixa clínica subiu de 52% para 73%, o que confirma o
-  Método v1.
+- **Efeito da luz:** nos dois Sonnet, a luz diferente mudou o Skin Score em no máximo 2,2 pontos. No
+  Haiku e no Opus, chegou a cerca de 4 pontos.
+- **Ganho sobre a etapa 2:** o acerto da faixa clínica subiu de 52% para 78% com o Sonnet 5.5, o
+  que confirma o Método v1.
 
 ## Correções no script feitas nesta rodada
 
@@ -40,8 +52,8 @@ custa cerca de US$ 0,014 por análise (mais ou menos R$ 0,08).
 
 ## Limites e próximos passos
 
-- Os graus clínicos de referência foram dados pelo Claude Code, não por dermatologista. Os 73% medem
+- Os graus clínicos de referência foram dados pelo Claude Code, não por dermatologista. Os 78% medem
   concordância com essa referência, não acerto clínico.
 - A amostra tem só 4 pessoas, sem fototipos IV a VI e sem idades fora da faixa de 30 a 50 anos.
-- O Claude Sonnet 5.5 (`claude-sonnet-5-5`) saiu depois do plano, com o mesmo preço do Sonnet 5, e não
-  foi testado. Vale uma rodada só com ele (cerca de US$ 0,70) antes de fechar o modelo.
+- O Sonnet 5.5 entrou depois do plano, numa segunda rodada com as mesmas fotos, o mesmo pedido e o
+  mesmo número de repetições.

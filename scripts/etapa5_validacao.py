@@ -49,8 +49,8 @@ CLINICO = {
     "fernanda": [1, 1, 1, 1, 1, 2, 2, 0, 1, 1],
 }
 # US$ per million tokens (input, output), from the Claude API pricing table.
-PRECOS = {"claude-haiku-4-5": (1.0, 5.0), "claude-sonnet-5": (2.0, 10.0), "claude-opus-5": (5.0, 25.0)}
-MODELOS_PADRAO = ["claude-haiku-4-5", "claude-sonnet-5", "claude-opus-5"]
+PRECOS = {"claude-haiku-4-5": (1.0, 5.0), "claude-sonnet-5": (2.0, 10.0), "claude-sonnet-5-5": (2.0, 10.0), "claude-opus-5": (5.0, 25.0)}
+MODELOS_PADRAO = ["claude-haiku-4-5", "claude-sonnet-5", "claude-opus-5", "claude-sonnet-5-5"]
 
 PROMPT = f"""Você é o motor de avaliação visual do MY Skin AI, um app de cuidados com a pele (uso cosmético, não é diagnóstico médico).
 Avalie a foto do rosto. Avalie SOMENTE esta foto, de forma independente.

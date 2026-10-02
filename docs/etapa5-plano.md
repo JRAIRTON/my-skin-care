@@ -43,5 +43,6 @@ Teste sem custo: acrescentar `--simular` (respostas falsas, só para conferir o 
 
 ## Situação em 02/10/2026
 
-Executada: 144 análises, US$ 2,66. Recomendação: **Claude Sonnet 5**. Ver `etapa5-conclusao.md` e
+Executada: 144 análises (US$ 2,66) e mais 48 só com o Claude Sonnet 5.5 (US$ 0,68). Recomendação:
+**Claude Sonnet 5.5**. Ver `etapa5-conclusao.md` e
 `etapa5-resultados.md`.

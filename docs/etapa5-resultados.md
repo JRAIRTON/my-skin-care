@@ -1,6 +1,6 @@
 # Etapa 5 — Resultados da validação ampliada da IA
 
-Análises: 144 (0 com erro). Método MY Skin v1. Cada análise é independente: uma chamada por foto, sem foto anterior nem notas anteriores.
+Análises: 192 (0 com erro). Método MY Skin v1. Cada análise é independente: uma chamada por foto, sem foto anterior nem notas anteriores.
 
 ## Resumo por modelo
 
@@ -9,6 +9,7 @@ Análises: 144 (0 com erro). Método MY Skin v1. Cada análise é independente: 
 | claude-haiku-4-5 | 4,8 | 13 | 6,4 | 55% | 29% | US$ 0,0054 | 2 s | 0 |
 | claude-sonnet-5 | 1,1 | 3 | 2,7 | 73% | 9% | US$ 0,0143 | 3 s | 0 |
 | claude-opus-5 | 1,1 | 3 | 1,3 | 55% | 44% | US$ 0,0357 | 4 s | 0 |
+| claude-sonnet-5-5 | 0,8 | 2 | 1,2 | 78% | 9% | US$ 0,0143 | 3 s | 0 |
 
 Referência da etapa 2 (antes do Método v1): 52% das notas dentro da faixa clínica, todas as demais abaixo.
 
@@ -19,6 +20,7 @@ Referência da etapa 2 (antes do Método v1): 52% das notas dentro da faixa clí
 | claude-haiku-4-5 | 2,7 | 7,7 | 0,3 | 2,0 |
 | claude-sonnet-5 | 1,7 | 1,0 | 0,7 | 0,7 |
 | claude-opus-5 | 0,3 | 2,7 | 0,3 | 2,3 |
+| claude-sonnet-5-5 | 2,0 | 2,0 | 1,0 | 1,7 |
 
 ## Efeito da luz diferente no Skin Score (média das repetições)
 
@@ -27,6 +29,7 @@ Referência da etapa 2 (antes do Método v1): 52% das notas dentro da faixa clí
 | claude-haiku-4-5 | -3,8 | -0,7 | 4,6 | 1,6 |
 | claude-sonnet-5 | -0,1 | 0,7 | 1,9 | -1,8 |
 | claude-opus-5 | -4,2 | 1,8 | -0,1 | -2,8 |
+| claude-sonnet-5-5 | 1,2 | -1,6 | 2,2 | -1,0 |
 
 ## Critérios
 
