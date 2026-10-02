@@ -54,8 +54,12 @@ Decisão de 02/10/2026:
 - **A chave de API nunca vai dentro da página.** Qualquer pessoa com o link poderia copiá-la.
 - **No app definitivo, usar o Claude Sonnet 5.5 por meio de um servidor próprio.** Uma função na nuvem
   guarda a chave e chama a API com `claude-sonnet-5-5`, usando o mesmo pedido e o mesmo schema validados
-  em `scripts/etapa5_validacao.py`. O custo, cerca de US$ 0,014 por análise, passa a ser do MY Skin AI,
-  e não de quem usa o app.
+  em `scripts/etapa5_validacao.py`. O custo, cerca de US$ 0,015 por análise, passa a ser do MY Skin AI,
+  e não de quem usa o app. **Feito em `server/`** (Cloudflare Worker): o pedido e o schema vêm de
+  `server/src/metodo.json`, gerado pelo script, para não divergirem do que foi validado. Ele tem senha
+  de acesso e limite de 10 análises por minuto por IP. Testado localmente com uma foto real: HTTP 200 em
+  3 s, cerca de 5.800 tokens de entrada (contra 4.300 na validação) e 300 de saída. Falta publicar
+  (passos em `server/README.md`).
 - **Consequência para o protótipo:** os números desta etapa valem para o Sonnet 5.5 chamado direto pela
   API. O protótipo pode ser atendido por outra versão, então seus resultados podem diferir um pouco até
   a troca pelo servidor próprio.

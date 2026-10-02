@@ -1,0 +1,279 @@
+{
+ "gerado_por": "scripts/etapa5_validacao.py --exportar-metodo",
+ "modelo": "claude-sonnet-5-5",
+ "categorias": [
+  "textura",
+  "poros",
+  "linhas",
+  "firmeza",
+  "manchas",
+  "uniformidade",
+  "vermelhidao",
+  "oleosidade",
+  "brilho",
+  "hidratacao"
+ ],
+ "faixas": [
+  [
+   90,
+   100
+  ],
+  [
+   75,
+   89
+  ],
+  [
+   60,
+   74
+  ],
+  [
+   40,
+   59
+  ],
+  [
+   0,
+   39
+  ]
+ ],
+ "prompt": "Você é o motor de avaliação visual do MY Skin AI, um app de cuidados com a pele (uso cosmético, não é diagnóstico médico).\nAvalie a foto do rosto. Avalie SOMENTE esta foto, de forma independente.\n\nMÉTODO (Método MY Skin v1): para cada categoria, PRIMEIRO escolha o grau de 0 a 4 pelo descritor que melhor corresponde ao que se vê; DEPOIS dê a nota dentro da faixa do grau.\nFaixas: grau 0 = 90 a 100; grau 1 = 75 a 89; grau 2 = 60 a 74; grau 3 = 40 a 59; grau 4 = 0 a 39.\nGrau 0 significa que o sinal está AUSENTE: nesse caso a nota deve ser 90 ou mais. Não puxe as notas para o meio da escala.\n- textura (Textura). Graus: 0 = lisa e regular; 1 = pequenas elevações ou aspereza em uma área; 2 = irregularidade em várias áreas ou cicatrizes rasas; 3 = irregularidade evidente, cicatrizes múltiplas; 4 = intensa e difusa\n- poros (Poros). Graus: 0 = invisíveis a 30-40 cm; 1 = visíveis só no nariz; 2 = nariz e parte interna das bochechas; 3 = dilatados e numerosos em bochechas e testa; 4 = muito dilatados em todo o rosto\n- linhas (Rugas e linhas de expressão). Graus: 0 = sem linhas (Glogau I); 1 = linhas finas só na expressão; 2 = linhas finas visíveis em repouso (Glogau II); 3 = rugas evidentes em repouso (Glogau III); 4 = rugas profundas e difusas (Glogau IV)\n- firmeza (Firmeza e elasticidade aparentes). Graus: 0 = contorno nítido, sem flacidez; 1 = contorno levemente suavizado ou sulco nasogeniano discreto; 2 = sulco nasogeniano marcado, flacidez moderada; 3 = flacidez evidente no contorno da mandíbula; 4 = flacidez intensa\n- manchas (Pigmentação e manchas). Graus: 0 = sem manchas; 1 = poucas sardas ou uma mancha pequena isolada; 2 = várias manchas ou mancha difusa leve em uma região; 3 = manchas múltiplas ou mancha difusa moderada; 4 = manchas extensas\n- uniformidade (Tom e uniformidade). Graus: 0 = tom homogêneo; 1 = diferença leve localizada (olheiras leves, ao redor do nariz); 2 = diferenças em várias áreas; 3 = tom evidentemente irregular; 4 = muito irregular\n- vermelhidao (Vermelhidão e vasinhos). Graus: 0 = sem vermelhidão; 1 = quase imperceptível; 2 = leve e bem definida; 3 = moderada, ou vasinhos visíveis; 4 = intensa\n- oleosidade (Sebo e oleosidade). Graus: 0 = sem brilho oleoso; 1 = brilho leve só na zona T; 2 = brilho evidente na zona T; 3 = zona T e bochechas oleosas; 4 = muito oleosa em todo o rosto\n- brilho (Brilho e luminosidade). Graus: 0 = luminosa, com viço; 1 = levemente opaca em algumas áreas; 2 = opaca em boa parte do rosto; 3 = opaca e sem vida; 4 = muito opaca, acinzentada\n- hidratacao (Hidratação aparente). Graus: 0 = sem sinal de ressecamento; 1 = aspereza leve; 2 = descamação fina localizada; 3 = descamação evidente; 4 = descamação intensa ou fissuras\nNota sempre \"maior = aparência melhor\". Não ajuste a escala pela idade. Use avaliavel false (com grau e nota 0) quando a categoria não puder ser avaliada nesta foto (por exemplo, área coberta por barba).\nSeja conservador: diferença de luz, ângulo ou distância não é mudança da pele.\nEstime também a idade aparente da pele (idade que a pele aparenta, não idade biológica), ou 0 se a foto não permitir.\nResponda com o JSON pedido.",
+ "schema": {
+  "type": "object",
+  "properties": {
+   "notas": {
+    "type": "object",
+    "properties": {
+     "textura": {
+      "type": "object",
+      "properties": {
+       "avaliavel": {
+        "type": "boolean"
+       },
+       "grau": {
+        "type": "integer"
+       },
+       "nota": {
+        "type": "integer"
+       }
+      },
+      "required": [
+       "avaliavel",
+       "grau",
+       "nota"
+      ],
+      "additionalProperties": false
+     },
+     "poros": {
+      "type": "object",
+      "properties": {
+       "avaliavel": {
+        "type": "boolean"
+       },
+       "grau": {
+        "type": "integer"
+       },
+       "nota": {
+        "type": "integer"
+       }
+      },
+      "required": [
+       "avaliavel",
+       "grau",
+       "nota"
+      ],
+      "additionalProperties": false
+     },
+     "linhas": {
+      "type": "object",
+      "properties": {
+       "avaliavel": {
+        "type": "boolean"
+       },
+       "grau": {
+        "type": "integer"
+       },
+       "nota": {
+        "type": "integer"
+       }
+      },
+      "required": [
+       "avaliavel",
+       "grau",
+       "nota"
+      ],
+      "additionalProperties": false
+     },
+     "firmeza": {
+      "type": "object",
+      "properties": {
+       "avaliavel": {
+        "type": "boolean"
+       },
+       "grau": {
+        "type": "integer"
+       },
+       "nota": {
+        "type": "integer"
+       }
+      },
+      "required": [
+       "avaliavel",
+       "grau",
+       "nota"
+      ],
+      "additionalProperties": false
+     },
+     "manchas": {
+      "type": "object",
+      "properties": {
+       "avaliavel": {
+        "type": "boolean"
+       },
+       "grau": {
+        "type": "integer"
+       },
+       "nota": {
+        "type": "integer"
+       }
+      },
+      "required": [
+       "avaliavel",
+       "grau",
+       "nota"
+      ],
+      "additionalProperties": false
+     },
+     "uniformidade": {
+      "type": "object",
+      "properties": {
+       "avaliavel": {
+        "type": "boolean"
+       },
+       "grau": {
+        "type": "integer"
+       },
+       "nota": {
+        "type": "integer"
+       }
+      },
+      "required": [
+       "avaliavel",
+       "grau",
+       "nota"
+      ],
+      "additionalProperties": false
+     },
+     "vermelhidao": {
+      "type": "object",
+      "properties": {
+       "avaliavel": {
+        "type": "boolean"
+       },
+       "grau": {
+        "type": "integer"
+       },
+       "nota": {
+        "type": "integer"
+       }
+      },
+      "required": [
+       "avaliavel",
+       "grau",
+       "nota"
+      ],
+      "additionalProperties": false
+     },
+     "oleosidade": {
+      "type": "object",
+      "properties": {
+       "avaliavel": {
+        "type": "boolean"
+       },
+       "grau": {
+        "type": "integer"
+       },
+       "nota": {
+        "type": "integer"
+       }
+      },
+      "required": [
+       "avaliavel",
+       "grau",
+       "nota"
+      ],
+      "additionalProperties": false
+     },
+     "brilho": {
+      "type": "object",
+      "properties": {
+       "avaliavel": {
+        "type": "boolean"
+       },
+       "grau": {
+        "type": "integer"
+       },
+       "nota": {
+        "type": "integer"
+       }
+      },
+      "required": [
+       "avaliavel",
+       "grau",
+       "nota"
+      ],
+      "additionalProperties": false
+     },
+     "hidratacao": {
+      "type": "object",
+      "properties": {
+       "avaliavel": {
+        "type": "boolean"
+       },
+       "grau": {
+        "type": "integer"
+       },
+       "nota": {
+        "type": "integer"
+       }
+      },
+      "required": [
+       "avaliavel",
+       "grau",
+       "nota"
+      ],
+      "additionalProperties": false
+     }
+    },
+    "required": [
+     "textura",
+     "poros",
+     "linhas",
+     "firmeza",
+     "manchas",
+     "uniformidade",
+     "vermelhidao",
+     "oleosidade",
+     "brilho",
+     "hidratacao"
+    ],
+    "additionalProperties": false
+   },
+   "confianca": {
+    "type": "string",
+    "enum": [
+     "alta",
+     "media",
+     "baixa"
+    ]
+   },
+   "idade_aparente": {
+    "type": "integer"
+   }
+  },
+  "required": [
+   "notas",
+   "confianca",
+   "idade_aparente"
+  ],
+  "additionalProperties": false
+ }
+}

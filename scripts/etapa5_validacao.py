@@ -6,6 +6,7 @@ Analisa cada foto várias vezes, de forma independente, em cada modelo, usando o
 Uso:
   python3 scripts/etapa5_validacao.py --fotos DIR --mapa mapa.json [--modelos ...] [--repeticoes 3] [--max-usd 8]
   python3 scripts/etapa5_validacao.py --fotos DIR --mapa mapa.json --simular   # testa sem chamar a API
+  python3 scripts/etapa5_validacao.py --exportar-metodo server/src/metodo.json  # pedido e schema para o servidor
 
 DIR contém F01.jpg ... F16.jpg. mapa.json liga cada código à pessoa e à condição de luz
 (documento etapa2/codigos-avaliacao-cega do app). Requer ANTHROPIC_API_KEY, exceto com --simular.
@@ -275,8 +276,8 @@ def relatorio(args):
 
 if __name__ == "__main__":
     ap = argparse.ArgumentParser()
-    ap.add_argument("--fotos", required=True)
-    ap.add_argument("--mapa", required=True)
+    ap.add_argument("--fotos")
+    ap.add_argument("--mapa")
     ap.add_argument("--modelos", nargs="+", default=MODELOS_PADRAO)
     ap.add_argument("--repeticoes", type=int, default=3)
     ap.add_argument("--max-usd", type=float, default=8.0)
@@ -285,7 +286,15 @@ if __name__ == "__main__":
     ap.add_argument("--relatorio")
     ap.add_argument("--simular", action="store_true", help="testa o fluxo com respostas falsas, sem chamar a API")
     ap.add_argument("--so-relatorio", action="store_true")
+    ap.add_argument("--exportar-metodo", metavar="ARQ", help="grava pedido, schema e faixas validados em JSON (usado pelo servidor)")
     a = ap.parse_args()
+    if a.exportar_metodo:
+        metodo = {"gerado_por": "scripts/etapa5_validacao.py --exportar-metodo", "modelo": "claude-sonnet-5-5",
+                  "categorias": CATS, "faixas": FAIXAS, "prompt": PROMPT, "schema": SCHEMA}
+        Path(a.exportar_metodo).write_text(json.dumps(metodo, ensure_ascii=False, indent=1) + "\n")
+        sys.exit(0)
+    if not (a.fotos and a.mapa):
+        ap.error("--fotos e --mapa são obrigatórios")
     # a simulated run must never mix with real results (resume would skip them) or overwrite the real report
     sufixo = "-simulado" if a.simular else ""
     a.saida = a.saida or str(ROOT / f"etapa5-dados/resultados{sufixo}.jsonl")

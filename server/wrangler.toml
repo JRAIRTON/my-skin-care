@@ -1,0 +1,15 @@
+name = "myskin-analise"
+main = "src/index.js"
+compatibility_date = "2026-09-01"
+
+[vars]
+# origens (separadas por vírgula) que podem chamar o servidor pelo navegador; deixe vazio para só apps nativos
+ORIGENS_PERMITIDAS = ""
+
+# até 10 análises por minuto por IP
+[[ratelimits]]
+name = "LIMITE"
+namespace_id = "1001"
+simple = { limit = 10, period = 60 }
+
+# Segredos (não ficam aqui): npx wrangler secret put ANTHROPIC_API_KEY  e  npx wrangler secret put APP_TOKEN
