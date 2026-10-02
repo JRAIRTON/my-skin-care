@@ -33,9 +33,18 @@ e produtos não entram, porque não afetam a estabilidade e encareceriam o teste
 4. O relatório sai em `docs/etapa5-resultados.md`; os dados brutos ficam em `etapa5-dados/`, fora do
    repositório.
 
-Teste sem custo: acrescentar `--simular` (respostas falsas, só para conferir o fluxo).
+Teste sem custo: acrescentar `--simular` (respostas falsas, só para conferir o fluxo). A simulação grava em
+`etapa5-dados/resultados-simulado.jsonl` e `etapa5-dados/relatorio-simulado.md`, sem tocar nos resultados reais.
 
 ## Limites
 
 - Os graus clínicos de referência foram dados pelo Claude Code, não por dermatologista (ver etapa 2).
 - A amostra continua sem fototipos IV a VI e sem pessoas abaixo de 30 ou acima de 50 anos.
+
+## Situação em 02/10/2026
+
+- Mapa lido do app e 16 fotos baixadas; fluxo conferido com `--simular` (144 análises, sem erro).
+- Corrigido: antes, a simulação gravava no mesmo arquivo da execução real, e a execução real seguinte
+  pularia todas as análises como "já salvas", gerando o relatório com notas falsas.
+- **Execução real pendente:** a sessão não tinha `ANTHROPIC_API_KEY`. Cadastrar a variável no
+  ambiente e rodar numa sessão nova (passos 1 a 3 acima). Ainda não há resultados nem escolha de modelo.

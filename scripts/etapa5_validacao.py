@@ -270,11 +270,15 @@ if __name__ == "__main__":
     ap.add_argument("--repeticoes", type=int, default=3)
     ap.add_argument("--max-usd", type=float, default=8.0)
     ap.add_argument("--paralelo", type=int, default=4)
-    ap.add_argument("--saida", default=str(ROOT / "etapa5-dados/resultados.jsonl"))
-    ap.add_argument("--relatorio", default=str(ROOT / "docs/etapa5-resultados.md"))
+    ap.add_argument("--saida")
+    ap.add_argument("--relatorio")
     ap.add_argument("--simular", action="store_true", help="testa o fluxo com respostas falsas, sem chamar a API")
     ap.add_argument("--so-relatorio", action="store_true")
     a = ap.parse_args()
+    # a simulated run must never mix with real results (resume would skip them) or overwrite the real report
+    sufixo = "-simulado" if a.simular else ""
+    a.saida = a.saida or str(ROOT / f"etapa5-dados/resultados{sufixo}.jsonl")
+    a.relatorio = a.relatorio or str(ROOT / "etapa5-dados/relatorio-simulado.md" if a.simular else ROOT / "docs/etapa5-resultados.md")
     if not a.so_relatorio:
         roda(a)
     relatorio(a)
