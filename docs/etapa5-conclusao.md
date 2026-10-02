@@ -41,6 +41,25 @@ Comparação com os demais modelos:
 - **Ganho sobre a etapa 2:** o acerto da faixa clínica subiu de 52% para 78% com o Sonnet 5.5, o
   que confirma o Método v1.
 
+## Como o modelo é usado no app
+
+Decisão de 02/10/2026:
+
+- **No protótipo (`prototipo/index.html`), nada muda.** Ele roda como artifact do claude.ai e pede a
+  análise pelo recurso `sample` do claude.ai, com a conta de quem abre a página. Esse recurso não aceita
+  nome de modelo; a página só escolhe uma faixa (`quick`, `default` ou `complex`). O app já usa
+  `modelTier: "default"`, a faixa equilibrada da família Sonnet, e fica assim. O claude.ai decide a
+  versão exata e pode servir uma faixa mais barata conforme o plano da pessoa. A resposta informa só a
+  faixa aplicada, não o modelo.
+- **A chave de API nunca vai dentro da página.** Qualquer pessoa com o link poderia copiá-la.
+- **No app definitivo, usar o Claude Sonnet 5.5 por meio de um servidor próprio.** Uma função na nuvem
+  guarda a chave e chama a API com `claude-sonnet-5-5`, usando o mesmo pedido e o mesmo schema validados
+  em `scripts/etapa5_validacao.py`. O custo, cerca de US$ 0,014 por análise, passa a ser do MY Skin AI,
+  e não de quem usa o app.
+- **Consequência para o protótipo:** os números desta etapa valem para o Sonnet 5.5 chamado direto pela
+  API. O protótipo pode ser atendido por outra versão, então seus resultados podem diferir um pouco até
+  a troca pelo servidor próprio.
+
 ## Correções no script feitas nesta rodada
 
 - O schema da resposta tinha 21 campos anuláveis. A API recusa schemas assim (erro 400), então
