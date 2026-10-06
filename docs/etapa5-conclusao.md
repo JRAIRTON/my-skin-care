@@ -58,8 +58,9 @@ Decisão de 02/10/2026:
   e não de quem usa o app. **Feito em `server/`** (Cloudflare Worker): o pedido e o schema vêm de
   `server/src/metodo.json`, gerado pelo script, para não divergirem do que foi validado. Ele tem senha
   de acesso e limite de 10 análises por minuto por IP. Testado localmente com uma foto real: HTTP 200 em
-  3 s, cerca de 5.800 tokens de entrada (contra 4.300 na validação) e 300 de saída. Falta publicar
-  (passos em `server/README.md`).
+  3 s, cerca de 5.800 tokens de entrada (contra 4.300 na validação) e 300 de saída. Publicado em
+  06/10/2026 em https://my-skin-care.jr-airton.workers.dev (Cloudflare Workers Builds, publica sozinho a
+  cada envio à branch), com a primeira análise real pelo app funcionando.
 - **Consequência para o protótipo:** os números desta etapa valem para o Sonnet 5.5 chamado direto pela
   API. O protótipo pode ser atendido por outra versão, então seus resultados podem diferir um pouco até
   a troca pelo servidor próprio.
