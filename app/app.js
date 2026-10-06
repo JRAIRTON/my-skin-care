@@ -109,8 +109,12 @@ async function chama(caminho, opcoes = {}, codigo = S.codigo) {
     throw new Error(navigator.onLine === false ? "Sem internet. A análise precisa de conexão." : "Não foi possível falar com o servidor.");
   }
   if (!r.ok) {
-    let msg = ERROS[r.status];
-    if (!msg) { try { msg = (await r.json()).erro; } catch {} }
+    let msg = ERROS[r.status], corpo = {};
+    try { corpo = await r.json(); } catch {}
+    if (corpo.causa === "chave") msg = "O servidor está sem uma chave válida da Anthropic. Avise quem administra o app.";
+    else if (corpo.causa === "pedido") msg = "A IA recusou o pedido. Tente outra foto; se repetir, avise quem administra o app.";
+    if (!msg) msg = corpo.erro;
+    if (corpo.detalhe) msg += ` (Detalhe: ${corpo.detalhe})`;
     const e = new Error(msg || `Erro ${r.status} no servidor.`); e.status = r.status; throw e;
   }
   return r.json();

@@ -67,3 +67,24 @@ test("CORS só para origens permitidas", async () => {
   const nao = await app.fetch(pede("x", { Origin: "https://outro.site" }), ENV);
   assert.equal(nao.headers.get("Access-Control-Allow-Origin"), null);
 });
+
+test("erros da API viram causa e detalhe para o app", async () => {
+  const { default: Anthropic } = await import("@anthropic-ai/sdk");
+  const falha = (err) => ({ beta: { messages: { create: async () => { throw err; } } } });
+  const h = new Headers();
+  const casos = [
+    [new Anthropic.AuthenticationError(401, { error: { message: "invalid x-api-key" } }, "invalid x-api-key", h), 502, "chave"],
+    [new Anthropic.BadRequestError(400, { error: { message: "credit balance is too low" } }, "credit balance is too low", h), 400, "pedido"],
+    [new Anthropic.InternalServerError(529, {}, "Overloaded", h), 502, "ia"],
+  ];
+  const err = console.error; console.error = () => {};
+  try {
+    for (const [e, status, causa] of casos) {
+      const r = await criaApp({ cliente: falha(e) }).fetch(pede("x"), ENV);
+      assert.equal(r.status, status);
+      const j = await r.json();
+      assert.equal(j.causa, causa);
+      assert.ok(j.detalhe.length > 0);
+    }
+  } finally { console.error = err; }
+});

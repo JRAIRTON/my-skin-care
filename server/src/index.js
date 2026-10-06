@@ -113,10 +113,14 @@ export function criaApp({ cliente } = {}) {
         if (r.recusa) return json(422, { erro: "a IA não analisou esta foto" });
         return json(200, r);
       } catch (e) {
+        console.error("falha na IA", e?.status, e?.message); // shows in the Worker's logs
+        // detalhe: the API's own message, so the owner can tell a bad key or empty credit from an outage
+        const detalhe = String(e?.message || "").slice(0, 300);
         if (e instanceof Anthropic.RateLimitError) return json(503, { erro: "IA sobrecarregada; tente de novo" });
-        if (e instanceof Anthropic.BadRequestError) return json(400, { erro: "a IA recusou o pedido (foto inválida?)" });
-        if (e instanceof Anthropic.APIError) return json(502, { erro: `falha na IA (${e.status ?? "conexão"})` });
-        console.error(e);
+        if (e instanceof Anthropic.AuthenticationError || e instanceof Anthropic.PermissionDeniedError)
+          return json(502, { erro: "chave da Anthropic recusada", causa: "chave", detalhe });
+        if (e instanceof Anthropic.BadRequestError) return json(400, { erro: "a IA recusou o pedido", causa: "pedido", detalhe });
+        if (e instanceof Anthropic.APIError) return json(502, { erro: `falha na IA (${e.status ?? "conexão"})`, causa: "ia", detalhe });
         return json(500, { erro: "falha interna" });
       }
     },
