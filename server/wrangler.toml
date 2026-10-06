@@ -1,4 +1,4 @@
-name = "myskin-analise"
+name = "my-skin-care"  # igual ao nome do Worker na Cloudflare
 main = "src/index.js"
 compatibility_date = "2026-09-01"
 

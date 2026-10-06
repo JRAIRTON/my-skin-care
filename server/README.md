@@ -54,7 +54,7 @@ npm install
 npx wrangler login                        # abre o navegador para entrar na Cloudflare
 npx wrangler secret put ANTHROPIC_API_KEY # cola a chave da Anthropic quando pedir
 npx wrangler secret put APP_TOKEN         # cola uma senha longa e aleatória (ver abaixo)
-npm run deploy                            # mostra o endereço, ex.: https://myskin-analise.<conta>.workers.dev
+npm run deploy                            # mostra o endereço, ex.: https://my-skin-care.<conta>.workers.dev
 ```
 
 O endereço mostrado é o do app: é ele que você manda para quem vai testar, junto com o código de acesso
@@ -68,9 +68,9 @@ quem testa (o app pede de novo quando o antigo deixa de valer).
 Teste depois de publicar:
 
 ```bash
-curl https://myskin-analise.<conta>.workers.dev/saude
+curl https://my-skin-care.<conta>.workers.dev/saude
 curl -X POST -H "Authorization: Bearer <APP_TOKEN>" -H "Content-Type: image/jpeg" \
-  --data-binary @foto.jpg https://myskin-analise.<conta>.workers.dev/analise
+  --data-binary @foto.jpg https://my-skin-care.<conta>.workers.dev/analise
 ```
 
 ## Controle de gasto
