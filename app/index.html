@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>MY Skin AI</title>
+<meta name="description" content="Avaliação da pele por foto, evolução, rotina e produtos com preço.">
+<meta name="theme-color" content="#FAFAF8" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#111111" media="(prefers-color-scheme: dark)">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icones/icone-192.png" type="image/png">
+<link rel="apple-touch-icon" href="icones/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="MY Skin">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Marcellus&family=Manrope:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500&display=swap">
+<link rel="stylesheet" href="estilo.css">
+</head>
+<body>
+<header id="topo" class="top"></header>
+<main id="main" class="wrap" tabindex="-1"></main>
+<nav id="nav" class="nav" aria-label="Seções"></nav>
+<div id="toast" class="toast" role="status" hidden></div>
+<input id="in-camera" type="file" accept="image/*" capture="user" hidden>
+<input id="in-galeria" type="file" accept="image/jpeg,image/png,image/webp,image/*" hidden>
+<input id="in-backup" type="file" accept="application/json,.json" hidden>
+<noscript><p style="padding:24px">O MY Skin AI precisa de JavaScript ativado.</p></noscript>
+<script type="module" src="app.js"></script>
+</body>
+</html>

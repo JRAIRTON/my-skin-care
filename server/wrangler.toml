@@ -2,8 +2,12 @@ name = "myskin-analise"
 main = "src/index.js"
 compatibility_date = "2026-09-01"
 
+# o app web (pasta ../app) é servido pelo mesmo endereço; o que não é arquivo do app cai no Worker
+[assets]
+directory = "../app"
+
 [vars]
-# origens (separadas por vírgula) que podem chamar o servidor pelo navegador; deixe vazio para só apps nativos
+# outras origens (separadas por vírgula) que podem chamar o servidor pelo navegador; o app em ../app não precisa, pois usa o mesmo endereço
 ORIGENS_PERMITIDAS = ""
 
 # até 10 análises por minuto por IP

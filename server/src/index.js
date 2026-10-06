@@ -84,19 +84,22 @@ export function criaApp({ cliente } = {}) {
       const { pathname } = new URL(req.url);
       if (req.method === "OPTIONS") return new Response(null, { status: 204, headers: cors });
       if (pathname === "/saude" && req.method === "GET") return json(200, { ok: true, modelo: METODO.modelo });
-      if (pathname !== "/analise") return json(404, { erro: "rota inexistente" });
-      if (req.method !== "POST") return json(405, { erro: "use POST" });
+      if (pathname !== "/analise" && pathname !== "/acesso") return json(404, { erro: "rota inexistente" });
+      const metodo = pathname === "/acesso" ? "GET" : "POST";
+      if (req.method !== metodo) return json(405, { erro: `use ${metodo}` });
 
       if (!env.APP_TOKEN || !env.ANTHROPIC_API_KEY) return json(500, { erro: "servidor sem configuração" });
-      const auth = req.headers.get("Authorization") || "";
-      if (!auth.startsWith("Bearer ") || !(await mesmoToken(auth.slice(7), env.APP_TOKEN)))
-        return json(401, { erro: "token inválido" });
-
+      // the rate limit comes first so the access code cannot be guessed by brute force
       if (env.LIMITE) {
         const ip = req.headers.get("CF-Connecting-IP") || "sem-ip";
         const { success } = await env.LIMITE.limit({ key: ip });
-        if (!success) return json(429, { erro: "muitas análises seguidas; tente em 1 minuto" });
+        if (!success) return json(429, { erro: "muitas tentativas seguidas; tente em 1 minuto" });
       }
+      const auth = req.headers.get("Authorization") || "";
+      if (!auth.startsWith("Bearer ") || !(await mesmoToken(auth.slice(7), env.APP_TOKEN)))
+        return json(401, { erro: "token inválido" });
+      // GET /acesso only checks the access code typed in the app
+      if (pathname === "/acesso") return json(200, { ok: true });
 
       const tipo = (req.headers.get("Content-Type") || "").split(";")[0].trim().toLowerCase();
       if (!TIPOS.has(tipo)) return json(415, { erro: "envie a foto como image/jpeg, image/png ou image/webp" });

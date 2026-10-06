@@ -16,7 +16,11 @@ Protótipo para avaliar a viabilidade do MY Skin AI com a família (spec v3.0, 2
 - `docs/ingredientes-v1.md` — tabela de ingredientes v1 usada pela IA do protótipo.
 - `docs/catalogo-v1.md` e `docs/catalogo-v1.json` — etapa 4: catálogo de 34 produtos com ativos, tamanho e preço pesquisado; a IA recomenda só deste catálogo.
 - `docs/etapa5-plano.md` e `scripts/etapa5_validacao.py` — etapa 5: análises independentes pela API em 4 modelos (estabilidade, acerto da faixa clínica, custo); escolhido o Claude Sonnet 5.5 (`docs/etapa5-conclusao.md`).
-- `server/` — servidor de análise para o app definitivo (Cloudflare Worker com Claude Sonnet 5.5, senha de acesso e limite de uso); como publicar em `server/README.md`.
+- `app/` — etapa 7: o app definitivo, um app web instalável (PWA) para iPhone e Android. Fotos e histórico
+  ficam só no aparelho; a análise vai ao servidor. Rotina e produtos saem de regras fixas e do catálogo
+  (`app/recomenda.js`). Decisões em `docs/etapa7-app-web.md`.
+- `server/` — servidor de análise (Cloudflare Worker com Claude Sonnet 5.5, código de acesso e limite de uso),
+  que também serve o app; como publicar em `server/README.md`.
 - `docs/etapa6-*.md` — etapa 6 (validação de mercado): plano e critérios de decisão, concorrência e mercado, pesquisa para o Google Forms e roteiro de entrevista.
 - `prototipo/apresentacao.html` — página de apresentação para divulgar a pesquisa.
 - `scripts/analise_pesquisa.py` — analisa o CSV do Google Forms (critérios de decisão e preço por Van Westendorp).

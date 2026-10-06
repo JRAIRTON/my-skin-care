@@ -1,14 +1,17 @@
 # Servidor de análise do MY Skin AI
 
 Cloudflare Worker que recebe a foto do rosto e devolve as notas do Método MY Skin v1, analisadas pelo
-Claude Sonnet 5.5. É o mesmo pedido e o mesmo schema validados na etapa 5
+Claude Sonnet 5.5. O mesmo Worker serve o app web da pasta `../app` (ver `docs/etapa7-app-web.md`):
+um só endereço para o app e a análise. É o mesmo pedido e o mesmo schema validados na etapa 5
 (`docs/etapa5-conclusao.md`). A chave da Anthropic fica só no servidor, nunca no app.
 
 ## Rotas
 
 | Rota | O que faz |
 |---|---|
+| `GET /` e demais arquivos | O app web (pasta `../app`) |
 | `GET /saude` | Responde `{"ok": true, "modelo": "claude-sonnet-5-5"}` |
+| `GET /acesso` | Confere o código de acesso (`Authorization: Bearer <APP_TOKEN>`): `200` ou `401` |
 | `POST /analise` | Analisa uma foto |
 
 `POST /analise` pede:
@@ -54,8 +57,13 @@ npx wrangler secret put APP_TOKEN         # cola uma senha longa e aleatória (v
 npm run deploy                            # mostra o endereço, ex.: https://myskin-analise.<conta>.workers.dev
 ```
 
-Gerar a senha do app: `openssl rand -hex 32`. O app manda essa senha em cada pedido. Se ela vazar,
-troque com `npx wrangler secret put APP_TOKEN`.
+O endereço mostrado é o do app: é ele que você manda para quem vai testar, junto com o código de acesso
+(`APP_TOKEN`). O app pede o código na primeira vez que é aberto.
+
+Gerar o código de acesso: `openssl rand -hex 8` (curto o bastante para digitar no celular; o limite de
+10 tentativas por minuto impede adivinhar). O código não fica no código-fonte do app: cada pessoa digita
+o seu na primeira vez. Se vazar, troque com `npx wrangler secret put APP_TOKEN` e mande o novo para
+quem testa (o app pede de novo quando o antigo deixa de valer).
 
 Teste depois de publicar:
 
@@ -75,21 +83,24 @@ curl -X POST -H "Authorization: Bearer <APP_TOKEN>" -H "Content-Type: image/jpeg
 
 ## Chamar pelo navegador
 
-Por padrão, nenhum site pode chamar o servidor direto do navegador. Para liberar, ponha os endereços em
-`ORIGENS_PERMITIDAS` no `wrangler.toml` (separados por vírgula) e publique de novo. Apps nativos (iOS,
-Android) não precisam disso.
+O app da pasta `../app` usa o mesmo endereço e não precisa de liberação. Outros sites só chamam o
+servidor se o endereço deles estiver em `ORIGENS_PERMITIDAS` no `wrangler.toml` (separados por vírgula).
+Apps nativos (iOS, Android) não precisam disso.
 
-O protótipo atual (`prototipo/index.html`) roda dentro do claude.ai e continua usando a IA do
-claude.ai. Este servidor é para o app definitivo.
+O protótipo (`prototipo/index.html`) roda dentro do claude.ai e continua usando a IA do claude.ai.
 
 ## Desenvolvimento
 
 ```bash
-npm test                     # testes sem chamar a IA
+npm test                     # testes do servidor e das regras do app, sem chamar a IA
 printf 'ANTHROPIC_API_KEY=...\nAPP_TOKEN=teste\n' > .dev.vars   # fica fora do Git
-npm run dev                  # servidor local em http://localhost:8787
+npm run dev                  # app e servidor locais em http://localhost:8787
 ```
 
 **Mudou o pedido ou o schema em `scripts/etapa5_validacao.py`?** Rode `npm run metodo` para regenerar
 `src/metodo.json`. Qualquer mudança no pedido precisa de uma nova validação (etapa 5) antes de ir para o
 app.
+
+**Mudou o catálogo (`docs/catalogo-v1.json`)?** Copie para `app/catalogo.json` (um teste confere que os
+dois são iguais), dê classe a qualquer sérum novo em `app/recomenda.js` e troque `VERSAO` em
+`app/sw.js` para os celulares baixarem a versão nova.
