@@ -37,6 +37,12 @@ function base64(buf) {
   return btoa(s);
 }
 
+// enough to compare with the key list in the Anthropic Console, never enough to use the key
+export function impressao(chave) {
+  const k = String(chave || "").trim();
+  return { inicio: k.slice(0, 13), fim: k.length > 20 ? k.slice(-4) : "", tamanho: k.length };
+}
+
 async function mesmoToken(a, b) {
   // compare SHA-256 digests so the comparison takes the same time whatever the input
   const enc = new TextEncoder();
@@ -118,7 +124,7 @@ export function criaApp({ cliente } = {}) {
         const detalhe = String(e?.message || "").slice(0, 300);
         if (e instanceof Anthropic.RateLimitError) return json(503, { erro: "IA sobrecarregada; tente de novo" });
         if (e instanceof Anthropic.AuthenticationError || e instanceof Anthropic.PermissionDeniedError)
-          return json(502, { erro: "chave da Anthropic recusada", causa: "chave", detalhe });
+          return json(502, { erro: "chave da Anthropic recusada", causa: "chave", detalhe, chave: impressao(env.ANTHROPIC_API_KEY) });
         if (e instanceof Anthropic.BadRequestError) return json(400, { erro: "a IA recusou o pedido", causa: "pedido", detalhe });
         if (e instanceof Anthropic.APIError) return json(502, { erro: `falha na IA (${e.status ?? "conexão"})`, causa: "ia", detalhe });
         return json(500, { erro: "falha interna" });

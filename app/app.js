@@ -114,6 +114,7 @@ async function chama(caminho, opcoes = {}, codigo = S.codigo) {
     if (corpo.causa === "chave") msg = "O servidor está sem uma chave válida da Anthropic. Avise quem administra o app.";
     else if (corpo.causa === "pedido") msg = "A IA recusou o pedido. Tente outra foto; se repetir, avise quem administra o app.";
     if (!msg) msg = corpo.erro;
+    if (corpo.chave) msg += ` Chave cadastrada: ${corpo.chave.inicio}…${corpo.chave.fim} (${corpo.chave.tamanho} caracteres).`;
     if (corpo.detalhe) msg += ` (Detalhe: ${corpo.detalhe})`;
     const e = new Error(msg || `Erro ${r.status} no servidor.`); e.status = r.status; throw e;
   }

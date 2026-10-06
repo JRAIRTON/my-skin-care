@@ -88,3 +88,10 @@ test("erros da API viram causa e detalhe para o app", async () => {
     }
   } finally { console.error = err; }
 });
+
+test("impressão da chave não revela a chave", async () => {
+  const { impressao } = await import("../src/index.js");
+  const k = "sk-ant-api03-" + "a".repeat(80) + "WXYZ";
+  assert.deepEqual(impressao(" " + k + "\n"), { inicio: "sk-ant-api03-", fim: "WXYZ", tamanho: k.length });
+  assert.deepEqual(impressao("curta"), { inicio: "curta", fim: "", tamanho: 5 });
+});
