@@ -96,7 +96,7 @@ export function criaApp({ cliente } = {}) {
         if (!success) return json(429, { erro: "muitas tentativas seguidas; tente em 1 minuto" });
       }
       const auth = req.headers.get("Authorization") || "";
-      if (!auth.startsWith("Bearer ") || !(await mesmoToken(auth.slice(7), env.APP_TOKEN)))
+      if (!auth.startsWith("Bearer ") || !(await mesmoToken(auth.slice(7).trim(), env.APP_TOKEN.trim())))
         return json(401, { erro: "token inválido" });
       // GET /acesso only checks the access code typed in the app
       if (pathname === "/acesso") return json(200, { ok: true });
@@ -107,7 +107,7 @@ export function criaApp({ cliente } = {}) {
       if (!imagem.byteLength) return json(400, { erro: "corpo vazio" });
       if (imagem.byteLength > MAX_BYTES) return json(413, { erro: "foto acima de 5 MB" });
 
-      const client = cliente || new Anthropic({ apiKey: env.ANTHROPIC_API_KEY, maxRetries: 2 });
+      const client = cliente || new Anthropic({ apiKey: env.ANTHROPIC_API_KEY.trim(), maxRetries: 2 /* spaces or a line break pasted with the secret */ });
       try {
         const r = await analisa(client, imagem, tipo);
         if (r.recusa) return json(422, { erro: "a IA não analisou esta foto" });
