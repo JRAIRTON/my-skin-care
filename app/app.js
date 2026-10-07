@@ -250,7 +250,7 @@ const TEXTO_PRIVACIDADE = `
     <li>A avaliação é <b>cosmética</b>, feita por IA a partir de uma foto. Não é diagnóstico médico e não substitui o dermatologista.</li>
     <li>Rotina e produtos saem de regras fixas e de um catálogo de 34 produtos vendidos no Brasil. O app não vende nada e não ganha comissão.</li>
     <li>Você pode exportar ou apagar todos os seus dados a qualquer momento, em Ajustes.</li>
-    <li>Responsável: Airton Carvalho Junior, CNPJ 38.828.428/0001-08 · <a href="mailto:myskincare.ia.sac@gmail.com">myskincare.ia.sac@gmail.com</a>. Leia os <a href="termos.html">Termos de Uso</a> e a <a href="privacidade.html">Política de Privacidade</a>.</li>
+    <li>Responsável: Airton Carvalho Junior · <a href="mailto:myskincare.ia.sac@gmail.com">myskincare.ia.sac@gmail.com</a>. Leia os <a href="termos.html">Termos de Uso</a> e a <a href="privacidade.html">Política de Privacidade</a>.</li>
   </ul>`;
 function vOnboarding() {
   const passo = S.perfil?.consentimento ? 2 : S.onb;

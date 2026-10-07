@@ -32,7 +32,7 @@ Não usamos esses dados para outras finalidades, não os vendemos e não os usam
   pela **Anthropic**, empresa de inteligência artificial nos **EUA**. Nosso servidor não guarda a
   foto. A Anthropic não a usa para treinar modelos e pode guardá-la por prazo limitado, apenas para
   segurança, conforme a política dela.
-- Controlador dos dados: **Airton Carvalho Junior, CNPJ 38.828.428/0001-08**.
+- Controlador dos dados: **Airton Carvalho Junior** (pessoa física), Foz do Iguaçu (PR).
 - A transferência para fora do Brasil segue as garantias da LGPD (art. 33).
 
 ## Seus direitos

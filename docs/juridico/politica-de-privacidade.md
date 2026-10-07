@@ -4,8 +4,7 @@ Versão 2 · 07/10/2026
 
 ## 1. Quem é o responsável pelos seus dados
 
-**Airton Carvalho Junior**, CNPJ **38.828.428/0001-08**, Foz do Iguaçu (PR), é o controlador dos
-seus dados.
+**Airton Carvalho Junior**, pessoa física, de Foz do Iguaçu (PR), é o controlador dos seus dados.
 Encarregado de dados: **Airton Carvalho Junior**, **myskincare.ia.sac@gmail.com**.
 
 ## 2. Resumo

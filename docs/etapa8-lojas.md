@@ -7,9 +7,10 @@ o público e para as lojas.
 
 | Item | Decisão |
 |---|---|
-| Responsável legal e desenvolvedor nas lojas | Airton Carvalho Junior, CNPJ 38.828.428/0001-08, Foz do Iguaçu (PR) |
+| Responsável legal e desenvolvedor nas lojas | **Airton Carvalho Junior, pessoa física (CPF)**, Foz do Iguaçu (PR), para a fase de testes nas lojas (decisão de 07/10/2026). O CNPJ existente fica de fora porque só tem atividades de comércio varejista |
 | Atendimento e encarregado de dados (LGPD) | Airton Carvalho Junior · myskincare.ia.sac@gmail.com |
 | Endereço | Só cidade e estado nos documentos públicos; o endereço completo vai apenas nos cadastros das lojas |
+| Imposto | Receita das lojas (vem do exterior) declarada no carnê-leão, pela tabela do IR da pessoa física |
 | Preço | R$ 19,90 por mês ou R$ 129,90 por ano, renovação automática; **primeira análise grátis**, sem período de teste |
 | Cobrança | Pela loja (obrigatório para assinatura digital), com RevenueCat para unificar iPhone e Android e o servidor conferir a assinatura |
 | Empacotamento | Capacitor sobre o app web atual (`app/`), com câmera nativa; o mesmo servidor de `server/` |
@@ -29,30 +30,26 @@ análise grátis e quantos assinam; se a conversão for baixa, testar R$ 14,90.
 
 ## Pendências
 
-**Do responsável (levam dias, podem começar já):**
+**Do responsável (podem começar já):**
 
-1. **Incluir no CNPJ uma atividade de software (indispensável antes de receber pelas lojas).** Cadastro
-   estadual consultado em 07/10/2026: atividade principal 4772-5/00 (comércio varejista de cosméticos)
-   e secundárias de comércio varejista de vestuário, calçados, joias e relógios, todas de venda de
-   mercadorias (ICMS). Nenhuma cobre assinatura de app, que é serviço ou licença de software (ISS).
-   Levar ao contador: incluir 6203-1/00 (licenciamento de programas não customizáveis) e, se ele
-   indicar, 6319-4/00 (serviços de informação na internet); fazer a inscrição municipal em Foz do
-   Iguaçu para o ISS; confirmar o regime tributário (o cadastro estadual mostra "regime normal") e se
-   ainda é MEI, pois o MEI não pode ter essas atividades.
-2. Pedir o número D-U-N-S da empresa (grátis, 5 a 14 dias).
-3. Criar a conta Apple Developer como organização (US$ 99 por ano) e a Google Play Console como
-   organização (US$ 25, uma vez).
-4. Assinar o RIPD (`docs/juridico/ripd.md`, item 6).
+1. Abrir o carnê-leão (Receita Federal, gov.br) e declarar todo mês o que as lojas pagarem; confirmar
+   com o contador.
+2. Criar a conta Apple Developer como **pessoa física** (US$ 99 por ano; não precisa de D-U-N-S) e a
+   Google Play Console como **conta pessoal** (US$ 25, uma vez). Na conta pessoal do Google, apps novos
+   precisam de um **teste fechado com pelo menos 12 pessoas por 14 dias seguidos** antes de ir ao
+   público; conferir as regras atuais na hora do cadastro.
+3. Assinar o RIPD (`docs/juridico/ripd.md`, item 6).
 
-**Técnicas:**
+**Se a receita crescer (passar para o CNPJ):** a carga do IR da pessoa física chega a 27,5%; no CNPJ,
+no Simples Nacional, a alíquota inicial para software costuma ficar perto de 6%. Para isso:
 
-1. Guardar os registros de acesso ao servidor por 6 meses (Marco Civil, art. 15); hoje não são guardados.
-2. Confirmar nos termos comerciais da Anthropic o prazo de retenção dos pedidos.
-3. Trocar o código de acesso único pela assinatura: primeira análise grátis por aparelho, depois o
-   servidor confere a assinatura no RevenueCat.
-4. Projeto Capacitor (iOS e Android), câmera nativa, ícones e telas de abertura; build de iPhone por
-   Mac com Xcode ou serviço na nuvem (por exemplo, Codemagic).
-5. Fichas das lojas: descrição, capturas de tela, classificação etária, declaração de privacidade
-   (App Privacy e Data safety) e declaração de app de saúde no Google Play, sem alegações médicas.
-6. Testar a análise com fototipos IV a VI antes do lançamento (RIPD).
-7. Conferir a regularização dos produtos do catálogo na ANVISA.
+- **Incluir no CNPJ uma atividade de software (indispensável antes de receber pelo CNPJ).** Cadastro
+  estadual consultado em 07/10/2026: atividade principal 4772-5/00 (comércio varejista de cosméticos)
+  e secundárias de comércio varejista de vestuário, calçados, joias e relógios, todas de venda de
+  mercadorias (ICMS). Nenhuma cobre assinatura de app, que é serviço ou licença de software (ISS).
+  Levar ao contador: incluir 6203-1/00 (licenciamento de programas não customizáveis) e, se ele
+  indicar, 6319-4/00 (serviços de informação na internet); fazer a inscrição municipal em Foz do
+  Iguaçu para o ISS; confirmar o regime tributário (o cadastro estadual mostra "regime normal") e se
+  ainda é MEI, pois o MEI não pode ter essas atividades.
+- Pedir o número D-U-N-S e migrar as contas das lojas para organização (as lojas permitem transferir
+  o app).

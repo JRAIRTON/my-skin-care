@@ -5,7 +5,7 @@ do produto.
 
 ## 1. Identificação
 
-- **Controlador:** Airton Carvalho Junior, CNPJ 38.828.428/0001-08, Foz do Iguaçu (PR).
+- **Controlador:** Airton Carvalho Junior, pessoa física, Foz do Iguaçu (PR).
 - **Encarregado:** Airton Carvalho Junior, myskincare.ia.sac@gmail.com.
 - **Tratamento avaliado:** análise automatizada de fotos do rosto para avaliação cosmética da pele,
   acompanhamento, rotina e sugestão de produtos.

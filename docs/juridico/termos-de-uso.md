@@ -4,8 +4,8 @@ Versão 2 · 07/10/2026
 
 ## 1. Quem somos
 
-O MY Skin AI é oferecido por **Airton Carvalho Junior**, CNPJ **38.828.428/0001-08**, com sede em
-**Foz do Iguaçu (PR)** ("nós"). Contato: **myskincare.ia.sac@gmail.com**.
+O MY Skin AI é oferecido por **Airton Carvalho Junior**, pessoa física, de **Foz do Iguaçu (PR)**
+("nós"). Contato: **myskincare.ia.sac@gmail.com**.
 
 ## 2. O que é o serviço
 
