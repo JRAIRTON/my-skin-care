@@ -75,9 +75,47 @@ export async function analisa(client, imagem, tipo) {
   };
 }
 
+// Access logs required by the Marco Civil da Internet (art. 15): date and time (UTC), IP, route and
+// status of every request that reaches the Worker, kept for 6 months in D1. Never the photo or the code.
+export const RETENCAO_DIAS = 183;
+let tabelaPronta = null;
+function garanteTabela(db) {
+  tabelaPronta ||= db.batch([
+    db.prepare("CREATE TABLE IF NOT EXISTS acessos (quando TEXT NOT NULL, ip TEXT NOT NULL, rota TEXT NOT NULL, status INTEGER NOT NULL)"),
+    db.prepare("CREATE INDEX IF NOT EXISTS acessos_quando ON acessos (quando)"),
+  ]).catch((e) => { tabelaPronta = null; throw e; });
+  return tabelaPronta;
+}
+export async function registraAcesso(env, req, status, agora = new Date()) {
+  if (!env.REGISTROS) return;
+  try {
+    await garanteTabela(env.REGISTROS);
+    await env.REGISTROS.prepare("INSERT INTO acessos (quando, ip, rota, status) VALUES (?1, ?2, ?3, ?4)")
+      .bind(agora.toISOString(), req.headers.get("CF-Connecting-IP") || "sem-ip", new URL(req.url).pathname, status).run();
+  } catch (e) {
+    console.error("falha ao registrar acesso", e?.message); // a logging failure must not break the app
+  }
+}
+export async function apagaAcessosAntigos(env, agora = new Date()) {
+  if (!env.REGISTROS) return;
+  await garanteTabela(env.REGISTROS);
+  const limite = new Date(agora.getTime() - RETENCAO_DIAS * 864e5).toISOString();
+  await env.REGISTROS.prepare("DELETE FROM acessos WHERE quando < ?1").bind(limite).run();
+}
+
 export function criaApp({ cliente } = {}) {
-  return {
-    async fetch(req, env) {
+  const app = {
+    async fetch(req, env, ctx) {
+      const resp = await app.atende(req, env);
+      const registro = registraAcesso(env, req, resp.status);
+      if (ctx?.waitUntil) ctx.waitUntil(registro); else await registro;
+      return resp;
+    },
+    // daily cron (wrangler.toml): drops access logs older than RETENCAO_DIAS
+    async scheduled(evento, env, ctx) {
+      ctx.waitUntil(apagaAcessosAntigos(env));
+    },
+    async atende(req, env) {
       const origem = req.headers.get("Origin");
       const permitidas = (env.ORIGENS_PERMITIDAS || "").split(",").map((s) => s.trim()).filter(Boolean);
       const cors = origem && permitidas.includes(origem)
@@ -89,7 +127,7 @@ export function criaApp({ cliente } = {}) {
 
       const { pathname } = new URL(req.url);
       if (req.method === "OPTIONS") return new Response(null, { status: 204, headers: cors });
-      if (pathname === "/saude" && req.method === "GET") return json(200, { ok: true, modelo: METODO.modelo });
+      if (pathname === "/saude" && req.method === "GET") return json(200, { ok: true, modelo: METODO.modelo, registros: !!env.REGISTROS });
       if (pathname !== "/analise" && pathname !== "/acesso") return json(404, { erro: "rota inexistente" });
       const metodo = pathname === "/acesso" ? "GET" : "POST";
       if (req.method !== metodo) return json(405, { erro: `use ${metodo}` });
@@ -131,6 +169,7 @@ export function criaApp({ cliente } = {}) {
       }
     },
   };
+  return app;
 }
 
 export default criaApp();

@@ -17,3 +17,13 @@ namespace_id = "1001"
 simple = { limit = 10, period = 60 }
 
 # Segredos (não ficam aqui): npx wrangler secret put ANTHROPIC_API_KEY  e  npx wrangler secret put APP_TOKEN
+
+# registros de acesso (Marco Civil, art. 15): data, hora, IP, rota e status, guardados por 6 meses.
+# Sem database_id: o wrangler cria o banco D1 na primeira publicação e o liga a este Worker.
+[[d1_databases]]
+binding = "REGISTROS"
+database_name = "myskin-registros"
+
+# todo dia às 06:17 UTC apaga os registros com mais de 6 meses
+[triggers]
+crons = ["17 6 * * *"]

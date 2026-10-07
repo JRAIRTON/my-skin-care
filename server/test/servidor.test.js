@@ -95,3 +95,51 @@ test("impressão da chave não revela a chave", async () => {
   assert.deepEqual(impressao(" " + k + "\n"), { inicio: "sk-ant-api03-", fim: "WXYZ", tamanho: k.length });
   assert.deepEqual(impressao("curta"), { inicio: "curta", fim: "", tamanho: 5 });
 });
+
+// D1 em memória: só o que o servidor usa (batch, prepare, bind, run)
+function d1Falso() {
+  const linhas = [];
+  const exec = (sql, args) => {
+    if (sql.startsWith("INSERT")) linhas.push({ quando: args[0], ip: args[1], rota: args[2], status: args[3] });
+    if (sql.startsWith("DELETE")) for (let i = linhas.length - 1; i >= 0; i--) if (linhas[i].quando < args[0]) linhas.splice(i, 1);
+  };
+  const prepare = (sql) => ({ sql, args: [], bind(...a) { this.args = a; return this; }, async run() { exec(sql, this.args); } });
+  return { linhas, prepare, async batch(st) { st.forEach((x) => exec(x.sql, x.args)); } };
+}
+
+test("registra data, IP, rota e status de cada pedido, sem foto nem código", async () => {
+  const db = d1Falso();
+  const env = { ...ENV, REGISTROS: db };
+  const app = criaApp({ cliente: falso(resp({ notas: notasOk, confianca: "alta", idade_aparente: 40 })) });
+  const espera = [];
+  const ctx = { waitUntil: (p) => espera.push(p) };
+  await app.fetch(pede(new Uint8Array([1]), { "CF-Connecting-IP": "200.1.2.3" }), env, ctx);
+  await app.fetch(pede("x", { "CF-Connecting-IP": "200.1.2.3", Authorization: "Bearer errado" }), env, ctx);
+  await Promise.all(espera);
+  assert.equal(db.linhas.length, 2);
+  assert.deepEqual(db.linhas.map((l) => [l.ip, l.rota, l.status]), [["200.1.2.3", "/analise", 200], ["200.1.2.3", "/analise", 401]]);
+  assert.ok(!JSON.stringify(db.linhas).includes("segredo"));
+  const saude = await (await app.fetch(new Request("https://s/saude"), env, ctx)).json();
+  assert.equal(saude.registros, true);
+});
+
+test("apaga registros com mais de 6 meses e mantém os recentes", async () => {
+  const { apagaAcessosAntigos, registraAcesso, RETENCAO_DIAS } = await import("../src/index.js");
+  const db = d1Falso();
+  const env = { REGISTROS: db };
+  const agora = new Date("2026-10-07T12:00:00Z");
+  const req = new Request("https://s/acesso", { headers: { "CF-Connecting-IP": "1.1.1.1" } });
+  await registraAcesso(env, req, 200, new Date(agora.getTime() - (RETENCAO_DIAS + 1) * 864e5));
+  await registraAcesso(env, req, 200, new Date(agora.getTime() - 10 * 864e5));
+  await apagaAcessosAntigos(env, agora);
+  assert.equal(db.linhas.length, 1);
+});
+
+test("falha no banco de registros não derruba o app", async () => {
+  const env = { ...ENV, REGISTROS: { batch: async () => { throw new Error("D1 fora"); }, prepare: () => ({}) } };
+  const err = console.error; console.error = () => {};
+  try {
+    const r = await criaApp({ cliente: falso(resp({ notas: notasOk, confianca: "alta", idade_aparente: 40 })) }).fetch(pede(new Uint8Array([1])), env);
+    assert.equal(r.status, 200);
+  } finally { console.error = err; }
+});
