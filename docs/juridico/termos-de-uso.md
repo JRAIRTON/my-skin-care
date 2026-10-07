@@ -1,18 +1,17 @@
 # Termos de Uso — MY Skin AI
 
-Minuta · 30/09/2026 · Campos entre colchetes devem ser preenchidos antes da publicação.
+Versão 2 · 07/10/2026
 
 ## 1. Quem somos
 
-O MY Skin AI é oferecido por **[Nome da empresa]**, CNPJ **[ ]**, com sede em **[endereço]**
-("nós"). Contato: **[e-mail de atendimento]**.
+O MY Skin AI é oferecido por **Airton Carvalho Junior**, CNPJ **38.828.428/0001-08**, com sede em
+**Foz do Iguaçu (PR)** ("nós"). Contato: **myskincare.ia.sac@gmail.com**.
 
 ## 2. O que é o serviço
 
 O MY Skin AI faz uma **avaliação visual automatizada, com fins cosméticos**, da aparência da pele a
-partir de fotos enviadas por você. Oferece notas por categoria (Skin Score), acompanhamento da
-evolução, sugestão de rotina de cuidados, sugestão de produtos e pesquisa de preços em lojas de
-terceiros.
+partir de uma foto do rosto. Oferece notas em 10 aspectos da pele (Skin Score), acompanhamento da
+evolução, uma rotina de cuidados e sugestões de produtos de um catálogo, com preço de referência.
 
 **O MY Skin AI não é um serviço médico.** Ele não faz diagnóstico, não avalia doenças nem pintas,
 não indica tratamento e não substitui consulta com dermatologista. Os resultados são estimativas e
@@ -20,49 +19,49 @@ dependem da qualidade da foto: luz, distância, ângulo, maquiagem e filtros mud
 
 ## 3. Quem pode usar
 
-Maiores de 18 anos. Ao criar a conta, você declara ter 18 anos ou mais.
+Maiores de 18 anos. Ao começar a usar o app, você declara ter 18 anos ou mais.
 
-## 4. Sua conta
+## 4. Seus dados ficam no seu aparelho
 
-Você é responsável pelas informações que fornece e pelo sigilo do seu acesso. Avise-nos se
-suspeitar de uso indevido.
+O app não tem conta: perfil, fotos e resultados ficam guardados no seu celular. Você é responsável
+pelo acesso ao aparelho e por fazer a cópia de segurança (**Ajustes → Exportar cópia**) antes de
+trocar de celular, limpar os dados do navegador ou desinstalar o app. Não conseguimos recuperar dados
+apagados. Detalhes na **Política de Privacidade**.
 
-## 5. Fotos e cadastro de outras pessoas
+## 5. Fotos
 
-- Envie apenas fotos suas ou de pessoas adultas que autorizaram o uso, depois de lerem o termo de
-  consentimento.
-- É proibido enviar fotos de menores de 18 anos, fotos íntimas ou de terceiros sem autorização.
-- Podemos remover conteúdo que viole estes termos.
+- Envie apenas fotos do seu próprio rosto.
+- É proibido enviar fotos de menores de 18 anos, fotos íntimas ou fotos de outras pessoas.
 
 ## 6. Assinatura
 
-- O acesso às funções Premium é por assinatura mensal de **R$ [ ]**, com **renovação automática**
-  até o cancelamento.
-- A primeira análise é gratuita. **[Se houver período de teste: duração, e aviso antes da cobrança.]**
+- **A primeira análise é gratuita.** As análises seguintes exigem assinatura.
+- Planos: **mensal de R$ 19,90** ou **anual de R$ 129,90**, com **renovação automática** até o
+  cancelamento.
 - A cobrança e o cancelamento são feitos pela loja em que você assinou (App Store ou Google Play).
   O cancelamento vale para o próximo período; o acesso continua até o fim do período pago.
 - **Direito de arrependimento:** você pode desistir em até 7 dias da contratação (art. 49 do CDC),
-  pelo canal da loja ou pelo nosso atendimento, com devolução do valor pago.
-- Mudanças de preço serão avisadas com antecedência mínima de **[30]** dias.
+  pelo canal da loja ou pelo e-mail **myskincare.ia.sac@gmail.com**, com devolução do valor pago.
+- Mudanças de preço serão avisadas com antecedência mínima de **30 dias**, e as lojas pedem sua
+  concordância quando a regra delas exigir.
 
-## 7. Recomendações de produtos e preços
+## 7. Rotina, produtos e preços
 
-- As sugestões de ingredientes e produtos são educativas e baseadas no seu perfil e nas suas fotos.
-  Leia o rótulo e faça teste em pequena área antes de usar um produto novo.
-- Não vendemos produtos. Os preços são estimativas ou resultados de pesquisa em lojas de terceiros,
+- A rotina e as sugestões de produtos saem de regras fixas e de um catálogo de produtos vendidos no
+  Brasil. São informações educativas: leia o rótulo e faça teste em pequena área antes de usar um
+  produto novo. Em caso de reação, suspenda o uso e procure um médico.
+- Não vendemos produtos e não recebemos comissão pelas sugestões. Os preços são de referência,
   podem mudar e não são garantidos por nós.
-- **[Se houver links de afiliado: informamos que alguns links geram comissão, sem custo extra para
-  você, e isso não influencia as recomendações.]**
 
 ## 8. Inteligência artificial
 
-As avaliações são geradas por inteligência artificial e podem conter erros. Você pode contestar um
-resultado pelo nosso atendimento.
+As notas são geradas por inteligência artificial e podem conter erros. Você pode contestar um
+resultado pelo e-mail de atendimento.
 
 ## 9. Uso proibido
 
-Não é permitido: usar o app para fins ilegais; tentar acessar dados de outras pessoas; copiar,
-revender ou fazer engenharia reversa do serviço; enviar conteúdo ofensivo.
+Não é permitido: usar o app para fins ilegais; tentar burlar o limite de análises, a assinatura ou o
+acesso ao servidor; copiar, revender ou fazer engenharia reversa do serviço; enviar conteúdo ofensivo.
 
 ## 10. Responsabilidade
 
@@ -72,16 +71,17 @@ Nada nestes termos afasta direitos garantidos pelo Código de Defesa do Consumid
 
 ## 11. Privacidade
 
-O uso dos seus dados está descrito na **Política de Privacidade** e no **Termo de Consentimento**.
+O uso dos seus dados está descrito na **Política de Privacidade** e na autorização que você dá ao
+começar a usar o app.
 
-## 12. Suspensão e encerramento
+## 12. Encerramento
 
-Você pode excluir sua conta a qualquer momento no app. Podemos suspender contas que violem estes
-termos, com aviso, salvo em caso de risco a terceiros.
+Você pode parar de usar o app a qualquer momento: apague seus dados em **Ajustes → Apagar todos os
+dados** e cancele a assinatura na loja. Podemos bloquear o acesso de quem violar estes termos.
 
 ## 13. Alterações
 
-Mudanças relevantes serão avisadas no app com antecedência mínima de **[15]** dias.
+Mudanças relevantes serão avisadas no app com antecedência mínima de **15 dias**.
 
 ## 14. Lei e foro
 

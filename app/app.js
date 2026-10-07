@@ -246,10 +246,11 @@ function lePerfil() {
 const TEXTO_PRIVACIDADE = `
   <ul>
     <li><b>Suas fotos e resultados ficam só neste aparelho.</b> Não há conta nem cópia em nuvem.</li>
-    <li>Na hora da análise, a foto é enviada ao nosso servidor e à Anthropic (empresa do Claude, nos EUA), que devolve as notas. Nenhum dos dois guarda a foto, e ela não é usada para treinar IA.</li>
+    <li>Na hora da análise, a foto passa pelo nosso servidor e vai à Anthropic (empresa do Claude, nos EUA), que devolve as notas. Nosso servidor não guarda a foto. A Anthropic não a usa para treinar IA e só pode guardá-la por prazo limitado, para segurança.</li>
     <li>A avaliação é <b>cosmética</b>, feita por IA a partir de uma foto. Não é diagnóstico médico e não substitui o dermatologista.</li>
     <li>Rotina e produtos saem de regras fixas e de um catálogo de 34 produtos vendidos no Brasil. O app não vende nada e não ganha comissão.</li>
     <li>Você pode exportar ou apagar todos os seus dados a qualquer momento, em Ajustes.</li>
+    <li>Responsável: Airton Carvalho Junior, CNPJ 38.828.428/0001-08 · <a href="mailto:myskincare.ia.sac@gmail.com">myskincare.ia.sac@gmail.com</a>. Leia os <a href="termos.html">Termos de Uso</a> e a <a href="privacidade.html">Política de Privacidade</a>.</li>
   </ul>`;
 function vOnboarding() {
   const passo = S.perfil?.consentimento ? 2 : S.onb;
@@ -259,7 +260,7 @@ function vOnboarding() {
       <h1>Sua pele, acompanhada de perto</h1>
       <p class="lede">Tire uma foto do rosto e receba notas em 10 aspectos da pele, uma rotina simples e produtos com preço. Repita a cada 4 semanas para ver a evolução.</p></section>
     <section class="card"><h3>Antes de começar</h3><div class="legal">${TEXTO_PRIVACIDADE}</div>
-      <label class="agree"><input type="checkbox" id="ok-termos"><span>Tenho 18 anos ou mais, li e concordo com as condições acima.</span></label>
+      <label class="agree"><input type="checkbox" id="ok-termos"><span>Tenho 18 anos ou mais, li e concordo com os <a href="termos.html">Termos de Uso</a> e a <a href="privacidade.html">Política de Privacidade</a>.</span></label>
       <label class="agree"><input type="checkbox" id="ok-dados"><span>Autorizo o uso das fotos do meu rosto e das informações da minha pele para a avaliação, como descrito acima. Posso retirar esta autorização apagando meus dados.</span></label>
       <button class="btn primary block" data-act="onb:1">Continuar</button></section>${dots}`;
   if (passo === 1) return `
@@ -530,7 +531,7 @@ function vAjustes() {
       <button class="btn danger" data-act="apagar-tudo">Apagar todos os dados</button></section>
     <section class="card"><h3>Privacidade</h3><div class="legal">${TEXTO_PRIVACIDADE}</div>
       <p class="small muted">Consentimento dado em ${S.perfil.consentimento ? fmt(ymd(new Date(S.perfil.consentimento))) : "—"}. Para retirar, apague seus dados.</p></section>
-    <p class="foot">MY Skin AI · versão de teste · análise pelo Método MY Skin v1</p>`;
+    <p class="foot">MY Skin AI · análise pelo Método MY Skin v1 · <a href="termos.html">Termos de Uso</a> · <a href="privacidade.html">Privacidade</a></p>`;
 }
 
 // ---------- ações ----------

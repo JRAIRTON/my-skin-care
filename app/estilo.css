@@ -248,3 +248,11 @@ td.r, th.r { text-align: right; white-space: nowrap; }
 .steps-dots i.on { background: var(--gold); }
 .legal { font-size: 14px; color: var(--ink-2); display: grid; gap: 8px; }
 .legal ul { margin: 0; padding-left: 18px; display: grid; gap: 4px; }
+
+/* Páginas de Termos de Uso e Política de Privacidade (geradas por scripts/gera_juridico.py) */
+.doc { display: grid; gap: 12px; padding-block: 20px 40px; line-height: 1.55; }
+.doc h1 { margin-top: 4px; }
+.doc h2 { font-size: 19px; margin-top: 12px; }
+.doc ul { margin: 0; padding-left: 20px; display: grid; gap: 6px; }
+.doc p, .doc li { color: var(--ink-2); }
+.doc a, .legal a, .agree a, .foot a { color: var(--gold-ink); }
