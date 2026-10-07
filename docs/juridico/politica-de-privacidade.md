@@ -24,6 +24,7 @@ Encarregado de dados: **Airton Carvalho Junior**, **myskincare.ia.sac@gmail.com*
 | Perfil: nome ou apelido, idade, tipo de pele, fototipo, objetivos | No seu celular | Não |
 | Gestação ou amamentação, se você marcar | No seu celular | **Sim** (saúde) |
 | Rotina marcada e procedimentos estéticos registrados | No seu celular | **Sim** (saúde) |
+| Identificador aleatório do aparelho, criado pelo app (não é nome, e-mail nem número do aparelho) | No celular e no nosso servidor, para saber se a análise grátis já foi usada; enviado ao serviço de gestão de assinaturas | Não |
 | Assinatura: situação da compra informada pela loja | Na loja e no serviço de gestão de assinaturas | Não (não recebemos dados de cartão) |
 | Registros de acesso ao servidor: data, hora e IP | No nosso servidor | Não |
 
@@ -37,7 +38,8 @@ que a câmera grava no arquivo.
 | Analisar a foto, mostrar a evolução e montar a rotina e as sugestões de produtos | **Consentimento específico e destacado** (art. 11, I) |
 | Cobrança e gestão da assinatura | Execução de contrato (art. 7º, V) |
 | Guardar registros de acesso por 6 meses | Obrigação legal (Marco Civil da Internet, art. 15) |
-| Segurança e prevenção a abusos (limite de análises por minuto) | Legítimo interesse (art. 7º, IX), só com dados não sensíveis |
+| Liberar a primeira análise grátis uma vez por aparelho | Execução de contrato (art. 7º, V) |
+| Segurança e prevenção a abusos (limite de análises por minuto e de análises grátis por internet por dia) | Legítimo interesse (art. 7º, IX), só com dados não sensíveis |
 
 ## 5. Com quem compartilhamos
 
@@ -66,6 +68,7 @@ contratuais dos fornecedores ou outro mecanismo previsto em lei.
 | Fotos, avaliações, perfil e rotina | No seu celular, até você apagar em Ajustes ou desinstalar o app. Nós não temos cópia |
 | Foto enviada para análise | Nosso servidor não guarda. A Anthropic pode guardar por prazo limitado, conforme o item 5 |
 | Registros de acesso | 6 meses |
+| Identificador do aparelho que usou a análise grátis | Enquanto o serviço existir; o IP ligado a ele é apagado em 2 dias |
 | Dados da assinatura | Pelo prazo exigido pela legislação fiscal e pelas regras das lojas |
 
 ## 8. Segurança

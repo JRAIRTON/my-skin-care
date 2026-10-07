@@ -72,7 +72,7 @@ const DB = {
 
 // ---------- estado ----------
 const S = {
-  catalogo: [], perfil: null, codigo: null, analises: [], checks: {}, eventos: [], rotinaInicio: null,
+  catalogo: [], perfil: null, codigo: null, usuario: null, analises: [], checks: {}, eventos: [], rotinaInicio: null,
   tela: "inicio", detalhe: null, onb: 0, rascunho: null, ocupado: null, cmp: { a: null, b: null, corte: 50 },
   editando: false, procForm: false, instalar: null, catFiltro: "Todos",
 };
@@ -84,16 +84,19 @@ const anterior = (a) => { const l = ordenadas(); const i = l.findIndex((x) => x.
 const recuperacao = (data = hoje()) => S.eventos.find((e) => data >= e.data && data <= soma(e.data, e.dias)) || null;
 
 async function carrega() {
-  const [cat, perfil, codigo, analises, checks, eventos, inicio] = await Promise.all([
+  const [cat, perfil, codigo, analises, checks, eventos, inicio, usuario] = await Promise.all([
     fetch("catalogo.json").then((r) => r.json()), DB.get("perfil"), DB.get("codigo"), DB.todas(),
-    DB.get("checks"), DB.get("eventos"), DB.get("rotinaInicio"),
+    DB.get("checks"), DB.get("eventos"), DB.get("rotinaInicio"), DB.get("usuario"),
   ]);
-  Object.assign(S, { catalogo: cat, perfil: perfil || null, codigo: codigo || null, analises: analises || [], checks: checks || {}, eventos: eventos || [], rotinaInicio: inicio || null });
+  Object.assign(S, { catalogo: cat, perfil: perfil || null, codigo: codigo || null, analises: analises || [], checks: checks || {}, eventos: eventos || [], rotinaInicio: inicio || null, usuario: usuario || null });
+  // random id of this install: the server uses it for the free first analysis and the subscription
+  if (!S.usuario) { S.usuario = crypto.randomUUID(); await DB.set("usuario", S.usuario); }
 }
 
 // ---------- servidor ----------
 const ERROS = {
-  401: "Código de acesso inválido. Confira em Ajustes.",
+  401: "Código de convite inválido. Confira em Ajustes.",
+  402: "Sua análise grátis já foi usada. Assine para continuar.",
   413: "A foto ficou grande demais. Tente outra.",
   415: "Formato de foto não aceito. Use JPG, PNG ou WebP.",
   422: "A IA não analisou esta foto. Tente outra, só do rosto e bem iluminada.",
@@ -104,7 +107,9 @@ const ERROS = {
 async function chama(caminho, opcoes = {}, codigo = S.codigo) {
   let r;
   try {
-    r = await fetch(caminho, { ...opcoes, headers: { ...(opcoes.headers || {}), Authorization: `Bearer ${codigo}` } });
+    const h = { ...(opcoes.headers || {}), "X-Usuario": S.usuario };
+    if (codigo) h.Authorization = `Bearer ${codigo}`;
+    r = await fetch(caminho, { ...opcoes, headers: h });
   } catch {
     throw new Error(navigator.onLine === false ? "Sem internet. A análise precisa de conexão." : "Não foi possível falar com o servidor.");
   }
@@ -210,14 +215,14 @@ const aviso = (tipo, html, ic = tipo === "bad" || tipo === "warn" ? "!" : "i") =
 const TELAS = [["inicio", "Início"], ["evolucao", "Evolução"], ["analisar", "Analisar"], ["rotina", "Rotina"], ["produtos", "Produtos"]];
 
 function render() {
-  const pronto = S.perfil?.consentimento && S.codigo;
+  const pronto = S.perfil?.consentimento && (S.codigo || S.perfil.semCodigo);
   $("#topo").innerHTML = `<div class="top-in"><span class="brand">${LOGO}<b>MY <span>Skin</span></b></span>
     ${pronto ? `<button class="icon-btn" data-act="tela:ajustes" aria-label="Ajustes"${S.tela === "ajustes" ? ' aria-current="page"' : ""}>${ico("ajustes")}</button>` : ""}</div>`;
   $("#nav").hidden = !pronto;
   $("#nav").innerHTML = `<div class="nav-in">${TELAS.map(([k, l]) => `<button data-act="tela:${k}" class="${k === "analisar" ? "cta" : ""}"${S.tela === k && !S.detalhe ? ' aria-current="page"' : ""}>${k === "analisar" ? `<span class="ic">${ico(k)}</span>` : ico(k)}${l}</button>`).join("")}</div>`;
   const main = $("#main");
   main.classList.toggle("solo", !pronto);
-  main.innerHTML = !pronto ? vOnboarding() : S.detalhe ? vDetalhe() : ({ inicio: vInicio, evolucao: vEvolucao, analisar: vAnalisar, rotina: vRotina, produtos: vProdutos, ajustes: vAjustes }[S.tela] || vInicio)();
+  main.innerHTML = !pronto ? vOnboarding() : S.detalhe ? vDetalhe() : ({ inicio: vInicio, evolucao: vEvolucao, analisar: vAnalisar, rotina: vRotina, produtos: vProdutos, ajustes: vAjustes, assinar: vAssinar }[S.tela] || vInicio)();
   depois();
 }
 function vai(tela) { S.tela = tela; S.detalhe = null; S.editando = false; S.procForm = false; render(); window.scrollTo(0, 0); }
@@ -267,10 +272,12 @@ function vOnboarding() {
     <section class="card"><h2>Sobre você</h2><p class="small muted">Ajuda a montar a rotina. Tudo fica só neste aparelho.</p>${formPerfil(S.perfil || {})}
       <button class="btn primary block" data-act="onb:2">Continuar</button></section>${dots}`;
   return `
-    <section class="card"><h2>Código de acesso</h2>
-      <p class="lede">O MY Skin está em teste e as análises são liberadas por convite. Digite o código que você recebeu.</p>
+    <section class="card"><h2>Tudo pronto</h2>
+      <p class="lede">Sua <b>primeira análise é grátis</b>. Depois, as análises fazem parte da assinatura.</p>
+      <button class="btn primary block" data-act="sem-codigo">Começar</button></section>
+    <section class="card"><h3>Tem um código de convite?</h3>
       <label class="f">Código<input type="password" id="in-codigo" autocomplete="off" autocapitalize="off" spellcheck="false"></label>
-      <button class="btn primary block" data-act="codigo"${S.ocupado ? " disabled" : ""}>${S.ocupado ? "Conferindo…" : "Entrar"}</button></section>${dots}`;
+      <button class="btn block" data-act="codigo"${S.ocupado ? " disabled" : ""}>${S.ocupado ? "Conferindo…" : "Usar código"}</button></section>${dots}`;
 }
 
 // ----- início
@@ -356,9 +363,11 @@ async function analisar() {
     if (!S.rotinaInicio) { S.rotinaInicio = a.data; await DB.set("rotinaInicio", a.data); }
     URL.revokeObjectURL(d.url); S.rascunho = null; S.ocupado = false;
     S.detalhe = a.id; render(); window.scrollTo(0, 0);
+    if (r.gratis) toast("Esta foi sua análise grátis. As próximas fazem parte da assinatura.");
   } catch (e) {
     S.ocupado = false; render(); toast(e.message);
     if (e.status === 401) vai("ajustes");
+    if (e.status === 402) vai("assinar");
   }
 }
 
@@ -522,7 +531,10 @@ function vAjustes() {
       <div class="stack small"><span><b>Nome:</b> ${esc(S.perfil.nome || "—")}</span><span><b>Idade:</b> ${esc(S.perfil.idade || "—")}</span>
       <span><b>Tipo de pele:</b> ${esc(TIPOS_PELE[S.perfil.tipoPele] || "—")}</span><span><b>Fototipo:</b> ${esc(FOTOTIPOS[S.perfil.fototipo || 0])}</span>
       <span><b>Objetivos:</b> ${esc((S.perfil.objetivos || []).join(", ") || "—")}</span>${S.perfil.gestante ? `<span><b>Gestação ou amamentação:</b> sim</span>` : ""}</div>`}</section>
-    <section class="card"><h3>Código de acesso</h3>
+    <section class="card"><h3>Assinatura</h3>
+      <p class="small">${S.codigo ? "Você usa um código de convite: as análises estão liberadas." : "A primeira análise é grátis; as seguintes fazem parte da assinatura."}</p>
+      ${S.codigo ? "" : `<button class="btn" data-act="tela:assinar">Ver planos</button>`}</section>
+    <section class="card"><h3>Código de convite</h3>
       <label class="f">Código<input type="password" id="in-codigo" value="" placeholder="••••••••" autocomplete="off" autocapitalize="off" spellcheck="false"></label>
       <button class="btn" data-act="codigo"${S.ocupado ? " disabled" : ""}>${S.ocupado ? "Conferindo…" : "Trocar código"}</button></section>
     <section class="card"><h3>Seus dados</h3>
@@ -532,6 +544,34 @@ function vAjustes() {
     <section class="card"><h3>Privacidade</h3><div class="legal">${TEXTO_PRIVACIDADE}</div>
       <p class="small muted">Consentimento dado em ${S.perfil.consentimento ? fmt(ymd(new Date(S.perfil.consentimento))) : "—"}. Para retirar, apague seus dados.</p></section>
     <p class="foot">MY Skin AI · análise pelo Método MY Skin v1 · <a href="termos.html">Termos de Uso</a> · <a href="privacidade.html">Privacidade</a></p>`;
+}
+
+// ----- assinatura
+const PLANOS = [
+  { id: "mensal", nome: "Mensal", preco: "R$ 19,90", detalhe: "por mês" },
+  { id: "anual", nome: "Anual", preco: "R$ 129,90", detalhe: "por ano · sai a R$ 10,83 por mês" },
+];
+// the store app (Capacitor + RevenueCat) provides window.MySkinCompras; the web version has no purchase
+const compras = () => window.MySkinCompras || null;
+function vAssinar() {
+  const loja = compras();
+  return `
+    <section class="card"><h2>Assine o MY Skin</h2>
+      <p class="lede">Análises sem limite, evolução, rotina e produtos. Cancele quando quiser, pela loja.</p>
+      <div class="stack">${PLANOS.map((p) => `<button class="btn plano${p.id === "anual" ? " primary" : ""} block" data-act="assinar:${p.id}"${loja && !S.ocupado ? "" : " disabled"}>
+        <b>${p.nome} · ${p.preco}</b><span class="small">${p.detalhe}</span></button>`).join("")}</div>
+      ${loja ? `<button class="btn sm" data-act="assinar:restaurar">Já assinei: restaurar compra</button>` : aviso("info", "A assinatura é feita pelo app MY Skin da App Store ou do Google Play. Se você recebeu um código de convite, use em Ajustes.")}
+      <p class="small muted">Renovação automática até o cancelamento. Veja os <a href="termos.html">Termos de Uso</a> e a <a href="privacidade.html">Política de Privacidade</a>.</p></section>`;
+}
+async function assinar(plano) {
+  const loja = compras();
+  if (!loja || S.ocupado) return;
+  S.ocupado = true; render();
+  try {
+    const ativa = plano === "restaurar" ? await loja.restaurar(S.usuario) : await loja.comprar(plano, S.usuario);
+    S.ocupado = false;
+    if (ativa) { toast("Assinatura ativa. Boas análises!"); vai("analisar"); } else { render(); toast(plano === "restaurar" ? "Nenhuma assinatura encontrada nesta conta da loja." : "A compra não foi concluída."); }
+  } catch (e) { S.ocupado = false; render(); toast(e?.message || "A compra não foi concluída."); }
 }
 
 // ---------- ações ----------
@@ -570,9 +610,9 @@ async function importar(file) {
   if (!confirm(`Restaurar ${d.analises.length} análises de ${d.exportadoEm ? fmt(ymd(new Date(d.exportadoEm))) : "data desconhecida"}? Os dados atuais deste aparelho serão substituídos.`)) return;
   const deB64 = async (u) => u ? (await fetch(u)).blob() : null;
   const analises = await Promise.all(d.analises.map(async (a) => ({ ...a, foto: await deB64(a.foto) })));
-  const codigo = S.codigo;
+  const { codigo, usuario } = S;
   await DB.limpa();
-  await DB.set("codigo", codigo);
+  await DB.set("codigo", codigo); await DB.set("usuario", usuario);
   await DB.set("perfil", d.perfil); await DB.set("checks", d.checks || {}); await DB.set("eventos", d.eventos || []);
   if (d.rotinaInicio) await DB.set("rotinaInicio", d.rotinaInicio);
   for (const a of analises) await DB.salva(a);
@@ -596,6 +636,8 @@ async function acao(act, el) {
       S.onb = 2; return render();
     }
     case "codigo": return verificaCodigo();
+    case "sem-codigo": await salvaPerfil({ semCodigo: true }); return vai(S.analises.length ? "inicio" : "analisar");
+    case "assinar": return assinar(v);
     case "camera": return $("#in-camera").click();
     case "galeria": return $("#in-galeria").click();
     case "descartar": if (S.rascunho?.url) URL.revokeObjectURL(S.rascunho.url); S.rascunho = null; return render();
@@ -673,7 +715,7 @@ window.addEventListener("beforeinstallprompt", (e) => { e.preventDefault(); S.in
     $("#main").innerHTML = aviso("bad", "Não foi possível abrir os dados deste aparelho. Se estiver em uma aba anônima, abra o app numa aba normal.");
     return;
   }
-  if (S.perfil?.consentimento && !S.codigo) S.onb = 2;
+  if (S.perfil?.consentimento && !S.codigo && !S.perfil.semCodigo) S.onb = 2;
   render();
   if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(() => {});
 })();

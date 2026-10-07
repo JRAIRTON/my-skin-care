@@ -101,9 +101,50 @@ export async function apagaAcessosAntigos(env, agora = new Date()) {
   await garanteTabela(env.REGISTROS);
   const limite = new Date(agora.getTime() - RETENCAO_DIAS * 864e5).toISOString();
   await env.REGISTROS.prepare("DELETE FROM acessos WHERE quando < ?1").bind(limite).run();
+  // the IP of a free analysis only serves the per-day limit: blank it after 2 days, keep the install id
+  await garanteGratis(env.REGISTROS);
+  const doisDias = new Date(agora.getTime() - 2 * 864e5).toISOString();
+  await env.REGISTROS.prepare("UPDATE gratis SET ip = '' WHERE quando < ?1 AND ip <> ''").bind(doisDias).run();
 }
 
-export function criaApp({ cliente } = {}) {
+// ---------- who may analyse ----------
+// 1) invite code (APP_TOKEN): unlimited; 2) first analysis free per install (X-Usuario, an id the app
+// creates), at most GRATIS_POR_IP_DIA per IP per day; 3) active subscription checked in RevenueCat.
+export const GRATIS_POR_IP_DIA = 3;
+const ID_USUARIO = /^[A-Za-z0-9_-]{16,64}$/;
+let gratisPronta = null;
+function garanteGratis(db) {
+  gratisPronta ||= db.batch([
+    db.prepare("CREATE TABLE IF NOT EXISTS gratis (usuario TEXT PRIMARY KEY, ip TEXT NOT NULL, quando TEXT NOT NULL)"),
+    db.prepare("CREATE INDEX IF NOT EXISTS gratis_ip ON gratis (ip, quando)"),
+  ]).catch((e) => { gratisPronta = null; throw e; });
+  return gratisPronta;
+}
+async function podeGratis(env, usuario, ip, agora) {
+  if (!env.REGISTROS) return false;
+  await garanteGratis(env.REGISTROS);
+  const usou = await env.REGISTROS.prepare("SELECT 1 AS x FROM gratis WHERE usuario = ?1").bind(usuario).first();
+  if (usou) return false;
+  const desde = new Date(agora.getTime() - 864e5).toISOString();
+  const n = await env.REGISTROS.prepare("SELECT COUNT(*) AS n FROM gratis WHERE ip = ?1 AND quando >= ?2").bind(ip, desde).first();
+  return (n?.n ?? 0) < GRATIS_POR_IP_DIA;
+}
+async function marcaGratis(env, usuario, ip, agora) {
+  await env.REGISTROS.prepare("INSERT OR IGNORE INTO gratis (usuario, ip, quando) VALUES (?1, ?2, ?3)").bind(usuario, ip, agora.toISOString()).run();
+}
+// RevenueCat REST API v1: the entitlement is active when it never expires or expires in the future
+export async function assinaturaAtiva(env, usuario, agora = new Date(), busca = fetch) {
+  if (!env.REVENUECAT_API_KEY) return false;
+  const r = await busca(`https://api.revenuecat.com/v1/subscribers/${encodeURIComponent(usuario)}`, {
+    headers: { Authorization: `Bearer ${env.REVENUECAT_API_KEY.trim()}`, Accept: "application/json" },
+  });
+  if (!r.ok) throw new Error(`RevenueCat ${r.status}`);
+  const ent = (await r.json())?.subscriber?.entitlements?.[env.ENTITLEMENT || "premium"];
+  if (!ent) return false;
+  return !ent.expires_date || new Date(ent.expires_date) > agora;
+}
+
+export function criaApp({ cliente, busca } = {}) {
   const app = {
     async fetch(req, env, ctx) {
       const resp = await app.atende(req, env);
@@ -119,7 +160,7 @@ export function criaApp({ cliente } = {}) {
       const origem = req.headers.get("Origin");
       const permitidas = (env.ORIGENS_PERMITIDAS || "").split(",").map((s) => s.trim()).filter(Boolean);
       const cors = origem && permitidas.includes(origem)
-        ? { "Access-Control-Allow-Origin": origem, "Access-Control-Allow-Headers": "Authorization, Content-Type",
+        ? { "Access-Control-Allow-Origin": origem, "Access-Control-Allow-Headers": "Authorization, Content-Type, X-Usuario",
             "Access-Control-Allow-Methods": "POST, OPTIONS", Vary: "Origin" }
         : {};
       const json = (status, corpo) => new Response(JSON.stringify(corpo), {
@@ -140,10 +181,25 @@ export function criaApp({ cliente } = {}) {
         if (!success) return json(429, { erro: "muitas tentativas seguidas; tente em 1 minuto" });
       }
       const auth = req.headers.get("Authorization") || "";
-      if (!auth.startsWith("Bearer ") || !(await mesmoToken(auth.slice(7).trim(), env.APP_TOKEN.trim())))
-        return json(401, { erro: "token inválido" });
-      // GET /acesso only checks the access code typed in the app
-      if (pathname === "/acesso") return json(200, { ok: true });
+      const ip = req.headers.get("CF-Connecting-IP") || "sem-ip";
+      const agora = new Date();
+      let gratis = null; // set when this analysis uses the free one, marked only if it succeeds
+      if (auth.startsWith("Bearer ")) {
+        if (!(await mesmoToken(auth.slice(7).trim(), env.APP_TOKEN.trim()))) return json(401, { erro: "token inválido" });
+        // GET /acesso only checks the access code typed in the app
+        if (pathname === "/acesso") return json(200, { ok: true });
+      } else {
+        const usuario = (req.headers.get("X-Usuario") || "").trim();
+        if (pathname === "/acesso" || !ID_USUARIO.test(usuario)) return json(401, { erro: "token inválido" });
+        try {
+          if (await podeGratis(env, usuario, ip, agora)) gratis = usuario;
+          else if (!(await assinaturaAtiva(env, usuario, agora, busca)))
+            return json(402, { erro: "assinatura necessária", causa: "assinatura" });
+        } catch (e) {
+          console.error("falha ao conferir acesso", e?.message);
+          return json(503, { erro: "não foi possível conferir a assinatura; tente de novo" });
+        }
+      }
 
       const tipo = (req.headers.get("Content-Type") || "").split(";")[0].trim().toLowerCase();
       if (!TIPOS.has(tipo)) return json(415, { erro: "envie a foto como image/jpeg, image/png ou image/webp" });
@@ -155,7 +211,8 @@ export function criaApp({ cliente } = {}) {
       try {
         const r = await analisa(client, imagem, tipo);
         if (r.recusa) return json(422, { erro: "a IA não analisou esta foto" });
-        return json(200, r);
+        if (gratis) await marcaGratis(env, gratis, ip, agora).catch((e) => console.error("falha ao marcar grátis", e?.message));
+        return json(200, { ...r, gratis: !!gratis });
       } catch (e) {
         console.error("falha na IA", e?.status, e?.message); // shows in the Worker's logs
         // detalhe: the API's own message, so the owner can tell a bad key or empty credit from an outage

@@ -61,8 +61,11 @@ no Simples Nacional, a alíquota inicial para software costuma ficar perto de 6%
    tarefa diária apaga o que passar de 183 dias. A Cloudflare não repassa ao Worker a porta de origem
    do aparelho; se uma ordem judicial exigir, informar isso. Consulta em `server/README.md`.
 2. Confirmar nos termos comerciais da Anthropic o prazo de retenção dos pedidos.
-3. Trocar o código de acesso único pela assinatura: primeira análise grátis por aparelho, depois o
-   servidor confere a assinatura no RevenueCat.
+3. ~~Trocar o código de acesso único pela assinatura.~~ Feito em 07/10/2026 no servidor e no app web:
+   código de convite opcional (sem limite), primeira análise grátis por aparelho (no máximo 3 por IP
+   por dia) e, depois, assinatura conferida no RevenueCat; tela de planos no app. A compra em si
+   (plugin do RevenueCat) entra com o projeto Capacitor; o app web mostra os planos sem botão de compra.
+   Testadores do teste fechado: testadores de licença das lojas, sem cobrança.
 4. Projeto Capacitor (iOS e Android), câmera nativa, ícones e telas de abertura; build de iPhone por
    Mac com Xcode ou serviço na nuvem (por exemplo, Codemagic).
 5. Fichas das lojas: descrição, capturas de tela, classificação etária, declaração de privacidade

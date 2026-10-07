@@ -96,15 +96,23 @@ test("impressão da chave não revela a chave", async () => {
   assert.deepEqual(impressao("curta"), { inicio: "curta", fim: "", tamanho: 5 });
 });
 
-// D1 em memória: só o que o servidor usa (batch, prepare, bind, run)
+// D1 em memória: só as consultas que o servidor usa
 function d1Falso() {
-  const linhas = [];
+  const linhas = [], gratis = [];
   const exec = (sql, args) => {
-    if (sql.startsWith("INSERT")) linhas.push({ quando: args[0], ip: args[1], rota: args[2], status: args[3] });
-    if (sql.startsWith("DELETE")) for (let i = linhas.length - 1; i >= 0; i--) if (linhas[i].quando < args[0]) linhas.splice(i, 1);
+    if (sql.startsWith("INSERT INTO acessos")) linhas.push({ quando: args[0], ip: args[1], rota: args[2], status: args[3] });
+    if (sql.startsWith("DELETE FROM acessos")) for (let i = linhas.length - 1; i >= 0; i--) if (linhas[i].quando < args[0]) linhas.splice(i, 1);
+    if (sql.startsWith("UPDATE gratis SET ip")) gratis.forEach((g) => { if (g.quando < args[0]) g.ip = ""; });
+    if (sql.startsWith("INSERT OR IGNORE INTO gratis") && !gratis.some((g) => g.usuario === args[0])) gratis.push({ usuario: args[0], ip: args[1], quando: args[2] });
   };
-  const prepare = (sql) => ({ sql, args: [], bind(...a) { this.args = a; return this; }, async run() { exec(sql, this.args); } });
-  return { linhas, prepare, async batch(st) { st.forEach((x) => exec(x.sql, x.args)); } };
+  const consulta = (sql, args) => {
+    if (sql.startsWith("SELECT 1 AS x FROM gratis")) return gratis.some((g) => g.usuario === args[0]) ? { x: 1 } : null;
+    if (sql.startsWith("SELECT COUNT(*) AS n FROM gratis")) return { n: gratis.filter((g) => g.ip === args[0] && g.quando >= args[1]).length };
+    return null;
+  };
+  const prepare = (sql) => ({ sql, args: [], bind(...a) { this.args = a; return this; },
+    async run() { exec(sql, this.args); }, async first() { return consulta(sql, this.args); } });
+  return { linhas, gratis, prepare, async batch(st) { st.forEach((x) => exec(x.sql, x.args)); } };
 }
 
 test("registra data, IP, rota e status de cada pedido, sem foto nem código", async () => {
@@ -131,8 +139,11 @@ test("apaga registros com mais de 6 meses e mantém os recentes", async () => {
   const req = new Request("https://s/acesso", { headers: { "CF-Connecting-IP": "1.1.1.1" } });
   await registraAcesso(env, req, 200, new Date(agora.getTime() - (RETENCAO_DIAS + 1) * 864e5));
   await registraAcesso(env, req, 200, new Date(agora.getTime() - 10 * 864e5));
+  db.gratis.push({ usuario: "antigo-000000000001", ip: "5.5.5.5", quando: new Date(agora.getTime() - 3 * 864e5).toISOString() });
+  db.gratis.push({ usuario: "recente-00000000001", ip: "6.6.6.6", quando: agora.toISOString() });
   await apagaAcessosAntigos(env, agora);
   assert.equal(db.linhas.length, 1);
+  assert.deepEqual(db.gratis.map((g) => g.ip), ["", "6.6.6.6"]);
 });
 
 test("falha no banco de registros não derruba o app", async () => {
@@ -141,5 +152,66 @@ test("falha no banco de registros não derruba o app", async () => {
   try {
     const r = await criaApp({ cliente: falso(resp({ notas: notasOk, confianca: "alta", idade_aparente: 40 })) }).fetch(pede(new Uint8Array([1])), env);
     assert.equal(r.status, 200);
+  } finally { console.error = err; }
+});
+
+// ---------- primeira análise grátis e assinatura ----------
+const semCodigo = (usuario, ip = "200.0.0.1") => new Request("https://s/analise", {
+  method: "POST", body: new Uint8Array([1]), headers: { "Content-Type": "image/jpeg", "X-Usuario": usuario, "CF-Connecting-IP": ip } });
+const okIA = () => falso(resp({ notas: notasOk, confianca: "alta", idade_aparente: 40 }));
+const rc = (ent) => async () => new Response(JSON.stringify({ subscriber: { entitlements: ent ? { premium: ent } : {} } }), { status: 200 });
+
+test("sem código: a primeira análise do aparelho é grátis, a segunda pede assinatura", async () => {
+  const db = d1Falso(); const env = { ...ENV, REGISTROS: db };
+  const app = criaApp({ cliente: okIA() });
+  const r1 = await app.fetch(semCodigo("aparelho-0000000001"), env);
+  assert.equal(r1.status, 200);
+  assert.equal((await r1.json()).gratis, true);
+  assert.equal(db.gratis.length, 1);
+  const r2 = await app.fetch(semCodigo("aparelho-0000000001"), env);
+  assert.equal(r2.status, 402);
+  assert.equal((await r2.json()).causa, "assinatura");
+});
+
+test("sem código: assinatura ativa no RevenueCat libera; vencida não", async () => {
+  const db = d1Falso(); const env = { ...ENV, REGISTROS: db, REVENUECAT_API_KEY: "sk_rc" };
+  db.gratis.push({ usuario: "aparelho-0000000002", ip: "1.1.1.1", quando: new Date().toISOString() });
+  const futuro = new Date(Date.now() + 864e5).toISOString(), passado = new Date(Date.now() - 864e5).toISOString();
+  const ativa = await criaApp({ cliente: okIA(), busca: rc({ expires_date: futuro }) }).fetch(semCodigo("aparelho-0000000002"), env);
+  assert.equal(ativa.status, 200);
+  assert.equal((await ativa.json()).gratis, false);
+  const vencida = await criaApp({ cliente: okIA(), busca: rc({ expires_date: passado }) }).fetch(semCodigo("aparelho-0000000002"), env);
+  assert.equal(vencida.status, 402);
+  const sem = await criaApp({ cliente: okIA(), busca: rc(null) }).fetch(semCodigo("aparelho-0000000002"), env);
+  assert.equal(sem.status, 402);
+});
+
+test("no máximo 3 análises grátis por IP por dia", async () => {
+  const db = d1Falso(); const env = { ...ENV, REGISTROS: db };
+  const app = criaApp({ cliente: okIA() });
+  for (let i = 1; i <= 3; i++) assert.equal((await app.fetch(semCodigo(`aparelho-ip-000000${i}`, "9.9.9.9"), env)).status, 200);
+  assert.equal((await app.fetch(semCodigo("aparelho-ip-0000004", "9.9.9.9"), env)).status, 402);
+  assert.equal((await app.fetch(semCodigo("aparelho-ip-0000005", "8.8.8.8"), env)).status, 200);
+});
+
+test("grátis só é gasta se a análise der certo; id inválido e /acesso sem código são recusados", async () => {
+  const db = d1Falso(); const env = { ...ENV, REGISTROS: db };
+  const r = await criaApp({ cliente: falso(resp({}, { stop_reason: "refusal" })) }).fetch(semCodigo("aparelho-0000000003"), env);
+  assert.equal(r.status, 422);
+  assert.equal(db.gratis.length, 0);
+  assert.equal((await criaApp({ cliente: okIA() }).fetch(semCodigo("curto"), env)).status, 401);
+  const acesso = new Request("https://s/acesso", { headers: { "X-Usuario": "aparelho-0000000004" } });
+  assert.equal((await criaApp({ cliente: okIA() }).fetch(acesso, env)).status, 401);
+});
+
+test("falha do RevenueCat vira 503, sem análise", async () => {
+  const db = d1Falso(); const env = { ...ENV, REGISTROS: db, REVENUECAT_API_KEY: "sk_rc" };
+  db.gratis.push({ usuario: "aparelho-0000000005", ip: "1.1.1.1", quando: new Date().toISOString() });
+  const c = okIA();
+  const err = console.error; console.error = () => {};
+  try {
+    const r = await criaApp({ cliente: c, busca: async () => new Response("", { status: 500 }) }).fetch(semCodigo("aparelho-0000000005"), env);
+    assert.equal(r.status, 503);
+    assert.equal(c.chamadas.length, 0);
   } finally { console.error = err; }
 });

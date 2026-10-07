@@ -122,3 +122,27 @@ ORDER BY quando;
 ```
 
 A Cloudflare não repassa ao Worker a porta de origem do aparelho, então ela não é registrada.
+
+## Quem pode analisar
+
+| Acesso | Como o app se identifica | Limite |
+|---|---|---|
+| Código de convite | `Authorization: Bearer <APP_TOKEN>` | Sem limite (testes, convidados) |
+| Primeira análise grátis | `X-Usuario: <id>` (aleatório, criado pelo app na instalação) | 1 por aparelho e no máximo 3 por IP por dia; só é gasta se a análise der certo |
+| Assinatura | `X-Usuario: <id>`, o mesmo id usado no RevenueCat | Sem limite enquanto o direito `premium` estiver ativo |
+
+Sem código, sem análise grátis disponível e sem assinatura ativa, `POST /analise` responde `402`
+(`"causa": "assinatura"`) e o app abre a tela de planos. Se o RevenueCat não responder, `503`.
+
+Segredos a mais para a assinatura (painel da Cloudflare → Worker → Settings → Variables and Secrets,
+tipo **Secret**):
+
+- `REVENUECAT_API_KEY`: chave **secreta** da API do RevenueCat (começa com `sk_`). Sem ela, só valem o
+  código de convite e a análise grátis.
+- `ENTITLEMENT` (opcional): nome do direito no RevenueCat; o padrão é `premium`.
+
+Os testadores de licença da App Store e do Google Play compram em ambiente de teste, sem cobrança, e
+o RevenueCat marca a assinatura deles como ativa.
+
+A tabela `gratis` do banco D1 guarda o id do aparelho que usou a análise grátis e o IP, que a tarefa
+diária apaga depois de 2 dias.
