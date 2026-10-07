@@ -31,8 +31,14 @@ análise grátis e quantos assinam; se a conversão for baixa, testar R$ 14,90.
 
 **Do responsável (levam dias, podem começar já):**
 
-1. Conferir no cartão do CNPJ se há atividade (CNAE) que cubra software ou serviços de internet; se for
-   MEI, confirmar com o contador se pode faturar com o app.
+1. **Incluir no CNPJ uma atividade de software (indispensável antes de receber pelas lojas).** Cadastro
+   estadual consultado em 07/10/2026: atividade principal 4772-5/00 (comércio varejista de cosméticos)
+   e secundárias de comércio varejista de vestuário, calçados, joias e relógios, todas de venda de
+   mercadorias (ICMS). Nenhuma cobre assinatura de app, que é serviço ou licença de software (ISS).
+   Levar ao contador: incluir 6203-1/00 (licenciamento de programas não customizáveis) e, se ele
+   indicar, 6319-4/00 (serviços de informação na internet); fazer a inscrição municipal em Foz do
+   Iguaçu para o ISS; confirmar o regime tributário (o cadastro estadual mostra "regime normal") e se
+   ainda é MEI, pois o MEI não pode ter essas atividades.
 2. Pedir o número D-U-N-S da empresa (grátis, 5 a 14 dias).
 3. Criar a conta Apple Developer como organização (US$ 99 por ano) e a Google Play Console como
    organização (US$ 25, uma vez).
