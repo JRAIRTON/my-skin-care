@@ -104,3 +104,21 @@ app.
 **Mudou o catálogo (`docs/catalogo-v1.json`)?** Copie para `app/catalogo.json` (um teste confere que os
 dois são iguais), dê classe a qualquer sérum novo em `app/recomenda.js` e troque `VERSAO` em
 `app/sw.js` para os celulares baixarem a versão nova.
+
+## Registros de acesso (Marco Civil, art. 15)
+
+Cada pedido que chega ao servidor grava data e hora (UTC), IP, rota e status no banco D1
+`myskin-registros` (nunca a foto nem o código de acesso). Uma tarefa diária, às 06:17 UTC, apaga o que
+tiver mais de 183 dias. O banco é criado sozinho na primeira publicação; `GET /saude` mostra
+`"registros": true` quando ele está ligado.
+
+Para atender a uma ordem judicial, no painel da Cloudflare: **Storage & databases → D1 →
+myskin-registros → Console**, e rode, trocando o IP e as datas:
+
+```sql
+SELECT quando, ip, rota, status FROM acessos
+WHERE ip = '200.1.2.3' AND quando BETWEEN '2026-10-01' AND '2026-10-31'
+ORDER BY quando;
+```
+
+A Cloudflare não repassa ao Worker a porta de origem do aparelho, então ela não é registrada.

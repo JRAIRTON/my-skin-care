@@ -53,3 +53,19 @@ no Simples Nacional, a alíquota inicial para software costuma ficar perto de 6%
   ainda é MEI, pois o MEI não pode ter essas atividades.
 - Pedir o número D-U-N-S e migrar as contas das lojas para organização (as lojas permitem transferir
   o app).
+
+**Técnicas:**
+
+1. ~~Guardar os registros de acesso ao servidor por 6 meses (Marco Civil, art. 15).~~ Feito em
+   07/10/2026: banco D1 `myskin-registros` com data e hora (UTC), IP, rota e status de cada pedido;
+   tarefa diária apaga o que passar de 183 dias. A Cloudflare não repassa ao Worker a porta de origem
+   do aparelho; se uma ordem judicial exigir, informar isso. Consulta em `server/README.md`.
+2. Confirmar nos termos comerciais da Anthropic o prazo de retenção dos pedidos.
+3. Trocar o código de acesso único pela assinatura: primeira análise grátis por aparelho, depois o
+   servidor confere a assinatura no RevenueCat.
+4. Projeto Capacitor (iOS e Android), câmera nativa, ícones e telas de abertura; build de iPhone por
+   Mac com Xcode ou serviço na nuvem (por exemplo, Codemagic).
+5. Fichas das lojas: descrição, capturas de tela, classificação etária, declaração de privacidade
+   (App Privacy e Data safety) e declaração de app de saúde no Google Play, sem alegações médicas.
+6. Testar a análise com fototipos IV a VI antes do lançamento (RIPD).
+7. Conferir a regularização dos produtos do catálogo na ANVISA.

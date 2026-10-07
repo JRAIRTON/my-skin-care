@@ -56,8 +56,8 @@ forem mantidas as medidas acima, em especial: consentimento específico, dados s
 servidor sem armazenamento de fotos e testes com peles mais escuras. Pendências antes do lançamento
 público:
 
-- guardar os registros de acesso ao servidor por 6 meses (Marco Civil, art. 15); hoje o servidor não
-  os guarda;
+- ~~guardar os registros de acesso ao servidor por 6 meses (Marco Civil, art. 15)~~: feito em
+  07/10/2026 (data, hora, IP, rota e status; sem foto e sem código);
 - confirmar nos termos comerciais da Anthropic o prazo de retenção dos pedidos e a proibição de
   treino com os dados;
 - testar a análise com fototipos IV a VI (a amostra das etapas 1 e 5 não tinha);
