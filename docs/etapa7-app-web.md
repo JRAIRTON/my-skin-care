@@ -48,12 +48,15 @@ aprovação da App Store nem do Google Play. Código em `app/`; servido pelo mes
 - Fluxo completo no Chromium em tela de celular (390 × 844), com o Worker real e a IA simulada:
   primeira vez, código errado e certo, foto, análise, segunda análise, evolução, rotina com checklist,
   procedimento, produtos, exportar, apagar tudo e restaurar.
-- **Falta testar** num iPhone e num Android reais, com o servidor publicado e a IA de verdade.
+- Publicado em 06/10/2026 em https://my-skin-care.jr-airton.workers.dev e testado em iPhone e Android
+  reais, com a IA de verdade (Claude Sonnet 5.5). O primeiro teste falhou por chave da Anthropic inválida
+  na Cloudflare; desde então o servidor devolve a causa do erro e uma impressão da chave (começo, fim e
+  tamanho) para o app mostrar.
 
 ## Próximos passos
 
-1. Publicar (`server/README.md`, seção "Publicar") e definir o limite mensal de gasto na Anthropic.
-2. Testar com 3 a 5 pessoas em iPhone e Android: instalação, câmera, análise e cópia de segurança.
+1. ~~Publicar e definir o limite mensal de gasto na Anthropic.~~ Feito em 06/10/2026.
+2. ~~Testar em iPhone e Android.~~ Feito.
 3. Antes de abrir ao público: preencher as minutas de `docs/juridico/` (controlador, CNPJ, fornecedores)
    e trocar o texto de consentimento do app pela versão final; conferir os produtos na ANVISA.
 4. App de loja (Expo) só se a validação de mercado (etapa 6) indicar demanda.
