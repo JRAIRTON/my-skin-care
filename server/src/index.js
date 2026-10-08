@@ -139,7 +139,7 @@ export async function assinaturaAtiva(env, usuario, agora = new Date(), busca = 
     headers: { Authorization: `Bearer ${env.REVENUECAT_API_KEY.trim()}`, Accept: "application/json" },
   });
   if (!r.ok) throw new Error(`RevenueCat ${r.status}`);
-  const ent = (await r.json())?.subscriber?.entitlements?.[env.ENTITLEMENT || "premium"];
+  const ent = (await r.json())?.subscriber?.entitlements?.[env.ENTITLEMENT || "myskincare_pro"];
   if (!ent) return false;
   return !ent.expires_date || new Date(ent.expires_date) > agora;
 }

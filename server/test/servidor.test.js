@@ -159,7 +159,7 @@ test("falha no banco de registros não derruba o app", async () => {
 const semCodigo = (usuario, ip = "200.0.0.1") => new Request("https://s/analise", {
   method: "POST", body: new Uint8Array([1]), headers: { "Content-Type": "image/jpeg", "X-Usuario": usuario, "CF-Connecting-IP": ip } });
 const okIA = () => falso(resp({ notas: notasOk, confianca: "alta", idade_aparente: 40 }));
-const rc = (ent) => async () => new Response(JSON.stringify({ subscriber: { entitlements: ent ? { premium: ent } : {} } }), { status: 200 });
+const rc = (ent) => async () => new Response(JSON.stringify({ subscriber: { entitlements: ent ? { myskincare_pro: ent } : {} } }), { status: 200 });
 
 test("sem código: a primeira análise do aparelho é grátis, a segunda pede assinatura", async () => {
   const db = d1Falso(); const env = { ...ENV, REGISTROS: db };

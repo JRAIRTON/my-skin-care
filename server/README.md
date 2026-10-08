@@ -129,7 +129,7 @@ A Cloudflare não repassa ao Worker a porta de origem do aparelho, então ela n�
 |---|---|---|
 | Código de convite | `Authorization: Bearer <APP_TOKEN>` | Sem limite (testes, convidados) |
 | Primeira análise grátis | `X-Usuario: <id>` (aleatório, criado pelo app na instalação) | 1 por aparelho e no máximo 3 por IP por dia; só é gasta se a análise der certo |
-| Assinatura | `X-Usuario: <id>`, o mesmo id usado no RevenueCat | Sem limite enquanto o direito `premium` estiver ativo |
+| Assinatura | `X-Usuario: <id>`, o mesmo id usado no RevenueCat | Sem limite enquanto o direito `myskincare_pro` estiver ativo |
 
 Sem código, sem análise grátis disponível e sem assinatura ativa, `POST /analise` responde `402`
 (`"causa": "assinatura"`) e o app abre a tela de planos. Se o RevenueCat não responder, `503`.
@@ -137,9 +137,9 @@ Sem código, sem análise grátis disponível e sem assinatura ativa, `POST /ana
 Segredos a mais para a assinatura (painel da Cloudflare → Worker → Settings → Variables and Secrets,
 tipo **Secret**):
 
-- `REVENUECAT_API_KEY`: chave **secreta** da API do RevenueCat (começa com `sk_`). Sem ela, só valem o
+- `REVENUECAT_API_KEY`: chave **secreta** da API do RevenueCat, versão V1 (começa com `sk_`). Sem ela, só valem o
   código de convite e a análise grátis.
-- `ENTITLEMENT` (opcional): nome do direito no RevenueCat; o padrão é `premium`.
+- `ENTITLEMENT` (opcional): nome do direito no RevenueCat; o padrão é `myskincare_pro` (criado no painel do RevenueCat).
 
 Os testadores de licença da App Store e do Google Play compram em ambiente de teste, sem cobrança, e
 o RevenueCat marca a assinatura deles como ativa.
