@@ -8,7 +8,7 @@ directory = "../app"
 
 [vars]
 # outras origens (separadas por vírgula) que podem chamar o servidor pelo navegador; o app em ../app não precisa, pois usa o mesmo endereço
-ORIGENS_PERMITIDAS = ""
+ORIGENS_PERMITIDAS = "capacitor://localhost,https://localhost"
 
 # até 10 análises por minuto por IP
 [[ratelimits]]

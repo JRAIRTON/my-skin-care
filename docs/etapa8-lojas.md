@@ -66,9 +66,37 @@ no Simples Nacional, a alíquota inicial para software costuma ficar perto de 6%
    por dia) e, depois, assinatura conferida no RevenueCat; tela de planos no app. A compra em si
    (plugin do RevenueCat) entra com o projeto Capacitor; o app web mostra os planos sem botão de compra.
    Testadores do teste fechado: testadores de licença das lojas, sem cobrança.
-4. Projeto Capacitor (iOS e Android), câmera nativa, ícones e telas de abertura; build de iPhone por
-   Mac com Xcode ou serviço na nuvem (por exemplo, Codemagic).
+4. ~~Projeto Capacitor.~~ Feito em 08/10/2026 em `mobile/` (Capacitor 8, id `br.com.myskin.app`,
+   nome MY Skin): projetos iOS e Android gerados, ícones, textos de permissão da câmera em português,
+   compra pelo RevenueCat (`app/nativo.js`, chave pública de teste por enquanto) e chamadas ao servidor
+   pelo endereço completo (CORS liberado para o app). A câmera usa o seletor de fotos do sistema (o
+   mesmo campo de arquivo do app web); trocar pelo plugin de câmera só se o teste em aparelho pedir.
+   Compilação na nuvem pelo Codemagic (`codemagic.yaml`); falta configurar (seção abaixo) e testar em
+   aparelho.
 5. Fichas das lojas: descrição, capturas de tela, classificação etária, declaração de privacidade
    (App Privacy e Data safety) e declaração de app de saúde no Google Play, sem alegações médicas.
 6. Testar a análise com fototipos IV a VI antes do lançamento (RIPD).
 7. Conferir a regularização dos produtos do catálogo na ANVISA.
+
+## Compilar os apps (Codemagic)
+
+O Codemagic compila na nuvem, sem Mac: iOS para o TestFlight e Android para o teste interno do Google
+Play. O plano gratuito tem minutos de Mac por mês suficientes para os testes. Passos (depois das contas
+Apple Developer e Google Play aprovadas):
+
+1. Criar conta em codemagic.io com o GitHub e adicionar o repositório `my-skin-care` (ele lê o
+   `codemagic.yaml` da raiz).
+2. **iOS:** no App Store Connect, criar o app com o id `br.com.myskin.app` e uma chave de API
+   (Users and Access → Integrations → App Store Connect API, papel App Manager). No Codemagic, em
+   Team settings → Integrations → Developer Portal, cadastrar a chave com o nome `myskin_asc`; em
+   Code signing identities, deixar o Codemagic gerar o certificado e o perfil de distribuição.
+3. **Android:** no Codemagic, em Code signing identities → Android keystores, gerar uma chave com o
+   nome `myskin_upload` (guardar uma cópia: sem ela não dá para atualizar o app). No Play Console, criar
+   o app, e no Google Cloud uma conta de serviço com acesso ao Play Console; salvar o JSON no Codemagic
+   como variável `GCLOUD_SERVICE_ACCOUNT_CREDENTIALS` no grupo `google_play`. A primeira versão do
+   Android tem de ser enviada à mão no Play Console (o AAB fica nos artefatos do build).
+4. Rodar os workflows `android` e `ios`.
+5. No RevenueCat, ligar as lojas (Project settings → Apps) e trocar as chaves `test_` de
+   `app/nativo.js` pelas chaves públicas `appl_` e `goog_`.
+
+O id `br.com.myskin.app` não pode ser trocado depois do primeiro envio às lojas.

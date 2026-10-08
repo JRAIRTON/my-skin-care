@@ -1,0 +1,7 @@
+{
+  "appId": "br.com.myskin.app",
+  "appName": "MY Skin",
+  "webDir": "../app",
+  "ios": { "contentInset": "never" },
+  "android": { "allowMixedContent": false }
+}

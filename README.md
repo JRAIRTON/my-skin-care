@@ -20,6 +20,7 @@ Protótipo para avaliar a viabilidade do MY Skin AI com a família (spec v3.0, 2
   ficam só no aparelho; a análise vai ao servidor. Rotina e produtos saem de regras fixas e do catálogo
   (`app/recomenda.js`). Decisões em `docs/etapa7-app-web.md`.
 - `docs/etapa8-lojas.md` — etapa 8: abertura ao público e lojas (decisões, preço, pendências); termos e política publicados no app por `scripts/gera_juridico.py`.
+- `mobile/` e `codemagic.yaml` — app das lojas (Capacitor sobre `app/`, compra pelo RevenueCat) e compilação na nuvem; passos em `docs/etapa8-lojas.md`.
 - `server/` — servidor de análise (Cloudflare Worker com Claude Sonnet 5.5, código de acesso e limite de uso),
   que também serve o app; como publicar em `server/README.md`.
 - `docs/etapa6-*.md` — etapa 6 (validação de mercado): plano e critérios de decisão, concorrência e mercado, pesquisa para o Google Forms e roteiro de entrevista.

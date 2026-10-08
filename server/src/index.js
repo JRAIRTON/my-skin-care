@@ -161,7 +161,7 @@ export function criaApp({ cliente, busca } = {}) {
       const permitidas = (env.ORIGENS_PERMITIDAS || "").split(",").map((s) => s.trim()).filter(Boolean);
       const cors = origem && permitidas.includes(origem)
         ? { "Access-Control-Allow-Origin": origem, "Access-Control-Allow-Headers": "Authorization, Content-Type, X-Usuario",
-            "Access-Control-Allow-Methods": "POST, OPTIONS", Vary: "Origin" }
+            "Access-Control-Allow-Methods": "GET, POST, OPTIONS", Vary: "Origin" }
         : {};
       const json = (status, corpo) => new Response(JSON.stringify(corpo), {
         status, headers: { "Content-Type": "application/json; charset=utf-8", ...cors } });

@@ -104,12 +104,16 @@ const ERROS = {
   502: "A IA falhou desta vez. Tente de novo em instantes.",
   503: "A IA está sobrecarregada. Tente de novo em alguns minutos.",
 };
+// the store app runs from capacitor://localhost (iOS) or https://localhost (Android), so it calls the
+// published server by its full address; the web version uses the same origin
+const NATIVO = !!window.Capacitor?.isNativePlatform?.();
+const SERVIDOR = NATIVO ? "https://my-skin-care.jr-airton.workers.dev/" : "";
 async function chama(caminho, opcoes = {}, codigo = S.codigo) {
   let r;
   try {
     const h = { ...(opcoes.headers || {}), "X-Usuario": S.usuario };
     if (codigo) h.Authorization = `Bearer ${codigo}`;
-    r = await fetch(caminho, { ...opcoes, headers: h });
+    r = await fetch(SERVIDOR + caminho, { ...opcoes, headers: h });
   } catch {
     throw new Error(navigator.onLine === false ? "Sem internet. A análise precisa de conexão." : "Não foi possível falar com o servidor.");
   }
@@ -306,7 +310,7 @@ function vInicio() {
 
 function dicaInstalar() {
   const standalone = matchMedia("(display-mode: standalone)").matches || navigator.standalone;
-  if (standalone || lsGet("myskin-instalar-ok")) return "";
+  if (NATIVO || standalone || lsGet("myskin-instalar-ok")) return "";
   const ios = /iphone|ipad|ipod/i.test(navigator.userAgent);
   const corpo = S.instalar
     ? `<button class="btn sm gold" data-act="instalar">Instalar o app</button>`
@@ -717,5 +721,5 @@ window.addEventListener("beforeinstallprompt", (e) => { e.preventDefault(); S.in
   }
   if (S.perfil?.consentimento && !S.codigo && !S.perfil.semCodigo) S.onb = 2;
   render();
-  if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(() => {});
+  if ("serviceWorker" in navigator && !NATIVO) navigator.serviceWorker.register("sw.js").catch(() => {});
 })();

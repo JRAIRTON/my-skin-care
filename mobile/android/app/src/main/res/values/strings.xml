@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">MY Skin</string>
+    <string name="title_activity_main">MY Skin</string>
+    <string name="package_name">br.com.myskin.app</string>
+    <string name="custom_url_scheme">br.com.myskin.app</string>
+</resources>

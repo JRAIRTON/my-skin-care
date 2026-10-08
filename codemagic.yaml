@@ -1,0 +1,58 @@
+# Compilação na nuvem (Codemagic) do app das lojas, a partir de mobile/ (Capacitor) e do app web em app/.
+# Configuração no painel do Codemagic: ver docs/etapa8-lojas.md, seção "Compilar os apps".
+workflows:
+  android:
+    name: Android para o Google Play (teste interno)
+    instance_type: linux_x2
+    max_build_duration: 30
+    environment:
+      android_signing:
+        - myskin_upload            # chave de envio (keystore) criada no Codemagic
+      groups:
+        - google_play              # GCLOUD_SERVICE_ACCOUNT_CREDENTIALS (conta de serviço do Play Console)
+      node: 22
+      java: 21
+    scripts:
+      - name: Instalar dependências
+        script: cd mobile && npm ci
+      - name: Copiar o app web para o Android
+        script: cd mobile && npx cap sync android
+      - name: Gerar o pacote AAB
+        script: cd mobile/android && ./gradlew bundleRelease
+    artifacts:
+      - mobile/android/app/build/outputs/**/*.aab
+    publishing:
+      google_play:
+        credentials: $GCLOUD_SERVICE_ACCOUNT_CREDENTIALS
+        track: internal
+        submit_as_draft: true
+
+  ios:
+    name: iOS para o TestFlight
+    instance_type: mac_mini_m2
+    max_build_duration: 45
+    integrations:
+      app_store_connect: myskin_asc  # chave de API do App Store Connect cadastrada no Codemagic
+    environment:
+      ios_signing:
+        distribution_type: app_store
+        bundle_identifier: br.com.myskin.app
+      node: 22
+      xcode: latest
+    scripts:
+      - name: Instalar dependências
+        script: cd mobile && npm ci
+      - name: Copiar o app web para o iOS
+        script: cd mobile && npx cap sync ios
+      - name: Usar os certificados
+        script: xcode-project use-profiles --project mobile/ios/App/App.xcodeproj
+      - name: Numerar a versão
+        script: cd mobile/ios/App && agvtool new-version -all $BUILD_NUMBER
+      - name: Gerar o pacote IPA
+        script: xcode-project build-ipa --project mobile/ios/App/App.xcodeproj --scheme App
+    artifacts:
+      - build/ios/ipa/*.ipa
+    publishing:
+      app_store_connect:
+        auth: integration
+        submit_to_testflight: true
