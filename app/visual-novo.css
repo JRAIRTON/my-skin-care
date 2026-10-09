@@ -1,4 +1,4 @@
-/* Visual novo e Nude Rosado: html[data-visual="novo"] ou "nude", escolhidos em Ajustes → Aparência.
+/* Visual Clássico (chave "novo") e Nude Rosado (chave "nude"), escolhidos em Ajustes → Aparência.
    Paleta da identidade MY Skin: creme, areia, nude rosado e café. Sem o atributo vale estilo.css puro. */
 html:is([data-visual="novo"],[data-visual="nude"]) {
   --bg: #F7F2EC;
