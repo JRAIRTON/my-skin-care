@@ -8,8 +8,9 @@ workflows:
     environment:
       android_signing:
         - myskin_upload            # chave de envio (keystore) criada no Codemagic
-      groups:
-        - google_play              # GCLOUD_SERVICE_ACCOUNT_CREDENTIALS (conta de serviço do Play Console)
+      # depois do 1º envio manual ao Play Console, ligar o envio automático:
+      # groups:
+      #   - google_play            # GCLOUD_SERVICE_ACCOUNT_CREDENTIALS (conta de serviço do Play Console)
       node: 22
       java: 21
     scripts:
@@ -21,11 +22,12 @@ workflows:
         script: cd mobile/android && ./gradlew bundleRelease
     artifacts:
       - mobile/android/app/build/outputs/**/*.aab
-    publishing:
-      google_play:
-        credentials: $GCLOUD_SERVICE_ACCOUNT_CREDENTIALS
-        track: internal
-        submit_as_draft: true
+    # a 1ª versão vai à mão no Play Console (baixar o .aab dos artefatos); depois, descomentar:
+    # publishing:
+    #   google_play:
+    #     credentials: $GCLOUD_SERVICE_ACCOUNT_CREDENTIALS
+    #     track: internal
+    #     submit_as_draft: true
 
   ios:
     name: iOS para o TestFlight
