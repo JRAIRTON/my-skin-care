@@ -2,6 +2,7 @@
 // Os dados ficam só neste aparelho (IndexedDB). A foto vai ao servidor apenas para a análise
 // (POST /analise) e não é guardada lá. A rotina e os produtos saem de regras fixas (recomenda.js).
 import { CATS, GRAUS, OBJETIVOS, TIPOS_PELE, FOTOTIPOS, recomenda, liberadoEm, skinScore } from "./recomenda.js";
+import qrcode from "./lib/qrcode.mjs";
 
 const MODELO_VALIDADO = "claude-sonnet-5-5";
 const INTERVALO_DIAS = 28;      // próxima foto sugerida
@@ -723,6 +724,15 @@ async function assinar(plano) {
 
 // ----- compartilhar a evolução: imagem gerada no aparelho, sem foto por padrão
 const SITE = "my-skin-care.jr-airton.workers.dev";
+const BAIXAR = `https://${SITE}/baixar`; // sends each phone to its store (app/baixar.js)
+// QR code drawn on the canvas: dark modules in the ink colour on a white rounded square
+function desenhaQR(c, x, y, tam, cor) {
+  const qr = qrcode(0, "M"); qr.addData(BAIXAR); qr.make();
+  const n = qr.getModuleCount(), m = 2, cel = tam / (n + 2 * m);
+  c.fillStyle = "#FFFFFF"; c.beginPath(); c.roundRect(x, y, tam, tam, 18); c.fill();
+  c.fillStyle = cor;
+  for (let r = 0; r < n; r++) for (let k = 0; k < n; k++) if (qr.isDark(r, k)) c.fillRect(x + (k + m) * cel, y + (r + m) * cel, Math.ceil(cel), Math.ceil(cel));
+}
 function resumoEvolucao() {
   const l = ordenadas(), a = l.at(-1);
   if (!a || l.length < 2) return null;
@@ -740,7 +750,7 @@ async function geraCard() {
   const W = 1080, H = S.card.formato === "stories" ? 1920 : 1350;
   const cv = document.createElement("canvas"); cv.width = W; cv.height = H;
   const c = cv.getContext("2d");
-  const cor = { bg: cssVar("--bg") || "#F8F3EF", ink: cssVar("--ink") || "#3A2C27", ink2: cssVar("--ink-2") || "#5E4C45", gold: cssVar("--gold-ink") || "#B9785F", soft: cssVar("--gold-soft") || "#F6E6E0", good: cssVar("--good") || "#2F7D55" };
+  const cor = { bg: cssVar("--bg") || "#F8F3EF", ink: cssVar("--ink") || "#3A2C27", ink2: cssVar("--ink-2") || "#5E4C45", muted: cssVar("--muted") || "#937F76", gold: cssVar("--gold-ink") || "#B9785F", soft: cssVar("--gold-soft") || "#F6E6E0", good: cssVar("--good") || "#2F7D55" };
   const serif = `"Cormorant Garamond", "Marcellus", Georgia, serif`, sans = `"Manrope", system-ui, sans-serif`;
   await document.fonts?.ready;
   const g = c.createLinearGradient(0, 0, W, H); g.addColorStop(0, cor.soft); g.addColorStop(1, cor.bg);
@@ -752,8 +762,8 @@ async function geraCard() {
   // body blocks measured first, then drawn centred between the header and the footer
   const post = S.card.formato === "post", comFoto = S.card.foto && fotoUrl(r.base) && fotoUrl(r.a);
   const fotos = comFoto ? await Promise.all([carregaImg(fotoUrl(r.base)), carregaImg(fotoUrl(r.a))]) : null;
-  const fw = post ? 180 : 380, fh = post ? 236 : 500, nota = comFoto ? (post ? 96 : 150) : (post ? 170 : 210);
-  const melhoras = r.melhoras.slice(0, comFoto && post ? 2 : 3), d = r.a.skin_score - r.base.skin_score;
+  const fw = post ? 180 : 360, fh = post ? 236 : 470, nota = comFoto ? (post ? 96 : 150) : (post ? 170 : 210);
+  const melhoras = r.melhoras.slice(0, comFoto ? (post ? 1 : 2) : 3), d = r.a.skin_score - r.base.skin_score;
   const blocos = [];
   if (fotos) blocos.push([fh + 70, (y0) => {
     const gap = 40, x0 = (W - 2 * fw - gap) / 2;
@@ -779,14 +789,26 @@ async function geraCard() {
     });
   }]);
   if (r.seq >= 2) blocos.push([50, (y0) => { c.fillStyle = cor.ink2; c.font = `500 34px ${sans}`; c.fillText(`${r.seq} dias seguidos de rotina ✓`, W / 2, y0 + 36); }]);
-  const espaco = post ? 44 : 70, topo = y + 40, fim = H - 250;
+  const rodape = post ? 350 : 400; // tagline, invitation and the download row
+  const espaco = post ? 44 : 70, topo = y + 40, fim = H - rodape;
   const total = blocos.reduce((t, [h]) => t + h, 0) + espaco * (blocos.length - 1);
   let yb = topo + Math.max(0, (fim - topo - total) / 2);
   for (const [h, desenha] of blocos) { desenha(yb); yb += h + espaco; }
   // footer with the app link
-  c.strokeStyle = cor.gold; c.globalAlpha = .4; c.lineWidth = 2; c.beginPath(); c.moveTo(W / 2 - 60, H - 220); c.lineTo(W / 2 + 60, H - 220); c.stroke(); c.globalAlpha = 1;
-  c.fillStyle = cor.ink; c.font = `italic 600 46px ${serif}`; c.fillText("Sua pele, acompanhada de perto.", W / 2, H - 155);
-  c.fillStyle = cor.ink2; c.font = `500 30px ${sans}`; c.fillText("Faça sua primeira avaliação", W / 2, H - 100);
+  const qrT = post ? 128 : 150, baseY = H - (post ? 56 : 70), linhaY = baseY - qrT;
+  c.strokeStyle = cor.gold; c.globalAlpha = .4; c.lineWidth = 2; c.beginPath(); c.moveTo(W / 2 - 60, linhaY - 150); c.lineTo(W / 2 + 60, linhaY - 150); c.stroke(); c.globalAlpha = 1;
+  c.fillStyle = cor.ink; c.font = `italic 600 46px ${serif}`; c.fillText("Sua pele, acompanhada de perto.", W / 2, linhaY - 88);
+  c.fillStyle = cor.ink2; c.font = `500 30px ${sans}`; c.fillText("Faça sua primeira avaliação", W / 2, linhaY - 36);
+  // "button" with the app logo + QR code to download (an image cannot hold a real link)
+  const icone = await carregaImg("icones/icone-192.png").catch(() => null);
+  const bw = 430, bh = 104, gap = 34, x0 = (W - bw - gap - qrT) / 2, by = linhaY + (qrT - bh) / 2;
+  c.fillStyle = cor.gold; c.beginPath(); c.roundRect(x0, by, bw, bh, bh / 2); c.fill();
+  if (icone) { c.save(); c.beginPath(); c.roundRect(x0 + 14, by + 14, bh - 28, bh - 28, 18); c.clip(); c.drawImage(icone, x0 + 14, by + 14, bh - 28, bh - 28); c.restore(); }
+  c.fillStyle = "#FFFFFF"; c.textAlign = "left";
+  c.font = `500 24px ${sans}`; c.fillText("Baixe o app", x0 + bh + 6, by + 42);
+  c.font = `700 36px ${sans}`; c.fillText("MY Skin  ›", x0 + bh + 6, by + 80); c.textAlign = "center";
+  desenhaQR(c, x0 + bw + gap, linhaY, qrT, cor.ink);
+  c.fillStyle = cor.muted || cor.ink2; c.font = `500 20px ${sans}`; c.fillText("aponte a câmera", x0 + bw + gap + qrT / 2, linhaY + qrT + 26);
   return new Promise((ok) => cv.toBlob(ok, "image/png"));
 }
 async function atualizaCard() {
@@ -814,7 +836,7 @@ async function enviaCard(salvar) {
   if (!S.card.blob) return;
   const file = new File([S.card.blob], `myskin-evolucao-${hoje()}.png`, { type: "image/png" });
   if (!salvar && navigator.canShare?.({ files: [file] })) {
-    try { await navigator.share({ files: [file], text: `Minha evolução no MY Skin: https://${SITE}` }); return; } catch (e) { if (e.name === "AbortError") return; }
+    try { await navigator.share({ files: [file], text: `Minha evolução no MY Skin. Baixe o app: ${BAIXAR}` }); return; } catch (e) { if (e.name === "AbortError") return; }
   }
   const u = URL.createObjectURL(file), l = document.createElement("a");
   l.href = u; l.download = file.name; document.body.append(l); l.click(); l.remove(); setTimeout(() => URL.revokeObjectURL(u), 4000);
