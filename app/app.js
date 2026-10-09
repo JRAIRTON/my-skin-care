@@ -819,17 +819,30 @@ function vCompartilhar() {
         <div class="seg" role="group" aria-label="Foto">${op("foto", false, "Sem foto")}${op("foto", true, "Com minhas fotos")}</div></div>
       ${S.card.foto ? aviso("warn", "As fotos do seu rosto vão aparecer na imagem. Depois de compartilhada, ela sai do seu controle.") : ""}
       <div class="card-prev">${S.card.url ? `<img src="${S.card.url}" alt="Prévia da imagem de evolução">` : `<span class="small muted">Gerando a imagem…</span>`}</div>
-      <div class="btns"><button class="btn primary" data-act="card-enviar"${S.card.blob ? "" : " disabled"}>Compartilhar</button><button class="btn" data-act="card-salvar"${S.card.blob ? "" : " disabled"}>Salvar imagem</button></div></section>`;
+      <div class="btns"><button class="btn primary" data-act="card-enviar"${S.card.blob ? "" : " disabled"}>Compartilhar</button><button class="btn" data-act="card-salvar"${S.card.blob ? "" : " disabled"}>Salvar imagem</button></div>
+      <p class="small muted">Ao compartilhar ou salvar, o <b>link para baixar o app</b> é copiado. No Stories do Instagram, toque no ícone de adesivos, escolha <b>Link</b> e cole. No WhatsApp e no Facebook, o link já vai junto com a imagem.</p>
+      <button class="btn ghost sm" data-act="copia-link">Copiar só o link do app</button></section>`;
+}
+// copies the download link so it can be pasted in the Instagram Stories link sticker
+async function copiaLink() {
+  try { await navigator.clipboard.writeText(BAIXAR); return true; } catch {}
+  const t = document.createElement("textarea"); t.value = BAIXAR; t.setAttribute("readonly", ""); t.style.position = "fixed"; t.style.opacity = "0";
+  document.body.append(t); t.select();
+  let ok = false; try { ok = document.execCommand("copy"); } catch {}
+  t.remove(); return ok;
 }
 async function enviaCard(salvar) {
   if (!S.card.blob) return;
+  // copy first, while the tap still counts as the person's gesture (clipboard rule)
+  const copiou = await copiaLink();
+  if (copiou) toast("Link do app copiado. No Stories do Instagram, cole no adesivo de link.");
   const file = new File([S.card.blob], `myskin-evolucao-${hoje()}.png`, { type: "image/png" });
   if (!salvar && navigator.canShare?.({ files: [file] })) {
     try { await navigator.share({ files: [file], text: `Minha evolução no MY Skin. Baixe o app: ${BAIXAR}` }); return; } catch (e) { if (e.name === "AbortError") return; }
   }
   const u = URL.createObjectURL(file), l = document.createElement("a");
   l.href = u; l.download = file.name; document.body.append(l); l.click(); l.remove(); setTimeout(() => URL.revokeObjectURL(u), 4000);
-  if (!salvar) toast("Imagem salva. Agora é só postar onde quiser.");
+  if (!salvar) toast(copiou ? "Imagem salva e link copiado. No Stories, cole o link no adesivo de link." : "Imagem salva. Agora é só postar onde quiser.");
 }
 
 // ---------- ações ----------
@@ -947,6 +960,7 @@ async function acao(act, el) {
     case "card": { const [k, val] = v.split(":"); S.card[k] = k === "foto" ? val === "true" : val; render(); return atualizaCard(); }
     case "card-enviar": return enviaCard(false);
     case "card-salvar": return enviaCard(true);
+    case "copia-link": return toast((await copiaLink()) ? "Link do app copiado." : "Não deu para copiar. O link é " + BAIXAR);
     case "tenho": { const t = new Set(S.tenho); t.has(v) ? t.delete(v) : t.add(v); S.tenho = [...t]; await DB.set("tenho", S.tenho); return render(); }
     case "importar": return $("#in-backup").click();
     case "apagar-tudo":

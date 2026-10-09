@@ -46,6 +46,8 @@ análise grátis e quantos assinam; se a conversão for baixa, testar R$ 14,90.
   No rodapé, um "botão" desenhado com o logo ("Baixe o app MY Skin"); a imagem não tem clique, então o
   link para `/baixar` vai no texto da mensagem compartilhada (clicável no WhatsApp e no Facebook). O QR
   Code foi testado e retirado (decisão de 10/10/2026).
+  Ao compartilhar ou salvar, o app também copia o link `/baixar` para colar no adesivo de link do Stories
+  do Instagram, e há o botão "Copiar só o link do app".
 - Página `/baixar` (`app/baixar.html` e `app/baixar.js`): manda o iPhone para a App Store e o Android
   para o Google Play. **Ao publicar nas lojas, preencher os dois endereços em `LOJAS` de
   `app/baixar.js`**; até lá, mostra o botão para abrir o app pelo navegador.
