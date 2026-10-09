@@ -94,7 +94,7 @@ async function carrega() {
 }
 
 // ---------- aparência ----------
-const VISUAIS = [["novo", "Novo"], ["rose", "Rosé"], ["classico", "Clássico"]];
+const VISUAIS = [["novo", "Novo"], ["rose", "Rosé"]];
 const visual = () => { const v = lsGet("myskin-visual"); return VISUAIS.some(([k]) => k === v) ? v : "novo"; };
 const aplicaVisual = () => { document.documentElement.dataset.visual = visual(); };
 aplicaVisual();
@@ -572,7 +572,7 @@ function vAjustes() {
       <span><b>Tipo de pele:</b> ${esc(TIPOS_PELE[S.perfil.tipoPele] || "—")}</span><span><b>Fototipo:</b> ${esc(FOTOTIPOS[S.perfil.fototipo || 0])}</span>
       <span><b>Objetivos:</b> ${esc((S.perfil.objetivos || []).join(", ") || "—")}</span>${S.perfil.gestante ? `<span><b>Gestação ou amamentação:</b> sim</span>` : ""}</div>`}</section>
     <section class="card"><h3>Aparência</h3>
-      <p class="small">Estamos testando um visual novo. Escolha o que preferir; dá para trocar quando quiser.</p>
+      <p class="small">Escolha o visual que preferir; dá para trocar quando quiser.</p>
       <div class="seg" role="group" aria-label="Visual">${VISUAIS.map(([k, l]) => `<button data-act="visual:${k}" aria-pressed="${visual() === k}">${l}</button>`).join("")}</div></section>
     <section class="card"><h3>Assinatura</h3>
       <p class="small">${S.codigo ? "Você usa um código de convite: as análises estão liberadas." : "A primeira análise é grátis; as seguintes fazem parte da assinatura."}</p>
