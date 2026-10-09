@@ -93,6 +93,12 @@ async function carrega() {
   if (!S.usuario) { S.usuario = crypto.randomUUID(); await DB.set("usuario", S.usuario); }
 }
 
+// ---------- aparência ----------
+const VISUAIS = [["novo", "Novo"], ["classico", "Clássico"]];
+const visual = () => (lsGet("myskin-visual") === "classico" ? "classico" : "novo");
+const aplicaVisual = () => { document.documentElement.dataset.visual = visual(); };
+aplicaVisual();
+
 // ---------- servidor ----------
 const ERROS = {
   401: "Código de convite inválido. Confira em Ajustes.",
@@ -229,7 +235,9 @@ function render() {
   main.innerHTML = !pronto ? vOnboarding() : S.detalhe ? vDetalhe() : ({ inicio: vInicio, evolucao: vEvolucao, analisar: vAnalisar, rotina: vRotina, produtos: vProdutos, ajustes: vAjustes, assinar: vAssinar }[S.tela] || vInicio)();
   depois();
 }
-function vai(tela) { S.tela = tela; S.detalhe = null; S.editando = false; S.procForm = false; render(); window.scrollTo(0, 0); }
+function vai(tela) { S.tela = tela; S.detalhe = null; S.editando = false; S.procForm = false; render(); entra(); window.scrollTo(0, 0); }
+// short entrance animation of the new visual, only when the screen changes
+function entra() { const m = $("#main"); m.classList.remove("entra"); void m.offsetWidth; m.classList.add("entra"); setTimeout(() => m.classList.remove("entra"), 500); }
 
 // ----- primeira vez
 function formPerfil(p = {}) {
@@ -394,7 +402,7 @@ function vDetalhe() {
       ${a.modelo && a.modelo !== MODELO_VALIDADO ? aviso("warn", "Esta análise foi feita por um modelo de reserva, ainda não validado. Considere o resultado provisório.") : ""}
     </section>
     ${url ? `<section class="card"><img class="photo" src="${url}" alt="Foto de ${fmt(a.data)}"></section>` : ""}
-    <section class="card"><h3>As 10 notas</h3><p class="small muted">De 0 a 100: maior é melhor. Abaixo de cada nota, o que a IA viu. ${explicaScore(a)}</p>${barras(a, ant)}</section>
+    <section class="card"><h3>As 10 notas</h3><p class="small muted">Cada aspecto da pele recebe uma nota de 0 a 100: quanto maior, melhor. Abaixo de cada nota, um resumo do que a avaliação observou na sua foto. ${explicaScore(a)}</p>${barras(a, ant)}</section>
     ${r.alertas.length ? aviso("bad", r.alertas.map(esc).join("<br>")) : ""}
     <section class="card"><h3>Resumo e o que fazer</h3>
       <p>${resumo(a, r)}</p>
@@ -407,7 +415,7 @@ function vDetalhe() {
 function explicaScore(a) {
   const v = CATS.map(([k]) => a.notas[k]?.nota).filter(Number.isFinite);
   if (!v.length || a.skin_score == null) return "";
-  return `<b>O Skin Score (${a.skin_score}) é a média simples das ${v.length} notas</b>${v.length < CATS.length ? ` avaliadas nesta foto (${CATS.length - v.length} não puderam ser avaliadas)` : ""}.`;
+  return `<b>Seu Skin Score, ${a.skin_score}, é a média dessas ${v.length} notas</b>${v.length < CATS.length ? `: ${CATS.length - v.length === 1 ? "um aspecto não pôde ser avaliado" : `${CATS.length - v.length} aspectos não puderam ser avaliados`} nesta foto` : ""}.`;
 }
 function resumo(a, r) {
   const partes = [`A avaliação geral da sua pele é de <b>${a.skin_score} pontos</b>`];
@@ -494,7 +502,7 @@ function vRotina() {
     ${aviso("", `<b>Como usar:</b> todo dia, marque os passos que você fez de manhã e à noite. A fileira acima mostra os últimos 7 dias (cheio: tudo feito; metade: parte feita). Fica guardado só neste aparelho, para você acompanhar a sua constância.`)}
     <p class="small" style="padding-inline:4px">Com base na avaliação da sua pele${S.perfil.tipoPele && S.perfil.tipoPele !== "nao_sei" ? ` e na sua indicação de pele ${esc(TIPOS_PELE[S.perfil.tipoPele]?.toLowerCase() || "")}` : ""}, sugerimos os produtos abaixo, numa rotina para a manhã e a noite.</p>
     ${emRec ? aviso("warn", `<b>Recuperação de ${esc(emRec.tipo.toLowerCase())}</b> até ${fmt(soma(emRec.data, emRec.dias))}. Só limpeza suave, hidratante e protetor; ativos pausados, a menos que o profissional oriente diferente. <button class="btn sm ghost" data-act="apagar-proc:${emRec.id}">Remover registro</button>`) : ""}
-    ${r.passos.manha.some((p) => p.ativo) || r.passos.noite.some((p) => p.ativo) ? aviso("gold", "Os ativos entram aos poucos: duas semanas só com o básico, depois um ativo, e o segundo duas semanas depois. Assim dá para saber o que a pele aceita.") : ""}
+    ${r.passos.manha.some((p) => p.ativo) || r.passos.noite.some((p) => p.ativo) ? aviso("gold", "<b>Os ativos entram na rotina aos poucos.</b> Nas duas primeiras semanas, só o básico: limpeza, hidratação e protetor solar. Depois entra o primeiro ativo e, duas semanas mais tarde, o segundo. Assim sua pele se adapta com conforto e fica mais fácil perceber o que funciona para você.") : ""}
     ${bloco("Manhã", r.passos.manha)}
     ${bloco("Noite", r.passos.noite)}
     ${S.procForm ? `<section class="card"><h3>Procedimento estético</h3><div class="fields">
@@ -563,6 +571,9 @@ function vAjustes() {
       <div class="stack small"><span><b>Nome:</b> ${esc(S.perfil.nome || "—")}</span><span><b>Idade:</b> ${esc(S.perfil.idade || "—")}</span>
       <span><b>Tipo de pele:</b> ${esc(TIPOS_PELE[S.perfil.tipoPele] || "—")}</span><span><b>Fototipo:</b> ${esc(FOTOTIPOS[S.perfil.fototipo || 0])}</span>
       <span><b>Objetivos:</b> ${esc((S.perfil.objetivos || []).join(", ") || "—")}</span>${S.perfil.gestante ? `<span><b>Gestação ou amamentação:</b> sim</span>` : ""}</div>`}</section>
+    <section class="card"><h3>Aparência</h3>
+      <p class="small">Estamos testando um visual novo. Escolha o que preferir; dá para trocar quando quiser.</p>
+      <div class="seg" role="group" aria-label="Visual">${VISUAIS.map(([k, l]) => `<button data-act="visual:${k}" aria-pressed="${visual() === k}">${l}</button>`).join("")}</div></section>
     <section class="card"><h3>Assinatura</h3>
       <p class="small">${S.codigo ? "Você usa um código de convite: as análises estão liberadas." : "A primeira análise é grátis; as seguintes fazem parte da assinatura."}</p>
       ${S.codigo ? "" : `<button class="btn" data-act="tela:assinar">Ver planos</button>`}</section>
@@ -657,7 +668,7 @@ async function acao(act, el) {
   const [k, v] = [act.split(":")[0], act.slice(act.indexOf(":") + 1)];
   switch (k) {
     case "tela": return vai(v);
-    case "ver": S.detalhe = v; render(); window.scrollTo(0, 0); return;
+    case "ver": S.detalhe = v; render(); entra(); window.scrollTo(0, 0); return;
     case "onb": {
       if (v === "1") {
         if (!$("#ok-termos").checked || !$("#ok-dados").checked) return toast("Para usar o app, marque as duas autorizações.");
@@ -690,6 +701,7 @@ async function acao(act, el) {
     }
     case "apagar-proc": S.eventos = S.eventos.filter((e) => e.id !== v); await DB.set("eventos", S.eventos); return render();
     case "catf": S.catFiltro = v; return render();
+    case "visual": lsSet("myskin-visual", v); aplicaVisual(); return render();
     case "editar": S.editando = !S.editando; return render();
     case "salva-perfil": await salvaPerfil(lePerfil()); S.editando = false; toast("Perfil salvo."); return render();
     case "apagar-analise":

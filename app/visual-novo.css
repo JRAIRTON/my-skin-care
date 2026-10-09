@@ -1,0 +1,129 @@
+/* Visual novo (experimental): ativo com html[data-visual="novo"], escolhido em Ajustes → Aparência.
+   Paleta da identidade MY Skin: creme, areia, nude rosado e café. Sem o atributo vale estilo.css puro. */
+html[data-visual="novo"] {
+  --bg: #F7F2EC;
+  --surface: #FFFDFB;
+  --surface-2: #F1E9E0;
+  --ink: #2E211B;
+  --ink-2: #5A4A40;
+  --muted: #8E7D71;
+  --line: #E8DDD2;
+  --gold: #B88A6A;
+  --gold-ink: #8A5F43;
+  --gold-soft: #F4E8DE;
+  --on-gold: #FFFFFF;
+  --espresso: #3B2A22;
+  --cream: #F7EFE7;
+  --shadow: 0 1px 1px rgba(59, 42, 34, .04), 0 12px 32px -12px rgba(59, 42, 34, .18);
+  --display: "Cormorant Garamond", "Marcellus", Georgia, serif;
+  --nav-h: 72px;
+}
+@media (prefers-color-scheme: dark) {
+  html[data-visual="novo"]:not([data-theme="light"]) {
+    --bg: #17110E; --surface: #211915; --surface-2: #2B211C; --ink: #F3E9DF; --ink-2: #D2C2B5; --muted: #A08E80;
+    --line: #34281F; --gold: #D2A587; --gold-ink: #E2BBA0; --gold-soft: #2E2119; --on-gold: #1A120E;
+    --espresso: #0F0B09; --cream: #F3E9DF;
+    --shadow: 0 1px 1px rgba(0, 0, 0, .3), 0 14px 34px -14px rgba(0, 0, 0, .7);
+  }
+}
+
+html[data-visual="novo"] body {
+  background:
+    radial-gradient(120% 60% at 100% 0%, color-mix(in srgb, var(--gold) 14%, transparent), transparent 60%),
+    radial-gradient(90% 50% at 0% 100%, color-mix(in srgb, var(--gold) 8%, transparent), transparent 60%),
+    var(--bg);
+  background-attachment: fixed;
+  font-size: 15.5px;
+}
+
+/* Tipografia */
+html[data-visual="novo"] h1, html[data-visual="novo"] h2 { font-weight: 600; letter-spacing: 0; }
+html[data-visual="novo"] h1 { font-size: 36px; line-height: 1.05; }
+html[data-visual="novo"] h2 { font-size: 30px; line-height: 1.1; }
+html[data-visual="novo"] h3 { font-size: 11.5px; letter-spacing: .16em; color: var(--gold-ink); }
+html[data-visual="novo"] .lede { font-size: 16px; line-height: 1.6; }
+
+/* Topo transparente com a marca em serifa */
+html[data-visual="novo"] .top { background: color-mix(in srgb, var(--bg) 70%, transparent); border-bottom: 0; backdrop-filter: blur(16px) saturate(1.2); }
+html[data-visual="novo"] .brand b { font-size: 25px; font-weight: 600; letter-spacing: .04em; }
+html[data-visual="novo"] .icon-btn { border-radius: 50%; border: 0; background: var(--surface); box-shadow: var(--shadow); }
+html[data-visual="novo"] .icon-btn[aria-current="page"] { background: var(--espresso); color: var(--cream); }
+
+/* Navegação flutuante em pílula */
+html[data-visual="novo"] .nav { left: 12px; right: 12px; bottom: calc(10px + env(safe-area-inset-bottom, 0px)); padding-bottom: 0;
+  border: 1px solid color-mix(in srgb, var(--line) 70%, transparent); border-radius: 28px;
+  background: color-mix(in srgb, var(--surface) 82%, transparent); backdrop-filter: blur(18px) saturate(1.3); box-shadow: var(--shadow); max-width: 696px; margin: 0 auto; }
+html[data-visual="novo"] .nav-in { height: 64px; }
+html[data-visual="novo"] .nav button { font-weight: 500; letter-spacing: .02em; }
+html[data-visual="novo"] .nav button[aria-current="page"] { color: var(--ink); }
+html[data-visual="novo"] .nav button.cta span.ic { width: 48px; height: 48px; border-radius: 50%; margin-top: -22px; background: var(--espresso); color: var(--cream);
+  box-shadow: 0 10px 22px -8px rgba(59, 42, 34, .6); }
+html[data-visual="novo"] .nav button.cta[aria-current="page"] span.ic { background: var(--gold); color: var(--on-gold); }
+html[data-visual="novo"] .wrap { padding-bottom: calc(var(--nav-h) + 48px + env(safe-area-inset-bottom, 0px)); gap: 16px; }
+html[data-visual="novo"] .toast { bottom: calc(var(--nav-h) + 26px + env(safe-area-inset-bottom, 0px)); border-radius: 18px; background: var(--espresso); color: var(--cream); }
+
+/* Cartões */
+html[data-visual="novo"] .card { border: 0; border-radius: 26px; padding: 22px; box-shadow: var(--shadow); gap: 14px; }
+html[data-visual="novo"] .card.flat { border: 1px dashed var(--line); background: color-mix(in srgb, var(--surface) 50%, transparent); }
+
+/* Cartão da nota em destaque: fundo café com a nota em creme */
+html[data-visual="novo"] .card:has(.hero) {
+  --ink: var(--cream); --ink-2: color-mix(in srgb, var(--cream) 82%, transparent); --muted: color-mix(in srgb, var(--cream) 64%, transparent);
+  --surface-2: rgba(255, 255, 255, .12); --line: rgba(255, 255, 255, .16);
+  background: linear-gradient(145deg, #4A352B 0%, var(--espresso) 55%, #2A1E18 100%); color: var(--cream);
+}
+html[data-visual="novo"] .card:has(.hero) .btn { background: rgba(255, 255, 255, .1); border-color: rgba(255, 255, 255, .22); color: var(--cream); }
+html[data-visual="novo"] .card:has(.hero) .chip { background: rgba(255, 255, 255, .12); color: var(--cream); }
+html[data-visual="novo"] .card:has(.hero) .notice { background: rgba(255, 255, 255, .08); color: var(--cream); }
+html[data-visual="novo"] .ring-v { font-family: var(--display); font-size: 40px; font-weight: 600; }
+
+/* Botões em pílula */
+html[data-visual="novo"] .btn { border-radius: 999px; min-height: 50px; padding-inline: 22px; font-weight: 600; letter-spacing: .01em; transition: background .2s, color .2s, border-color .2s, transform .15s; }
+html[data-visual="novo"] .btn:active { transform: scale(.98); }
+html[data-visual="novo"] .btn.primary { background: var(--espresso); border-color: var(--espresso); color: var(--cream); }
+html[data-visual="novo"] .btn.sm { min-height: 38px; padding-inline: 14px; }
+html[data-visual="novo"] .btn.plano { border-radius: 22px; }
+@media (hover: hover) {
+  html[data-visual="novo"] .btn.primary:hover { background: var(--gold); border-color: var(--gold); color: var(--on-gold); }
+}
+html[data-visual="novo"] input[type="text"], html[data-visual="novo"] input[type="password"], html[data-visual="novo"] input[type="date"],
+html[data-visual="novo"] input[type="number"], html[data-visual="novo"] select { border-radius: 14px; background: var(--surface-2); border-color: transparent; }
+html[data-visual="novo"] .seg { border-radius: 999px; border: 0; }
+html[data-visual="novo"] .seg button { border-radius: 999px; }
+
+/* Chips e avisos */
+html[data-visual="novo"] .chip { padding: 5px 12px; font-weight: 500; letter-spacing: .02em; }
+html[data-visual="novo"] .notice { border-radius: 18px; padding: 14px 16px; background: var(--surface); box-shadow: var(--shadow); border-left: 3px solid var(--line); }
+html[data-visual="novo"] .notice.gold { background: var(--gold-soft); box-shadow: none; border-left-color: var(--gold); }
+html[data-visual="novo"] .notice.warn { border-left-color: var(--warn); }
+html[data-visual="novo"] .notice.bad { border-left-color: var(--bad); }
+html[data-visual="novo"] .notice .ico { background: var(--gold); color: var(--on-gold); }
+
+/* Notas em barras mais finas e elegantes */
+html[data-visual="novo"] .bars { gap: 16px; }
+html[data-visual="novo"] .bar .v { font-family: var(--display); font-size: 20px; font-weight: 600; }
+html[data-visual="novo"] .bar .track { height: 8px; border-radius: 4px; }
+html[data-visual="novo"] .bar .fill { border-radius: 4px; background: linear-gradient(90deg, #E2C3AC, var(--gold)); }
+
+/* Fotos, listas e produtos */
+html[data-visual="novo"] .photo, html[data-visual="novo"] .compare { border-radius: 22px; }
+html[data-visual="novo"] .thumb { border-radius: 14px; }
+html[data-visual="novo"] .score-s, html[data-visual="novo"] .price-v { font-family: var(--display); font-weight: 600; font-size: 26px; }
+html[data-visual="novo"] .box { border-radius: 18px; }
+html[data-visual="novo"] .prod-ic { border-radius: 18px; }
+html[data-visual="novo"] .prod-n { font-family: var(--display); font-size: 21px; font-weight: 600; line-height: 1.2; }
+html[data-visual="novo"] .links a { border-radius: 999px; }
+
+/* Rotina */
+html[data-visual="novo"] .step input { accent-color: var(--espresso); }
+html[data-visual="novo"] .day i { width: 30px; height: 30px; }
+html[data-visual="novo"] .day i.full { background: var(--espresso); border-color: var(--espresso); }
+
+/* Entrada suave das telas */
+@media (prefers-reduced-motion: no-preference) {
+  html[data-visual="novo"] .wrap.entra > * { animation: sobe .35s ease-out both; }
+  html[data-visual="novo"] .wrap.entra > *:nth-child(2) { animation-delay: .04s; }
+  html[data-visual="novo"] .wrap.entra > *:nth-child(3) { animation-delay: .08s; }
+  html[data-visual="novo"] .wrap.entra > *:nth-child(n+4) { animation-delay: .12s; }
+}
+@keyframes sobe { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
