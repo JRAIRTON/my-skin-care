@@ -33,7 +33,10 @@ análise grátis e quantos assinam; se a conversão for baixa, testar R$ 14,90.
   itens estão razoáveis; explicação de que o Skin Score é a média das notas; resumo da avaliação com a
   idade aparente e o foco; instruções de uso da rotina; passo feito em verde em vez de riscado; efeito
   do registro de procedimento; desenho por categoria nos produtos; texto do "Seu foco agora";
-  explicação do arquivo .json da cópia. Fotos reais dos produtos dependem de autorização das marcas.
+  explicação do arquivo .json da cópia.
+- Fotos dos produtos: ficam de fora por enquanto (decisão de 09/10/2026); os cards usam o desenho da
+  categoria. Copiar ou linkar as fotos dos sites das marcas tem risco autoral. Se voltar ao tema: fotos
+  próprias dos produtos ou autorização das marcas (kit de imprensa).
 
 ## Pendências
 
