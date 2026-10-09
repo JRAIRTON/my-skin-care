@@ -72,7 +72,7 @@ const DB = {
 
 // ---------- estado ----------
 const S = {
-  catalogo: [], perfil: null, codigo: null, usuario: null, analises: [], checks: {}, eventos: [], rotinaInicio: null,
+  catalogo: [], perfil: null, codigo: null, usuario: null, tenho: [], cam: null, analises: [], checks: {}, eventos: [], rotinaInicio: null,
   tela: "inicio", detalhe: null, onb: 0, rascunho: null, ocupado: null, cmp: { a: null, b: null, corte: 50 },
   editando: false, procForm: false, instalar: null, catFiltro: "Todos",
 };
@@ -84,11 +84,11 @@ const anterior = (a) => { const l = ordenadas(); const i = l.findIndex((x) => x.
 const recuperacao = (data = hoje()) => S.eventos.find((e) => data >= e.data && data <= soma(e.data, e.dias)) || null;
 
 async function carrega() {
-  const [cat, perfil, codigo, analises, checks, eventos, inicio, usuario] = await Promise.all([
+  const [cat, perfil, codigo, analises, checks, eventos, inicio, usuario, tenho] = await Promise.all([
     fetch("catalogo.json").then((r) => r.json()), DB.get("perfil"), DB.get("codigo"), DB.todas(),
-    DB.get("checks"), DB.get("eventos"), DB.get("rotinaInicio"), DB.get("usuario"),
+    DB.get("checks"), DB.get("eventos"), DB.get("rotinaInicio"), DB.get("usuario"), DB.get("tenho"),
   ]);
-  Object.assign(S, { catalogo: cat, perfil: perfil || null, codigo: codigo || null, analises: analises || [], checks: checks || {}, eventos: eventos || [], rotinaInicio: inicio || null, usuario: usuario || null });
+  Object.assign(S, { catalogo: cat, perfil: perfil || null, codigo: codigo || null, analises: analises || [], checks: checks || {}, eventos: eventos || [], rotinaInicio: inicio || null, usuario: usuario || null, tenho: tenho || [] });
   // random id of this install: the server uses it for the free first analysis and the subscription
   if (!S.usuario) { S.usuario = crypto.randomUUID(); await DB.set("usuario", S.usuario); }
 }
@@ -210,12 +210,26 @@ function delta(cur, prev) {
   const d = cur - prev;
   return d === 0 ? `<span class="delta">=</span>` : `<span class="delta ${d > 0 ? "up" : "down"}">${d > 0 ? "+" : "−"}${Math.abs(d)}</span>`;
 }
+// cosmetic explanation of each aspect, shown under its bar (no medical claims)
+const INFO = {
+  textura: ["Quão lisa e regular é a superfície da pele.", "Esfoliação suave algumas vezes por semana (ácido glicólico ou salicílico), hidratação diária e protetor solar."],
+  poros: ["Quanto os poros aparecem a uns 30 a 40 cm de distância.", "Limpeza que controla a oleosidade, niacinamida e ácido salicílico. O tamanho do poro também depende da genética."],
+  linhas: ["Linhas finas e rugas, na expressão e em repouso.", "Protetor solar todos os dias (o principal), retinoide à noite e boa hidratação."],
+  firmeza: ["Sustentação da pele e nitidez do contorno do rosto.", "Protetor solar, retinoide e hábitos como dormir bem e não fumar. Os resultados aparecem devagar."],
+  manchas: ["Sardas, manchas e marcas mais escuras.", "Protetor solar com reaplicação, vitamina C, niacinamida ou ácido azelaico."],
+  uniformidade: ["Se o tom é parecido no rosto todo, incluindo olheiras e a região do nariz.", "Protetor solar, vitamina C e niacinamida."],
+  vermelhidao: ["Áreas avermelhadas e vasinhos aparentes.", "Produtos suaves e sem fragrância, hidratante calmante (pantenol, centella) e água morna. Vermelhidão que não passa: procure um dermatologista."],
+  oleosidade: ["Brilho oleoso, principalmente na testa, no nariz e no queixo.", "Limpeza adequada, hidratante leve em gel e niacinamida, sem ressecar demais a pele."],
+  brilho: ["Viço e luminosidade da pele.", "Hidratação, vitamina C de manhã e esfoliação suave."],
+  hidratacao: ["Sinais de ressecamento, aspereza ou descamação.", "Hidratante com ceramidas ou ácido hialurônico, limpeza suave e banho morno."],
+};
 function barras(a, prev) {
   return `<div class="bars">${CATS.map(([k, l]) => {
     const n = a.notas[k] || {}; const ok = Number.isFinite(n.nota);
     return `<div class="bar"><span class="lbl">${l}</span><span class="v num">${ok ? n.nota : "—"}${ok ? delta(n.nota, prev?.notas?.[k]?.nota) : ""}</span>
       <span class="track"><span class="fill" style="width:${ok ? n.nota : 0}%"></span></span>
-      <span class="desc">${ok ? esc(cap(GRAUS[k][n.grau])) : "Não avaliável nesta foto"}</span></div>`;
+      <span class="desc">${ok ? esc(cap(GRAUS[k][n.grau])) : "Não avaliável nesta foto"}</span>
+      ${INFO[k] ? `<details class="info"><summary>O que é e o que ajuda</summary><p><b>O que é:</b> ${esc(INFO[k][0])}</p><p><b>O que costuma ajudar:</b> ${esc(INFO[k][1])}</p></details>` : ""}</div>`;
   }).join("")}</div>`;
 }
 const cap = (s) => s ? s[0].toUpperCase() + s.slice(1) : "";
@@ -235,7 +249,7 @@ function render() {
   main.innerHTML = !pronto ? vOnboarding() : S.detalhe ? vDetalhe() : ({ inicio: vInicio, evolucao: vEvolucao, analisar: vAnalisar, rotina: vRotina, produtos: vProdutos, ajustes: vAjustes, assinar: vAssinar }[S.tela] || vInicio)();
   depois();
 }
-function vai(tela) { S.tela = tela; S.detalhe = null; S.editando = false; S.procForm = false; render(); entra(); window.scrollTo(0, 0); }
+function vai(tela) { if (S.cam) fechaCamera(); S.tela = tela; S.detalhe = null; S.editando = false; S.procForm = false; render(); entra(); window.scrollTo(0, 0); }
 // short entrance animation of the new visual, only when the screen changes
 function entra() { const m = $("#main"); m.classList.remove("entra"); void m.offsetWidth; m.classList.add("entra"); setTimeout(() => m.classList.remove("entra"), 500); }
 
@@ -306,13 +320,13 @@ function vInicio() {
       <div class="stack"><h2>Olá${nome}</h2><p class="small muted">Última análise em ${fmt(a.data)}${ant ? ` · ${delta(a.skin_score, ant.skin_score) || ""} desde ${fmtC(ant.data)}` : ""}</p>
       <button class="btn sm" data-act="ver:${a.id}">Ver detalhes</button></div></div></section>
     ${recuperacao() ? aviso("warn", `<b>Pele em recuperação</b> até ${fmt(soma(recuperacao().data, recuperacao().dias))}: a rotina está só com o básico.`) : ""}
-    <section class="card"><div class="row between"><h3>Rotina de hoje</h3><span class="chip gold num">${feitos} de ${passos.length}</span></div>
+    <section class="card"><div class="row between"><h3>Rotina de hoje</h3><span class="chip gold num">${feitos} de ${passos.length}</span></div>${seloSeq()}
       <button class="btn block" data-act="tela:rotina">${feitos >= passos.length ? "Tudo feito hoje ✓" : "Marcar os passos"}</button></section>
     ${r.prioridades.length ? `<section class="card"><h3>Seu foco agora</h3><div class="checks">${r.prioridades.slice(0, 3).map((p) => `<span class="chip gold">${esc(p.objetivo)}</span>`).join("")}</div>
       <p class="small muted">Sugerimos combinar os aspectos com menor pontuação${S.perfil.objetivos?.length ? " com as suas prioridades de cuidado" : ""}.</p></section>` : ""}
     <section class="card"><h3>Próxima foto</h3>
       <p>${hoje() >= prox ? "Já é hora de uma nova foto para acompanhar a evolução." : `Sugerida para <b>${fmt(prox)}</b>. Intervalos de 4 semanas mostram mudanças reais.`}</p>
-      ${hoje() >= prox ? `<button class="btn primary" data-act="tela:analisar">Nova análise</button>` : ""}</section>
+      ${hoje() >= prox ? `<button class="btn primary" data-act="tela:analisar">Nova análise</button>` : `<button class="btn sm" data-act="lembrete:${prox}">Lembrar no meu calendário</button>`}</section>
     ${instalar}`;
 }
 
@@ -329,8 +343,64 @@ function dicaInstalar() {
     <div class="row">${corpo}<button class="btn sm ghost" data-act="instalar-ok">Já instalei</button></div></section>`;
 }
 
+// ----- câmera guiada: contorno do rosto e leitura da luz ao vivo; sem suporte, usa a câmera do sistema
+async function abreCamera() {
+  if (!navigator.mediaDevices?.getUserMedia) return $("#in-camera").click();
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user", width: { ideal: 1920 }, height: { ideal: 1440 } }, audio: false });
+    S.cam = { stream, timer: setInterval(leLuz, 500) };
+    S.tela = "analisar"; S.detalhe = null; render(); window.scrollTo(0, 0);
+  } catch {
+    toast("Não foi possível abrir a câmera guiada. Abrindo a câmera do celular.");
+    $("#in-camera").click();
+  }
+}
+function fechaCamera() {
+  if (!S.cam) return;
+  clearInterval(S.cam.timer); S.cam.stream.getTracks().forEach((t) => t.stop()); S.cam = null;
+}
+// average brightness of the face area and the balance between left and right halves
+function leLuz() {
+  const v = $("#cam-video"), msg = $("#cam-msg");
+  if (!v || !msg || !v.videoWidth) return;
+  const cv = leLuz.cv ||= document.createElement("canvas"); cv.width = 48; cv.height = 64;
+  const c = cv.getContext("2d", { willReadFrequently: true });
+  const w = v.videoWidth, h = v.videoHeight, cw = Math.min(w, h * 0.75), x0 = (w - cw) / 2;
+  c.drawImage(v, x0 + cw * 0.2, h * 0.15, cw * 0.6, h * 0.7, 0, 0, 48, 64);
+  const px = c.getImageData(0, 0, 48, 64).data;
+  let tot = 0, esq = 0, dir = 0;
+  for (let i = 0; i < px.length; i += 4) {
+    const y = 0.299 * px[i] + 0.587 * px[i + 1] + 0.114 * px[i + 2], col = (i / 4) % 48;
+    tot += y; if (col < 24) esq += y; else dir += y;
+  }
+  const n = px.length / 4, med = tot / n, lado = Math.abs(esq - dir) / (n / 2);
+  const [txt, ok] = med < 70 ? ["Pouca luz: fique de frente para uma janela", false]
+    : med > 205 ? ["Luz forte demais: saia do sol direto", false]
+    : lado > 28 ? ["Luz de lado: vire o rosto de frente para a luz", false]
+    : ["Luz boa ✓ Encaixe o rosto no contorno e toque no botão", true];
+  msg.textContent = txt; msg.classList.toggle("ok", ok);
+}
+async function capturar() {
+  const v = $("#cam-video");
+  if (!v?.videoWidth) return;
+  const cv = document.createElement("canvas"); cv.width = v.videoWidth; cv.height = v.videoHeight;
+  cv.getContext("2d").drawImage(v, 0, 0);
+  const blob = await new Promise((ok) => cv.toBlob(ok, "image/jpeg", 0.92));
+  fechaCamera();
+  return escolheuFoto(new File([blob], "foto.jpg", { type: "image/jpeg" }));
+}
+function vCamera() {
+  return `<section class="card cam"><div class="cam-box"><video id="cam-video" playsinline autoplay muted></video>
+      <svg class="cam-oval" viewBox="0 0 300 400" preserveAspectRatio="none" aria-hidden="true"><defs><mask id="m"><rect width="300" height="400" fill="#fff"/><ellipse cx="150" cy="190" rx="105" ry="140" fill="#000"/></mask></defs>
+        <rect width="300" height="400" fill="rgba(0,0,0,.45)" mask="url(#m)"/><ellipse cx="150" cy="190" rx="105" ry="140" fill="none" stroke="#fff" stroke-width="2.5" stroke-dasharray="6 6"/></svg>
+      <p id="cam-msg" class="cam-msg">Preparando a câmera…</p></div>
+    <button class="btn primary block" data-act="capturar">Tirar a foto</button>
+    <div class="row between"><button class="btn ghost sm" data-act="fecha-camera">Cancelar</button><button class="btn ghost sm" data-act="camera-sistema">Usar a câmera do celular</button></div></section>`;
+}
+
 // ----- analisar
 function vAnalisar() {
+  if (S.cam) return vCamera();
   const d = S.rascunho;
   if (S.ocupado) return `<section class="card"><div class="busy"><b>Analisando sua pele…</b><span class="small">Leva de 5 a 20 segundos. Não feche o app.</span><div class="anim"></div></div></section>`;
   if (!d) return `
@@ -401,6 +471,7 @@ function vDetalhe() {
       ${a.nivelQualidade === "bad" ? aviso("warn", "Esta foto tinha problemas de qualidade. Trate as notas com cautela.") : ""}
       ${a.modelo && a.modelo !== MODELO_VALIDADO ? aviso("warn", "Esta análise foi feita por um modelo de reserva, ainda não validado. Considere o resultado provisório.") : ""}
     </section>
+    ${ant ? comparaUltima(a, ant) : ""}
     ${url ? `<section class="card"><img class="photo" src="${url}" alt="Foto de ${fmt(a.data)}"></section>` : ""}
     <section class="card"><h3>As 10 notas</h3><p class="small muted">Cada aspecto da pele recebe uma nota de 0 a 100: quanto maior, melhor. Abaixo de cada nota, um resumo do que a avaliação observou na sua foto. ${explicaScore(a)}</p>${barras(a, ant)}</section>
     ${r.alertas.length ? aviso("bad", r.alertas.map(esc).join("<br>")) : ""}
@@ -409,6 +480,21 @@ function vDetalhe() {
       <div class="btns"><button class="btn primary" data-act="tela:rotina">Ver rotina</button><button class="btn" data-act="tela:produtos">Ver produtos</button></div></section>
     ${aviso("", "Avaliação visual e cosmética feita por IA. Não é diagnóstico. Em caso de ferida que não cicatriza, pinta que muda ou lesão que sangra, procure um dermatologista.")}
     <button class="btn danger ghost sm" data-act="apagar-analise:${a.id}" style="justify-self:center">Apagar esta análise</button>`;
+}
+
+// what changed since the previous photo, shown right in the result
+function comparaUltima(a, ant) {
+  const difs = CATS.map(([k, n]) => ({ n, d: Number.isFinite(a.notas[k]?.nota) && Number.isFinite(ant.notas[k]?.nota) ? a.notas[k].nota - ant.notas[k].nota : null })).filter((x) => x.d !== null);
+  const melhor = difs.filter((x) => x.d >= 2).sort((x, y) => y.d - x.d).slice(0, 3);
+  const pior = difs.filter((x) => x.d <= -2).sort((x, y) => x.d - y.d).slice(0, 3);
+  const linha = (x) => `<div class="row between small"><span>${esc(x.n)}</span>${delta(x.d, 0)}</div>`;
+  const fa = fotoUrl(ant), fb = fotoUrl(a);
+  return `<section class="card"><h3>Desde ${fmt(ant.data)}</h3>
+    ${fa && fb ? `<div class="duo"><figure><img src="${fa}" alt="Antes"><figcaption>${fmtC(ant.data)} · ${ant.skin_score ?? "—"}</figcaption></figure><figure><img src="${fb}" alt="Agora"><figcaption>${fmtC(a.data)} · ${a.skin_score ?? "—"}</figcaption></figure></div>` : ""}
+    ${melhor.length ? `<div class="stack"><span class="small muted">Melhorou</span>${melhor.map(linha).join("")}</div>` : ""}
+    ${pior.length ? `<div class="stack"><span class="small muted">Pede atenção</span>${pior.map(linha).join("")}</div>` : ""}
+    ${!melhor.length && !pior.length ? `<p class="small muted">Sem mudanças importantes: a pele está estável.</p>` : ""}
+    <button class="btn sm" data-act="compara:${ant.id}:${a.id}">Comparar as fotos lado a lado</button></section>`;
 }
 
 // overall score = plain average of the categories the AI could assess (same rule as the server)
@@ -474,6 +560,14 @@ function vEvolucao() {
 
 // ----- rotina
 const rec = (a) => recomenda(S.perfil, a.notas, S.catalogo);
+// consecutive days with at least one step marked (today counts once something is marked)
+function sequencia() {
+  let n = 0, d = hoje();
+  if (!(S.checks[d] || []).length) d = soma(d, -1);
+  while ((S.checks[d] || []).length) { n++; d = soma(d, -1); }
+  return n;
+}
+const seloSeq = () => { const n = sequencia(); return n >= 2 ? `<span class="chip good">${n} dias seguidos ✓</span>` : ""; };
 function passosDeHoje(r) {
   const emRec = !!recuperacao();
   const inicio = S.rotinaInicio || hoje();
@@ -496,15 +590,16 @@ function vRotina() {
       ${off ? `<br><span class="chip warn">${emRec ? "pausado na recuperação" : `começa em ${fmt(libera)}`}</span>` : ""}</label></li>`;
   }).join("")}</ul></section>`;
   const n = ativos.filter((p) => feitos.has(p.id)).length;
+  const agoraManha = new Date().getHours() < 15;
   return `
-    <section class="card"><div class="row between"><div class="stack" style="gap:2px"><h2>Sua rotina</h2><p class="small muted">Pela análise de ${fmt(a.data)}. Pele ${esc(TIPOS_PELE[r.pele]?.toLowerCase() || r.pele)}${S.perfil.tipoPele === "nao_sei" ? " (estimada pela foto)" : ""}.</p></div><span class="chip gold num">${n} de ${ativos.length} hoje</span></div>
+    <section class="card"><div class="row between"><div class="stack" style="gap:2px"><h2>Sua rotina</h2><p class="small muted">Pela análise de ${fmt(a.data)}. Pele ${esc(TIPOS_PELE[r.pele]?.toLowerCase() || r.pele)}${S.perfil.tipoPele === "nao_sei" ? " (estimada pela foto)" : ""}.</p></div><span class="chip gold num">${n} de ${ativos.length} hoje</span></div>${seloSeq()}
       <div class="week" aria-label="Últimos 7 dias">${semana.map((w) => `<span class="day"><i class="${w.n === 0 ? "" : w.n >= ativos.length ? "full" : "part"}" title="${fmt(w.s)}: ${w.n} de ${ativos.length}"></i>${w.l}</span>`).join("")}</div></section>
     ${aviso("", `<b>Como usar:</b> todo dia, marque os passos que você fez de manhã e à noite. A fileira acima mostra os últimos 7 dias (cheio: tudo feito; metade: parte feita). Fica guardado só neste aparelho, para você acompanhar a sua constância.`)}
     <p class="small" style="padding-inline:4px">Com base na avaliação da sua pele${S.perfil.tipoPele && S.perfil.tipoPele !== "nao_sei" ? ` e na sua indicação de pele ${esc(TIPOS_PELE[S.perfil.tipoPele]?.toLowerCase() || "")}` : ""}, sugerimos os produtos abaixo, numa rotina para a manhã e a noite.</p>
     ${emRec ? aviso("warn", `<b>Recuperação de ${esc(emRec.tipo.toLowerCase())}</b> até ${fmt(soma(emRec.data, emRec.dias))}. Só limpeza suave, hidratante e protetor; ativos pausados, a menos que o profissional oriente diferente. <button class="btn sm ghost" data-act="apagar-proc:${emRec.id}">Remover registro</button>`) : ""}
     ${r.passos.manha.some((p) => p.ativo) || r.passos.noite.some((p) => p.ativo) ? aviso("gold", "<b>Os ativos entram na rotina aos poucos.</b> Nas duas primeiras semanas, só o básico: limpeza, hidratação e protetor solar. Depois entra o primeiro ativo e, duas semanas mais tarde, o segundo. Assim sua pele se adapta com conforto e fica mais fácil perceber o que funciona para você.") : ""}
-    ${bloco("Manhã", r.passos.manha)}
-    ${bloco("Noite", r.passos.noite)}
+    ${agoraManha ? bloco("Agora: manhã", r.passos.manha) : bloco("Agora: noite", r.passos.noite)}
+    <details class="card"><summary>${agoraManha ? "Ver a rotina da noite" : "Ver a rotina da manhã"}</summary>${agoraManha ? bloco("Noite", r.passos.noite) : bloco("Manhã", r.passos.manha)}</details>
     ${S.procForm ? `<section class="card"><h3>Procedimento estético</h3><div class="fields">
         <label class="f">Qual?<select id="proc-tipo">${PROCS.map(([p, d]) => `<option value="${esc(p)}" data-dias="${d}">${esc(p)}</option>`).join("")}</select></label>
         <label class="f">Data<input type="date" id="proc-data" value="${t}" max="${t}"></label></div>
@@ -530,11 +625,12 @@ const ILUSTRA = {
 const ilustra = (cat) => `<svg class="prod-ic" viewBox="0 0 64 64" aria-hidden="true">${ILUSTRA[cat] || ILUSTRA["Hidratante"]}</svg>`;
 function cardProduto(titulo, p, porque, opcoes = []) {
   if (!p) return "";
-  const q = `${p.marca} ${p.produto}`;
+  const q = `${p.marca} ${p.produto}`, tem = S.tenho.includes(p.id);
   return `<article class="card"><div class="prod-top">${ilustra(p.categoria)}<div class="stack" style="gap:2px"><span class="small muted">${esc(titulo)}</span><span class="prod-n">${esc(p.marca)} ${esc(p.produto)}</span><span class="chip gold" style="justify-self:start;white-space:normal">${esc(p.ativos)}</span></div></div>
     <div class="box rec"><span>${esc(porque)}</span>${p.obs ? `<span class="small">${esc(p.obs)}</span>` : ""}</div>
     <div class="box"><span class="price-v">${preco(p)}</span><span class="small muted">${esc(p.tamanho)} · preço pesquisado em ${fmt(p.data_preco)}. Preços mudam: confira.</span></div>
-    <div class="links">${LOJAS(q).map(([n, u]) => `<a href="${esc(u)}" target="_blank" rel="noopener">${n} ↗</a>`).join("")}</div>
+    <div class="row between"><button class="btn sm${tem ? " tenho" : ""}" data-act="tenho:${esc(p.id)}" aria-pressed="${tem}">${tem ? "✓ Já tenho" : "Já tenho este"}</button></div>
+    ${tem ? "" : `<div class="links">${LOJAS(q).map(([n, u]) => `<a href="${esc(u)}" target="_blank" rel="noopener">${n} ↗</a>`).join("")}</div>`}
     ${opcoes.length ? `<details><summary class="small">Outras opções</summary><div class="list">${opcoes.map((o) => `<div class="item" style="cursor:default"><span class="item-b"><span class="item-t">${esc(o.marca)} ${esc(o.produto)}</span><span class="small muted">${esc(o.ativos)} · ${esc(o.tamanho)}</span></span><span class="num small">${preco(o)}</span></div>`).join("")}</div></details>` : ""}
   </article>`;
 }
@@ -547,12 +643,13 @@ function vProdutos() {
     <div class="tbl-wrap"><table><thead><tr><th>Produto</th><th class="r">Preço</th></tr></thead><tbody>${itens.map((c) => `<tr><td><b>${esc(c.marca)}</b> ${esc(c.produto)}<br><span class="small muted">${esc(c.ativos)} · ${esc(c.tamanho)}</span></td><td class="r num">${preco(c)}</td></tr>`).join("")}</tbody></table></div></div></details></section>`;
   if (!a) return `<section class="card empty"><h2>Produtos para você</h2><p class="lede">As indicações saem da sua análise.</p><button class="btn primary" data-act="tela:analisar">Nova análise</button></section>${catalogo}`;
   const r = rec(a), P = r.produtos;
-  const custo = [P.limpeza.produto, P.hidratante.produto, P.protetor.produto, ...P.seruns.map((s) => s.produto)].filter(Boolean);
+  const kit = [P.limpeza.produto, P.hidratante.produto, P.protetor.produto, ...P.seruns.map((s) => s.produto)].filter(Boolean);
+  const custo = kit.filter((p) => !S.tenho.includes(p.id)), jaTem = kit.length - custo.length;
   const total = (k) => custo.reduce((s, p) => s + p[k], 0);
   return `
     <section class="card"><h2>Produtos para você</h2>
       <p class="small muted">Escolhidos por regras fixas a partir da análise de ${fmt(a.data)}, do seu tipo de pele e dos seus objetivos, sempre pela opção mais em conta que serve. O app não vende nada e não ganha comissão.</p>
-      <div class="box"><span class="small muted">Kit completo (${custo.length} itens)</span><span class="price-v">${total("preco_min") === total("preco_max") ? brl(total("preco_min")) : `${brl(total("preco_min"))} a ${brl(total("preco_max"))}`}</span><span class="small muted">Comece pelo básico; os séruns entram depois.</span></div></section>
+      <div class="box"><span class="small muted">${jaTem ? `Falta comprar (${custo.length} de ${kit.length} itens; você já tem ${jaTem})` : `Kit completo (${kit.length} itens)`}</span><span class="price-v">${!custo.length ? "Você já tem tudo ✓" : total("preco_min") === total("preco_max") ? brl(total("preco_min")) : `${brl(total("preco_min"))} a ${brl(total("preco_max"))}`}</span><span class="small muted">Marque "Já tenho este" nos produtos que você já usa. Comece pelo básico; os séruns entram depois.</span></div></section>
     <h3 style="padding-inline:4px">O básico</h3>
     ${cardProduto("Protetor solar", P.protetor.produto, "Todo dia de manhã, mesmo em casa ou nublado. É o que mais previne manchas e linhas.", P.protetor.opcoes)}
     ${cardProduto("Limpeza", P.limpeza.produto, `Para pele ${TIPOS_PELE[r.pele]?.toLowerCase() || r.pele}${r.sensivel ? " e sensível" : ""}, de manhã e à noite.`, P.limpeza.opcoes)}
@@ -593,17 +690,20 @@ function vAjustes() {
 // ----- assinatura
 const PLANOS = [
   { id: "mensal", nome: "Mensal", preco: "R$ 19,90", detalhe: "por mês" },
-  { id: "anual", nome: "Anual", preco: "R$ 129,90", detalhe: "por ano · sai a R$ 10,83 por mês" },
+  { id: "anual", nome: "Anual", preco: "R$ 129,90", detalhe: "por ano · sai a R$ 10,83 por mês", selo: "Melhor custo · economize 45%" },
 ];
 // the store app (Capacitor + RevenueCat) provides window.MySkinCompras; the web version has no purchase
 const compras = () => window.MySkinCompras || null;
 function vAssinar() {
-  const loja = compras();
+  const loja = compras(), a = ultima();
+  const foco = a ? rec(a).prioridades.slice(0, 2).map((p) => p.objetivo.toLowerCase()) : [];
   return `
     <section class="card"><h2>Assine o MY Skin</h2>
-      <p class="lede">Análises sem limite, evolução, rotina e produtos. Cancele quando quiser, pela loja.</p>
+      <p class="lede">${a ? `Sua primeira análise deu <b>${a.skin_score} pontos</b>.${foco.length ? ` Com a assinatura, você acompanha mês a mês a evolução de <b>${foco.join("</b> e <b>")}</b>.` : " Com a assinatura, você acompanha a evolução mês a mês."}` : "Análises sem limite, evolução, rotina e produtos."} Cancele quando quiser, pela loja.</p>
+      ${a ? `<div class="bloqueado" aria-hidden="true"><svg viewBox="0 0 300 90"><polyline points="10,70 70,58 130,62 190,44 250,36 290,26"/></svg><span>Sua evolução aparece aqui a partir da 2ª análise</span></div>` : ""}
+      <ul class="beneficios small"><li>Nova análise todo mês, com comparação automática</li><li>Gráfico da evolução e antes e depois</li><li>Rotina e produtos atualizados a cada análise</li></ul>
       <div class="stack">${PLANOS.map((p) => `<button class="btn plano${p.id === "anual" ? " primary" : ""} block" data-act="assinar:${p.id}"${loja && !S.ocupado ? "" : " disabled"}>
-        <b>${p.nome} · ${p.preco}</b><span class="small">${p.detalhe}</span></button>`).join("")}</div>
+        ${p.selo ? `<span class="selo">${p.selo}</span>` : ""}<b>${p.nome} · ${p.preco}</b><span class="small">${p.detalhe}</span></button>`).join("")}</div>
       ${loja ? `<button class="btn sm" data-act="assinar:restaurar">Já assinei: restaurar compra</button>` : aviso("info", "A assinatura é feita pelo app MY Skin da App Store ou do Google Play. Se você recebeu um código de convite, use em Ajustes.")}
       <p class="small muted">Renovação automática até o cancelamento. Veja os <a href="termos.html">Termos de Uso</a> e a <a href="privacidade.html">Política de Privacidade</a>.</p></section>`;
 }
@@ -633,10 +733,24 @@ async function verificaCodigo() {
   } catch (e) { S.ocupado = false; render(); toast(e.status === 401 ? "Código incorreto." : e.message); }
 }
 
+// .ics event at 10:00 on the suggested date, with an alert; opens in the phone's calendar app
+async function lembrete(data) {
+  const d = data.replaceAll("-", ""), agora = new Date().toISOString().replace(/[-:]/g, "").replace(/\.\d+/, "");
+  const ics = ["BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//MY Skin//PT-BR", "BEGIN:VEVENT", `UID:${d}-${S.usuario}@myskin`, `DTSTAMP:${agora}`,
+    `DTSTART:${d}T100000`, `DTEND:${d}T101500`, "SUMMARY:MY Skin: hora da nova foto",
+    "DESCRIPTION:Tire a nova foto no mesmo lugar e com a mesma luz da anterior para ver a evolução da sua pele.",
+    "BEGIN:VALARM", "ACTION:DISPLAY", "DESCRIPTION:MY Skin: hora da nova foto", "TRIGGER:PT0M", "END:VALARM", "END:VEVENT", "END:VCALENDAR"].join("\r\n");
+  const nome = "myskin-nova-foto.ics", file = new File([ics], nome, { type: "text/calendar" });
+  if (navigator.canShare?.({ files: [file] })) { try { await navigator.share({ files: [file], title: "Lembrete MY Skin" }); return; } catch (e) { if (e.name === "AbortError") return; } }
+  const u = URL.createObjectURL(file), l = document.createElement("a");
+  l.href = u; l.download = nome; document.body.append(l); l.click(); l.remove(); setTimeout(() => URL.revokeObjectURL(u), 4000);
+  toast("Abra o arquivo baixado para adicionar o lembrete ao calendário.");
+}
+
 async function exportar() {
   const para64 = (b) => new Promise((ok) => { const r = new FileReader(); r.onload = () => ok(r.result); r.readAsDataURL(b); });
   const analises = await Promise.all(S.analises.map(async (a) => ({ ...a, foto: a.foto ? await para64(a.foto) : null })));
-  const dados = { app: "myskin", versao: 1, exportadoEm: new Date().toISOString(), perfil: S.perfil, checks: S.checks, eventos: S.eventos, rotinaInicio: S.rotinaInicio, analises };
+  const dados = { app: "myskin", versao: 1, exportadoEm: new Date().toISOString(), perfil: S.perfil, checks: S.checks, eventos: S.eventos, rotinaInicio: S.rotinaInicio, tenho: S.tenho, analises };
   const blob = new Blob([JSON.stringify(dados)], { type: "application/json" });
   const nome = `myskin-copia-${hoje()}.json`;
   const file = new File([blob], nome, { type: "application/json" });
@@ -659,6 +773,7 @@ async function importar(file) {
   await DB.set("codigo", codigo); await DB.set("usuario", usuario);
   await DB.set("perfil", d.perfil); await DB.set("checks", d.checks || {}); await DB.set("eventos", d.eventos || []);
   if (d.rotinaInicio) await DB.set("rotinaInicio", d.rotinaInicio);
+  if (Array.isArray(d.tenho)) await DB.set("tenho", d.tenho);
   for (const a of analises) await DB.salva(a);
   Object.values(urls).forEach(URL.revokeObjectURL); for (const k in urls) delete urls[k];
   await carrega(); toast("Cópia restaurada."); vai("inicio");
@@ -669,6 +784,7 @@ async function acao(act, el) {
   switch (k) {
     case "tela": return vai(v);
     case "ver": S.detalhe = v; render(); entra(); window.scrollTo(0, 0); return;
+    case "compara": { const [x, y] = v.split(":"); S.cmp.a = x; S.cmp.b = y; return vai("evolucao"); }
     case "onb": {
       if (v === "1") {
         if (!$("#ok-termos").checked || !$("#ok-dados").checked) return toast("Para usar o app, marque as duas autorizações.");
@@ -682,7 +798,10 @@ async function acao(act, el) {
     case "codigo": return verificaCodigo();
     case "sem-codigo": await salvaPerfil({ semCodigo: true }); return vai(S.analises.length ? "inicio" : "analisar");
     case "assinar": return assinar(v);
-    case "camera": return $("#in-camera").click();
+    case "camera": return abreCamera();
+    case "camera-sistema": fechaCamera(); render(); return $("#in-camera").click();
+    case "capturar": return capturar();
+    case "fecha-camera": fechaCamera(); return render();
     case "galeria": return $("#in-galeria").click();
     case "descartar": if (S.rascunho?.url) URL.revokeObjectURL(S.rascunho.url); S.rascunho = null; return render();
     case "analisar": return analisar();
@@ -710,6 +829,8 @@ async function acao(act, el) {
       if (urls[v]) { URL.revokeObjectURL(urls[v]); delete urls[v]; }
       return vai("evolucao");
     case "exportar": return exportar();
+    case "lembrete": return lembrete(v);
+    case "tenho": { const t = new Set(S.tenho); t.has(v) ? t.delete(v) : t.add(v); S.tenho = [...t]; await DB.set("tenho", S.tenho); return render(); }
     case "importar": return $("#in-backup").click();
     case "apagar-tudo":
       if (!confirm("Apagar perfil, fotos, análises e rotina deste aparelho? Não dá para desfazer. Exporte uma cópia antes, se quiser guardar.")) return;
@@ -720,6 +841,8 @@ async function acao(act, el) {
 }
 
 function depois() {
+  const v = $("#cam-video");
+  if (v && S.cam && v.srcObject !== S.cam.stream) { v.srcObject = S.cam.stream; v.play().catch(() => {}); }
   const c = $(".compare");
   if (c) {
     let arrastando = false;
@@ -748,6 +871,7 @@ document.addEventListener("input", (e) => {
   if (e.target.dataset.actInput === "corte") { S.cmp.corte = Number(e.target.value); $(".compare")?.style.setProperty("--cut", S.cmp.corte + "%"); }
 });
 document.addEventListener("keydown", (e) => { if (e.key === "Enter" && e.target.id === "in-codigo") verificaCodigo(); });
+document.addEventListener("visibilitychange", () => { if (document.hidden && S.cam) { fechaCamera(); render(); } });
 window.addEventListener("beforeinstallprompt", (e) => { e.preventDefault(); S.instalar = e; if (S.tela === "inicio") render(); });
 
 // ---------- início ----------

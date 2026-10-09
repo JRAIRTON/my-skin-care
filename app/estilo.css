@@ -265,3 +265,38 @@ td.r, th.r { text-align: right; white-space: nowrap; }
 /* Produtos: desenho da categoria ao lado do nome */
 .prod-top { display: grid; grid-template-columns: 56px 1fr; gap: 12px; align-items: start; }
 .prod-ic { width: 56px; height: 56px; padding: 6px; border-radius: 14px; background: var(--gold-soft); fill: none; stroke: var(--gold-ink); stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
+
+/* Câmera guiada */
+.cam-box { position: relative; border-radius: 18px; overflow: hidden; background: #000; aspect-ratio: 3 / 4; }
+.cam-box video { width: 100%; height: 100%; object-fit: cover; transform: scaleX(-1); display: block; }
+.cam-oval { position: absolute; inset: 0; width: 100%; height: 100%; }
+.cam-msg { position: absolute; left: 12px; right: 12px; bottom: 12px; margin: 0; padding: 8px 12px; border-radius: 12px; background: rgba(0, 0, 0, .6); color: #fff; font-size: 14px; text-align: center; }
+.cam-msg.ok { background: rgba(47, 125, 85, .85); }
+
+/* Explicação de cada nota */
+details.info { grid-column: 1 / -1; font-size: 13px; color: var(--ink-2); }
+details.info > summary { font-weight: 600; font-size: 12.5px; color: var(--gold-ink); }
+details.info p { margin: 4px 0 0; }
+
+/* Comparação com a foto anterior */
+.duo { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.duo figure { margin: 0; display: grid; gap: 4px; }
+.duo img { width: 100%; aspect-ratio: 3 / 4; object-fit: cover; border-radius: 12px; background: var(--surface-2); }
+.duo figcaption { font-size: 12.5px; color: var(--muted); text-align: center; font-family: var(--mono); }
+
+/* Rotina do outro período, recolhida */
+details.card > summary { font-weight: 600; }
+details.card[open] { gap: 0; }
+details.card > section.card { box-shadow: none; padding: 12px 0 0; border: 0; background: transparent; }
+
+/* Produtos que a pessoa já tem */
+.btn.tenho { background: var(--good-soft); color: var(--good); border-color: var(--good-soft); }
+
+/* Tela de planos */
+.bloqueado { position: relative; border-radius: 14px; background: var(--surface-2); padding: 14px; display: grid; place-items: center; overflow: hidden; }
+.bloqueado svg { width: 100%; height: 70px; filter: blur(3px); opacity: .6; }
+.bloqueado polyline { fill: none; stroke: var(--gold); stroke-width: 4; stroke-linecap: round; stroke-linejoin: round; }
+.bloqueado span { position: absolute; font-size: 13px; font-weight: 600; color: var(--ink-2); background: var(--surface); padding: 6px 12px; border-radius: 999px; box-shadow: var(--shadow); }
+.bloqueado span::before { content: "🔒 "; }
+.beneficios { margin: 0; padding-left: 18px; display: grid; gap: 4px; color: var(--ink-2); }
+.selo { font-size: 11.5px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; opacity: .9; }

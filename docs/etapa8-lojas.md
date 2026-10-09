@@ -34,6 +34,12 @@ análise grátis e quantos assinam; se a conversão for baixa, testar R$ 14,90.
   idade aparente e o foco; instruções de uso da rotina; passo feito em verde em vez de riscado; efeito
   do registro de procedimento; desenho por categoria nos produtos; texto do "Seu foco agora";
   explicação do arquivo .json da cópia.
+- Melhorias de uso (10/10/2026): câmera guiada com contorno do rosto e leitura da luz ao vivo (volta à
+  câmera do sistema se não houver suporte; permissão CAMERA no Android); comparação automática com a
+  foto anterior no resultado; explicação de cada nota (o que é e o que ajuda); sequência de dias da
+  rotina; rotina do período atual em destaque; lembrete da nova foto no calendário (.ics); "Já tenho
+  este" nos produtos, que tira o item do custo do kit; tela de planos com o resultado da pessoa, prévia
+  bloqueada da evolução e o anual como melhor custo. Notificações de verdade entram no app das lojas.
 - Fotos dos produtos: ficam de fora por enquanto (decisão de 09/10/2026); os cards usam o desenho da
   categoria. Copiar ou linkar as fotos dos sites das marcas tem risco autoral. Se voltar ao tema: fotos
   próprias dos produtos ou autorização das marcas (kit de imprensa).
