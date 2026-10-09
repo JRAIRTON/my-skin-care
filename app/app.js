@@ -779,15 +779,14 @@ async function geraCard() {
     });
   }]);
   if (r.seq >= 2) blocos.push([50, (y0) => { c.fillStyle = cor.ink2; c.font = `500 34px ${sans}`; c.fillText(`${r.seq} dias seguidos de rotina ✓`, W / 2, y0 + 36); }]);
-  const espaco = post ? 44 : 70, topo = y + 40, fim = H - 280;
+  const espaco = post ? 44 : 70, topo = y + 40, fim = H - 250;
   const total = blocos.reduce((t, [h]) => t + h, 0) + espaco * (blocos.length - 1);
   let yb = topo + Math.max(0, (fim - topo - total) / 2);
   for (const [h, desenha] of blocos) { desenha(yb); yb += h + espaco; }
   // footer with the app link
-  c.strokeStyle = cor.gold; c.globalAlpha = .4; c.lineWidth = 2; c.beginPath(); c.moveTo(W / 2 - 60, H - 250); c.lineTo(W / 2 + 60, H - 250); c.stroke(); c.globalAlpha = 1;
-  c.fillStyle = cor.ink; c.font = `italic 600 46px ${serif}`; c.fillText("Sua pele, acompanhada de perto.", W / 2, H - 185);
-  c.fillStyle = cor.ink2; c.font = `500 30px ${sans}`; c.fillText("Faça sua primeira avaliação grátis com IA:", W / 2, H - 128);
-  c.fillStyle = cor.gold; c.font = `700 32px ${sans}`; c.fillText(SITE, W / 2, H - 80);
+  c.strokeStyle = cor.gold; c.globalAlpha = .4; c.lineWidth = 2; c.beginPath(); c.moveTo(W / 2 - 60, H - 220); c.lineTo(W / 2 + 60, H - 220); c.stroke(); c.globalAlpha = 1;
+  c.fillStyle = cor.ink; c.font = `italic 600 46px ${serif}`; c.fillText("Sua pele, acompanhada de perto.", W / 2, H - 155);
+  c.fillStyle = cor.ink2; c.font = `500 30px ${sans}`; c.fillText("Faça sua primeira avaliação", W / 2, H - 100);
   return new Promise((ok) => cv.toBlob(ok, "image/png"));
 }
 async function atualizaCard() {
