@@ -1,6 +1,6 @@
 /* Visual novo e Rosé (experimentais): html[data-visual="novo"] ou "rose", escolhidos em Ajustes → Aparência.
    Paleta da identidade MY Skin: creme, areia, nude rosado e café. Sem o atributo vale estilo.css puro. */
-html:is([data-visual="novo"],[data-visual="rose"]) {
+html:is([data-visual="novo"],[data-visual="rose"],[data-visual="nude"]) {
   --bg: #F7F2EC;
   --surface: #FFFDFB;
   --surface-2: #F1E9E0;
@@ -19,7 +19,7 @@ html:is([data-visual="novo"],[data-visual="rose"]) {
   --nav-h: 72px;
 }
 @media (prefers-color-scheme: dark) {
-  html:is([data-visual="novo"],[data-visual="rose"]):not([data-theme="light"]) {
+  html:is([data-visual="novo"],[data-visual="rose"],[data-visual="nude"]):not([data-theme="light"]) {
     --bg: #17110E; --surface: #211915; --surface-2: #2B211C; --ink: #F3E9DF; --ink-2: #D2C2B5; --muted: #A08E80;
     --line: #34281F; --gold: #D2A587; --gold-ink: #E2BBA0; --gold-soft: #2E2119; --on-gold: #1A120E;
     --espresso: #0F0B09; --cream: #F3E9DF;
@@ -27,7 +27,7 @@ html:is([data-visual="novo"],[data-visual="rose"]) {
   }
 }
 
-html:is([data-visual="novo"],[data-visual="rose"]) body {
+html:is([data-visual="novo"],[data-visual="rose"],[data-visual="nude"]) body {
   background:
     radial-gradient(120% 60% at 100% 0%, color-mix(in srgb, var(--gold) 14%, transparent), transparent 60%),
     radial-gradient(90% 50% at 0% 100%, color-mix(in srgb, var(--gold) 8%, transparent), transparent 60%),
@@ -37,94 +37,94 @@ html:is([data-visual="novo"],[data-visual="rose"]) body {
 }
 
 /* Tipografia */
-html:is([data-visual="novo"],[data-visual="rose"]) h1, html:is([data-visual="novo"],[data-visual="rose"]) h2 { font-weight: 600; letter-spacing: 0; }
-html:is([data-visual="novo"],[data-visual="rose"]) h1 { font-size: 36px; line-height: 1.05; }
-html:is([data-visual="novo"],[data-visual="rose"]) h2 { font-size: 30px; line-height: 1.1; }
-html:is([data-visual="novo"],[data-visual="rose"]) h3 { font-size: 11.5px; letter-spacing: .16em; color: var(--gold-ink); }
-html:is([data-visual="novo"],[data-visual="rose"]) .lede { font-size: 16px; line-height: 1.6; }
+html:is([data-visual="novo"],[data-visual="rose"],[data-visual="nude"]) h1, html:is([data-visual="novo"],[data-visual="rose"],[data-visual="nude"]) h2 { font-weight: 600; letter-spacing: 0; }
+html:is([data-visual="novo"],[data-visual="rose"],[data-visual="nude"]) h1 { font-size: 36px; line-height: 1.05; }
+html:is([data-visual="novo"],[data-visual="rose"],[data-visual="nude"]) h2 { font-size: 30px; line-height: 1.1; }
+html:is([data-visual="novo"],[data-visual="rose"],[data-visual="nude"]) h3 { font-size: 11.5px; letter-spacing: .16em; color: var(--gold-ink); }
+html:is([data-visual="novo"],[data-visual="rose"],[data-visual="nude"]) .lede { font-size: 16px; line-height: 1.6; }
 
 /* Topo transparente com a marca em serifa */
-html:is([data-visual="novo"],[data-visual="rose"]) .top { background: color-mix(in srgb, var(--bg) 70%, transparent); border-bottom: 0; backdrop-filter: blur(16px) saturate(1.2); }
-html:is([data-visual="novo"],[data-visual="rose"]) .brand b { font-size: 25px; font-weight: 600; letter-spacing: .04em; }
-html:is([data-visual="novo"],[data-visual="rose"]) .icon-btn { border-radius: 50%; border: 0; background: var(--surface); box-shadow: var(--shadow); }
-html:is([data-visual="novo"],[data-visual="rose"]) .icon-btn[aria-current="page"] { background: var(--espresso); color: var(--cream); }
+html:is([data-visual="novo"],[data-visual="rose"],[data-visual="nude"]) .top { background: color-mix(in srgb, var(--bg) 70%, transparent); border-bottom: 0; backdrop-filter: blur(16px) saturate(1.2); }
+html:is([data-visual="novo"],[data-visual="rose"],[data-visual="nude"]) .brand b { font-size: 25px; font-weight: 600; letter-spacing: .04em; }
+html:is([data-visual="novo"],[data-visual="rose"],[data-visual="nude"]) .icon-btn { border-radius: 50%; border: 0; background: var(--surface); box-shadow: var(--shadow); }
+html:is([data-visual="novo"],[data-visual="rose"],[data-visual="nude"]) .icon-btn[aria-current="page"] { background: var(--espresso); color: var(--cream); }
 
 /* Navegação flutuante em pílula */
-html:is([data-visual="novo"],[data-visual="rose"]) .nav { left: 12px; right: 12px; bottom: calc(10px + env(safe-area-inset-bottom, 0px)); padding-bottom: 0;
+html:is([data-visual="novo"],[data-visual="rose"],[data-visual="nude"]) .nav { left: 12px; right: 12px; bottom: calc(10px + env(safe-area-inset-bottom, 0px)); padding-bottom: 0;
   border: 1px solid color-mix(in srgb, var(--line) 70%, transparent); border-radius: 28px;
   background: color-mix(in srgb, var(--surface) 82%, transparent); backdrop-filter: blur(18px) saturate(1.3); box-shadow: var(--shadow); max-width: 696px; margin: 0 auto; }
-html:is([data-visual="novo"],[data-visual="rose"]) .nav-in { height: 64px; }
-html:is([data-visual="novo"],[data-visual="rose"]) .nav button { font-weight: 500; letter-spacing: .02em; }
-html:is([data-visual="novo"],[data-visual="rose"]) .nav button[aria-current="page"] { color: var(--ink); }
-html:is([data-visual="novo"],[data-visual="rose"]) .nav button.cta span.ic { width: 48px; height: 48px; border-radius: 50%; margin-top: -22px; background: var(--espresso); color: var(--cream);
+html:is([data-visual="novo"],[data-visual="rose"],[data-visual="nude"]) .nav-in { height: 64px; }
+html:is([data-visual="novo"],[data-visual="rose"],[data-visual="nude"]) .nav button { font-weight: 500; letter-spacing: .02em; }
+html:is([data-visual="novo"],[data-visual="rose"],[data-visual="nude"]) .nav button[aria-current="page"] { color: var(--ink); }
+html:is([data-visual="novo"],[data-visual="rose"],[data-visual="nude"]) .nav button.cta span.ic { width: 48px; height: 48px; border-radius: 50%; margin-top: -22px; background: var(--espresso); color: var(--cream);
   box-shadow: 0 10px 22px -8px rgba(59, 42, 34, .6); }
-html:is([data-visual="novo"],[data-visual="rose"]) .nav button.cta[aria-current="page"] span.ic { background: var(--gold); color: var(--on-gold); }
-html:is([data-visual="novo"],[data-visual="rose"]) .wrap { padding-bottom: calc(var(--nav-h) + 48px + env(safe-area-inset-bottom, 0px)); gap: 16px; }
-html:is([data-visual="novo"],[data-visual="rose"]) .toast { bottom: calc(var(--nav-h) + 26px + env(safe-area-inset-bottom, 0px)); border-radius: 18px; background: var(--espresso); color: var(--cream); }
+html:is([data-visual="novo"],[data-visual="rose"],[data-visual="nude"]) .nav button.cta[aria-current="page"] span.ic { background: var(--gold); color: var(--on-gold); }
+html:is([data-visual="novo"],[data-visual="rose"],[data-visual="nude"]) .wrap { padding-bottom: calc(var(--nav-h) + 48px + env(safe-area-inset-bottom, 0px)); gap: 16px; }
+html:is([data-visual="novo"],[data-visual="rose"],[data-visual="nude"]) .toast { bottom: calc(var(--nav-h) + 26px + env(safe-area-inset-bottom, 0px)); border-radius: 18px; background: var(--espresso); color: var(--cream); }
 
 /* Cartões */
-html:is([data-visual="novo"],[data-visual="rose"]) .card { border: 0; border-radius: 26px; padding: 22px; box-shadow: var(--shadow); gap: 14px; }
-html:is([data-visual="novo"],[data-visual="rose"]) .card.flat { border: 1px dashed var(--line); background: color-mix(in srgb, var(--surface) 50%, transparent); }
+html:is([data-visual="novo"],[data-visual="rose"],[data-visual="nude"]) .card { border: 0; border-radius: 26px; padding: 22px; box-shadow: var(--shadow); gap: 14px; }
+html:is([data-visual="novo"],[data-visual="rose"],[data-visual="nude"]) .card.flat { border: 1px dashed var(--line); background: color-mix(in srgb, var(--surface) 50%, transparent); }
 
 /* Cartão da nota em destaque: fundo café com a nota em creme */
-html:is([data-visual="novo"],[data-visual="rose"]) .card:has(.hero) {
+html:is([data-visual="novo"],[data-visual="rose"],[data-visual="nude"]) .card:has(.hero) {
   --ink: var(--cream); --ink-2: color-mix(in srgb, var(--cream) 82%, transparent); --muted: color-mix(in srgb, var(--cream) 64%, transparent);
   --surface-2: rgba(255, 255, 255, .12); --line: rgba(255, 255, 255, .16);
   background: linear-gradient(145deg, #4A352B 0%, var(--espresso) 55%, #2A1E18 100%); color: var(--cream);
 }
-html:is([data-visual="novo"],[data-visual="rose"]) .card:has(.hero) .btn { background: rgba(255, 255, 255, .1); border-color: rgba(255, 255, 255, .22); color: var(--cream); }
-html:is([data-visual="novo"],[data-visual="rose"]) .card:has(.hero) .chip { background: rgba(255, 255, 255, .12); color: var(--cream); }
-html:is([data-visual="novo"],[data-visual="rose"]) .card:has(.hero) .notice { background: rgba(255, 255, 255, .08); color: var(--cream); }
-html:is([data-visual="novo"],[data-visual="rose"]) .ring-v { font-family: var(--display); font-size: 40px; font-weight: 600; }
+html:is([data-visual="novo"],[data-visual="rose"],[data-visual="nude"]) .card:has(.hero) .btn { background: rgba(255, 255, 255, .1); border-color: rgba(255, 255, 255, .22); color: var(--cream); }
+html:is([data-visual="novo"],[data-visual="rose"],[data-visual="nude"]) .card:has(.hero) .chip { background: rgba(255, 255, 255, .12); color: var(--cream); }
+html:is([data-visual="novo"],[data-visual="rose"],[data-visual="nude"]) .card:has(.hero) .notice { background: rgba(255, 255, 255, .08); color: var(--cream); }
+html:is([data-visual="novo"],[data-visual="rose"],[data-visual="nude"]) .ring-v { font-family: var(--display); font-size: 40px; font-weight: 600; }
 
 /* Botões em pílula */
-html:is([data-visual="novo"],[data-visual="rose"]) .btn { border-radius: 999px; min-height: 50px; padding-inline: 22px; font-weight: 600; letter-spacing: .01em; transition: background .2s, color .2s, border-color .2s, transform .15s; }
-html:is([data-visual="novo"],[data-visual="rose"]) .btn:active { transform: scale(.98); }
-html:is([data-visual="novo"],[data-visual="rose"]) .btn.primary { background: var(--espresso); border-color: var(--espresso); color: var(--cream); }
-html:is([data-visual="novo"],[data-visual="rose"]) .btn.sm { min-height: 38px; padding-inline: 14px; }
-html:is([data-visual="novo"],[data-visual="rose"]) .btn.plano { border-radius: 22px; }
+html:is([data-visual="novo"],[data-visual="rose"],[data-visual="nude"]) .btn { border-radius: 999px; min-height: 50px; padding-inline: 22px; font-weight: 600; letter-spacing: .01em; transition: background .2s, color .2s, border-color .2s, transform .15s; }
+html:is([data-visual="novo"],[data-visual="rose"],[data-visual="nude"]) .btn:active { transform: scale(.98); }
+html:is([data-visual="novo"],[data-visual="rose"],[data-visual="nude"]) .btn.primary { background: var(--espresso); border-color: var(--espresso); color: var(--cream); }
+html:is([data-visual="novo"],[data-visual="rose"],[data-visual="nude"]) .btn.sm { min-height: 38px; padding-inline: 14px; }
+html:is([data-visual="novo"],[data-visual="rose"],[data-visual="nude"]) .btn.plano { border-radius: 22px; }
 @media (hover: hover) {
-  html:is([data-visual="novo"],[data-visual="rose"]) .btn.primary:hover { background: var(--gold); border-color: var(--gold); color: var(--on-gold); }
+  html:is([data-visual="novo"],[data-visual="rose"],[data-visual="nude"]) .btn.primary:hover { background: var(--gold); border-color: var(--gold); color: var(--on-gold); }
 }
-html:is([data-visual="novo"],[data-visual="rose"]) input[type="text"], html:is([data-visual="novo"],[data-visual="rose"]) input[type="password"], html:is([data-visual="novo"],[data-visual="rose"]) input[type="date"],
-html:is([data-visual="novo"],[data-visual="rose"]) input[type="number"], html:is([data-visual="novo"],[data-visual="rose"]) select { border-radius: 14px; background: var(--surface-2); border-color: transparent; }
-html:is([data-visual="novo"],[data-visual="rose"]) .seg { border-radius: 999px; border: 0; }
-html:is([data-visual="novo"],[data-visual="rose"]) .seg button { border-radius: 999px; }
+html:is([data-visual="novo"],[data-visual="rose"],[data-visual="nude"]) input[type="text"], html:is([data-visual="novo"],[data-visual="rose"],[data-visual="nude"]) input[type="password"], html:is([data-visual="novo"],[data-visual="rose"],[data-visual="nude"]) input[type="date"],
+html:is([data-visual="novo"],[data-visual="rose"],[data-visual="nude"]) input[type="number"], html:is([data-visual="novo"],[data-visual="rose"],[data-visual="nude"]) select { border-radius: 14px; background: var(--surface-2); border-color: transparent; }
+html:is([data-visual="novo"],[data-visual="rose"],[data-visual="nude"]) .seg { border-radius: 999px; border: 0; }
+html:is([data-visual="novo"],[data-visual="rose"],[data-visual="nude"]) .seg button { border-radius: 999px; }
 
 /* Chips e avisos */
-html:is([data-visual="novo"],[data-visual="rose"]) .chip { padding: 5px 12px; font-weight: 500; letter-spacing: .02em; }
-html:is([data-visual="novo"],[data-visual="rose"]) .notice { border-radius: 18px; padding: 14px 16px; background: var(--surface); box-shadow: var(--shadow); border-left: 3px solid var(--line); }
-html:is([data-visual="novo"],[data-visual="rose"]) .notice.gold { background: var(--gold-soft); box-shadow: none; border-left-color: var(--gold); }
-html:is([data-visual="novo"],[data-visual="rose"]) .notice.warn { border-left-color: var(--warn); }
-html:is([data-visual="novo"],[data-visual="rose"]) .notice.bad { border-left-color: var(--bad); }
-html:is([data-visual="novo"],[data-visual="rose"]) .notice .ico { background: var(--gold); color: var(--on-gold); }
+html:is([data-visual="novo"],[data-visual="rose"],[data-visual="nude"]) .chip { padding: 5px 12px; font-weight: 500; letter-spacing: .02em; }
+html:is([data-visual="novo"],[data-visual="rose"],[data-visual="nude"]) .notice { border-radius: 18px; padding: 14px 16px; background: var(--surface); box-shadow: var(--shadow); border-left: 3px solid var(--line); }
+html:is([data-visual="novo"],[data-visual="rose"],[data-visual="nude"]) .notice.gold { background: var(--gold-soft); box-shadow: none; border-left-color: var(--gold); }
+html:is([data-visual="novo"],[data-visual="rose"],[data-visual="nude"]) .notice.warn { border-left-color: var(--warn); }
+html:is([data-visual="novo"],[data-visual="rose"],[data-visual="nude"]) .notice.bad { border-left-color: var(--bad); }
+html:is([data-visual="novo"],[data-visual="rose"],[data-visual="nude"]) .notice .ico { background: var(--gold); color: var(--on-gold); }
 
 /* Notas em barras mais finas e elegantes */
-html:is([data-visual="novo"],[data-visual="rose"]) .bars { gap: 16px; }
-html:is([data-visual="novo"],[data-visual="rose"]) .bar .v { font-family: var(--display); font-size: 20px; font-weight: 600; }
-html:is([data-visual="novo"],[data-visual="rose"]) .bar .track { height: 8px; border-radius: 4px; }
-html:is([data-visual="novo"],[data-visual="rose"]) .bar .fill { border-radius: 4px; background: linear-gradient(90deg, #E2C3AC, var(--gold)); }
+html:is([data-visual="novo"],[data-visual="rose"],[data-visual="nude"]) .bars { gap: 16px; }
+html:is([data-visual="novo"],[data-visual="rose"],[data-visual="nude"]) .bar .v { font-family: var(--display); font-size: 20px; font-weight: 600; }
+html:is([data-visual="novo"],[data-visual="rose"],[data-visual="nude"]) .bar .track { height: 8px; border-radius: 4px; }
+html:is([data-visual="novo"],[data-visual="rose"],[data-visual="nude"]) .bar .fill { border-radius: 4px; background: linear-gradient(90deg, #E2C3AC, var(--gold)); }
 
 /* Fotos, listas e produtos */
-html:is([data-visual="novo"],[data-visual="rose"]) .photo, html:is([data-visual="novo"],[data-visual="rose"]) .compare { border-radius: 22px; }
-html:is([data-visual="novo"],[data-visual="rose"]) .thumb { border-radius: 14px; }
-html:is([data-visual="novo"],[data-visual="rose"]) .score-s, html:is([data-visual="novo"],[data-visual="rose"]) .price-v { font-family: var(--display); font-weight: 600; font-size: 26px; }
-html:is([data-visual="novo"],[data-visual="rose"]) .box { border-radius: 18px; }
-html:is([data-visual="novo"],[data-visual="rose"]) .prod-ic { border-radius: 18px; }
-html:is([data-visual="novo"],[data-visual="rose"]) .prod-n { font-family: var(--display); font-size: 21px; font-weight: 600; line-height: 1.2; }
-html:is([data-visual="novo"],[data-visual="rose"]) .links a { border-radius: 999px; }
+html:is([data-visual="novo"],[data-visual="rose"],[data-visual="nude"]) .photo, html:is([data-visual="novo"],[data-visual="rose"],[data-visual="nude"]) .compare { border-radius: 22px; }
+html:is([data-visual="novo"],[data-visual="rose"],[data-visual="nude"]) .thumb { border-radius: 14px; }
+html:is([data-visual="novo"],[data-visual="rose"],[data-visual="nude"]) .score-s, html:is([data-visual="novo"],[data-visual="rose"],[data-visual="nude"]) .price-v { font-family: var(--display); font-weight: 600; font-size: 26px; }
+html:is([data-visual="novo"],[data-visual="rose"],[data-visual="nude"]) .box { border-radius: 18px; }
+html:is([data-visual="novo"],[data-visual="rose"],[data-visual="nude"]) .prod-ic { border-radius: 18px; }
+html:is([data-visual="novo"],[data-visual="rose"],[data-visual="nude"]) .prod-n { font-family: var(--display); font-size: 21px; font-weight: 600; line-height: 1.2; }
+html:is([data-visual="novo"],[data-visual="rose"],[data-visual="nude"]) .links a { border-radius: 999px; }
 
 /* Rotina */
-html:is([data-visual="novo"],[data-visual="rose"]) .step input { accent-color: var(--espresso); }
-html:is([data-visual="novo"],[data-visual="rose"]) .day i { width: 30px; height: 30px; }
-html:is([data-visual="novo"],[data-visual="rose"]) .day i.full { background: var(--espresso); border-color: var(--espresso); }
+html:is([data-visual="novo"],[data-visual="rose"],[data-visual="nude"]) .step input { accent-color: var(--espresso); }
+html:is([data-visual="novo"],[data-visual="rose"],[data-visual="nude"]) .day i { width: 30px; height: 30px; }
+html:is([data-visual="novo"],[data-visual="rose"],[data-visual="nude"]) .day i.full { background: var(--espresso); border-color: var(--espresso); }
 
 /* Entrada suave das telas */
 @media (prefers-reduced-motion: no-preference) {
-  html:is([data-visual="novo"],[data-visual="rose"]) .wrap.entra > * { animation: sobe .35s ease-out both; }
-  html:is([data-visual="novo"],[data-visual="rose"]) .wrap.entra > *:nth-child(2) { animation-delay: .04s; }
-  html:is([data-visual="novo"],[data-visual="rose"]) .wrap.entra > *:nth-child(3) { animation-delay: .08s; }
-  html:is([data-visual="novo"],[data-visual="rose"]) .wrap.entra > *:nth-child(n+4) { animation-delay: .12s; }
+  html:is([data-visual="novo"],[data-visual="rose"],[data-visual="nude"]) .wrap.entra > * { animation: sobe .35s ease-out both; }
+  html:is([data-visual="novo"],[data-visual="rose"],[data-visual="nude"]) .wrap.entra > *:nth-child(2) { animation-delay: .04s; }
+  html:is([data-visual="novo"],[data-visual="rose"],[data-visual="nude"]) .wrap.entra > *:nth-child(3) { animation-delay: .08s; }
+  html:is([data-visual="novo"],[data-visual="rose"],[data-visual="nude"]) .wrap.entra > *:nth-child(n+4) { animation-delay: .12s; }
 }
 @keyframes sobe { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
 
@@ -176,3 +176,55 @@ html[data-visual="rose"] .btn.primary { background: var(--espresso); border-colo
 html[data-visual="rose"] .nav button.cta span.ic { background: linear-gradient(145deg, #D49A7B, #B97A5E); color: #FFFFFF; box-shadow: 0 10px 22px -8px rgba(185, 122, 94, .7); }
 html[data-visual="rose"] .day i.full { background: var(--gold); border-color: var(--gold); }
 html[data-visual="rose"] .prod-ic { background: var(--gold-soft); stroke: var(--gold-ink); }
+
+/* ---------- Nude Rosado: areia, nude rosado (tom de pele saudável), café, terracota e sálvia ----------
+   Pensado para o público de skincare: acolhedor e confiável, sem ser só feminino. */
+html[data-visual="nude"] {
+  --bg: #F8F3EF;
+  --surface: #FFFCFA;
+  --surface-2: #F2E7E1;
+  --ink: #3A2C27;
+  --ink-2: #5E4C45;
+  --muted: #937F76;
+  --line: #EBDDD5;
+  --gold: #D4A196;
+  --gold-ink: #B9785F;
+  --gold-soft: #F6E6E0;
+  --on-gold: #FFFFFF;
+  --good: #6F8E77;
+  --good-soft: #E5EEE7;
+  --espresso: #3A2C27;
+  --cream: #FBF4F0;
+  --shadow: 0 1px 1px rgba(58, 44, 39, .04), 0 12px 32px -12px rgba(185, 120, 95, .28);
+}
+@media (prefers-color-scheme: dark) {
+  html[data-visual="nude"]:not([data-theme="light"]) {
+    --bg: #1A1412; --surface: #231B18; --surface-2: #2E2420; --ink: #F6EAE4; --ink-2: #D9C5BC; --muted: #A68F86;
+    --line: #3A2E29; --gold: #E0B1A5; --gold-ink: #E9A88E; --gold-soft: #33261F; --on-gold: #1E1513;
+    --good: #9DBBA4; --good-soft: #1E2A22; --espresso: #E0B1A5; --cream: #231B18;
+  }
+}
+html[data-visual="nude"] body {
+  background:
+    radial-gradient(120% 60% at 100% 0%, color-mix(in srgb, var(--gold) 22%, transparent), transparent 60%),
+    radial-gradient(90% 50% at 0% 100%, color-mix(in srgb, var(--gold-ink) 8%, transparent), transparent 60%),
+    var(--bg);
+  background-attachment: fixed;
+}
+/* cartão da nota em nude rosado, com texto café e o anel em terracota */
+html[data-visual="nude"] .card:has(.hero) {
+  --ink: #3A2C27; --ink-2: #5A4038; --muted: #7E5F54;
+  --surface-2: rgba(255, 255, 255, .5); --line: rgba(255, 255, 255, .55); --gold: #B9785F;
+  background: linear-gradient(150deg, #EBC7BC 0%, #DFAE9F 55%, #D49E8E 100%); color: #3A2C27;
+}
+html[data-visual="nude"] .card:has(.hero) .btn { background: rgba(255, 255, 255, .5); border-color: rgba(255, 255, 255, .75); color: #3A2C27; }
+html[data-visual="nude"] .card:has(.hero) .chip { background: rgba(255, 255, 255, .55); color: #6E4436; }
+html[data-visual="nude"] .card:has(.hero) .notice { background: rgba(255, 255, 255, .45); color: #3A2C27; }
+html[data-visual="nude"] .brand b span { color: var(--gold-ink); }
+html[data-visual="nude"] h3 { color: var(--gold-ink); }
+html[data-visual="nude"] .btn.primary { background: var(--espresso); border-color: var(--espresso); color: var(--cream); }
+html[data-visual="nude"] .nav button.cta span.ic { background: linear-gradient(145deg, #C98A72, #B06D55); color: #FFFFFF; box-shadow: 0 10px 22px -8px rgba(176, 109, 85, .65); }
+html[data-visual="nude"] .bar .fill { background: linear-gradient(90deg, #E9C8BE, var(--gold-ink)); }
+html[data-visual="nude"] .day i.full { background: var(--gold-ink); border-color: var(--gold-ink); }
+html[data-visual="nude"] .prod-ic { background: var(--gold-soft); stroke: var(--gold-ink); }
+html[data-visual="nude"] .notice.gold { border-left-color: var(--gold-ink); }
