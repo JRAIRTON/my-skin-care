@@ -94,7 +94,7 @@ async function carrega() {
 }
 
 // ---------- aparência ----------
-const VISUAIS = [["novo", "Novo"], ["rose", "Rosé"], ["nude", "Nude Rosado"]];
+const VISUAIS = [["novo", "Novo"], ["nude", "Nude Rosado"]];
 const visual = () => { const v = lsGet("myskin-visual"); return VISUAIS.some(([k]) => k === v) ? v : "novo"; };
 const aplicaVisual = () => { document.documentElement.dataset.visual = visual(); };
 aplicaVisual();
