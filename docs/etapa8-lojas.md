@@ -40,6 +40,9 @@ análise grátis e quantos assinam; se a conversão for baixa, testar R$ 14,90.
   rotina; rotina do período atual em destaque; lembrete da nova foto no calendário (.ics); "Já tenho
   este" nos produtos, que tira o item do custo do kit; tela de planos com o resultado da pessoa, prévia
   bloqueada da evolução e o anual como melhor custo. Notificações de verdade entram no app das lojas.
+- Compartilhar evolução (10/10/2026): imagem gerada no aparelho (stories 1080×1920 ou post 1080×1350)
+  com a nota antes e agora, o que mais melhorou, os dias seguidos de rotina e o link do app; sem foto
+  por padrão, com aviso quando a pessoa escolhe incluir as fotos.
 - Fotos dos produtos: ficam de fora por enquanto (decisão de 09/10/2026); os cards usam o desenho da
   categoria. Copiar ou linkar as fotos dos sites das marcas tem risco autoral. Se voltar ao tema: fotos
   próprias dos produtos ou autorização das marcas (kit de imprensa).

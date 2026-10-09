@@ -300,3 +300,7 @@ details.card > section.card { box-shadow: none; padding: 12px 0 0; border: 0; ba
 .bloqueado span::before { content: "🔒 "; }
 .beneficios { margin: 0; padding-left: 18px; display: grid; gap: 4px; color: var(--ink-2); }
 .selo { font-size: 11.5px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; opacity: .9; }
+
+/* Compartilhar evolução */
+.card-prev { display: grid; place-items: center; min-height: 240px; border-radius: 16px; background: var(--surface-2); padding: 12px; }
+.card-prev img { width: 100%; max-width: 300px; height: auto; border-radius: 14px; box-shadow: var(--shadow); }

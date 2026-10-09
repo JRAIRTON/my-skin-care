@@ -72,7 +72,8 @@ const DB = {
 
 // ---------- estado ----------
 const S = {
-  catalogo: [], perfil: null, codigo: null, usuario: null, tenho: [], cam: null, analises: [], checks: {}, eventos: [], rotinaInicio: null,
+  catalogo: [], perfil: null, codigo: null, usuario: null, tenho: [], cam: null,
+  card: { formato: "stories", foto: false, url: null, blob: null }, analises: [], checks: {}, eventos: [], rotinaInicio: null,
   tela: "inicio", detalhe: null, onb: 0, rascunho: null, ocupado: null, cmp: { a: null, b: null, corte: 50 },
   editando: false, procForm: false, instalar: null, catFiltro: "Todos",
 };
@@ -246,10 +247,10 @@ function render() {
   $("#nav").innerHTML = `<div class="nav-in">${TELAS.map(([k, l]) => `<button data-act="tela:${k}" class="${k === "analisar" ? "cta" : ""}"${S.tela === k && !S.detalhe ? ' aria-current="page"' : ""}>${k === "analisar" ? `<span class="ic">${ico(k)}</span>` : ico(k)}${l}</button>`).join("")}</div>`;
   const main = $("#main");
   main.classList.toggle("solo", !pronto);
-  main.innerHTML = !pronto ? vOnboarding() : S.detalhe ? vDetalhe() : ({ inicio: vInicio, evolucao: vEvolucao, analisar: vAnalisar, rotina: vRotina, produtos: vProdutos, ajustes: vAjustes, assinar: vAssinar }[S.tela] || vInicio)();
+  main.innerHTML = !pronto ? vOnboarding() : S.detalhe ? vDetalhe() : ({ inicio: vInicio, evolucao: vEvolucao, analisar: vAnalisar, rotina: vRotina, produtos: vProdutos, ajustes: vAjustes, assinar: vAssinar, compartilhar: vCompartilhar }[S.tela] || vInicio)();
   depois();
 }
-function vai(tela) { if (S.cam) fechaCamera(); S.tela = tela; S.detalhe = null; S.editando = false; S.procForm = false; render(); entra(); window.scrollTo(0, 0); }
+function vai(tela) { if (S.cam) fechaCamera(); if (tela === "compartilhar" && S.card.url) { URL.revokeObjectURL(S.card.url); S.card.url = null; S.card.blob = null; } S.tela = tela; S.detalhe = null; S.editando = false; S.procForm = false; render(); entra(); window.scrollTo(0, 0); }
 // short entrance animation of the new visual, only when the screen changes
 function entra() { const m = $("#main"); m.classList.remove("entra"); void m.offsetWidth; m.classList.add("entra"); setTimeout(() => m.classList.remove("entra"), 500); }
 
@@ -324,6 +325,8 @@ function vInicio() {
       <button class="btn block" data-act="tela:rotina">${feitos >= passos.length ? "Tudo feito hoje ✓" : "Marcar os passos"}</button></section>
     ${r.prioridades.length ? `<section class="card"><h3>Seu foco agora</h3><div class="checks">${r.prioridades.slice(0, 3).map((p) => `<span class="chip gold">${esc(p.objetivo)}</span>`).join("")}</div>
       <p class="small muted">Sugerimos combinar os aspectos com menor pontuação${S.perfil.objetivos?.length ? " com as suas prioridades de cuidado" : ""}.</p></section>` : ""}
+    ${ant ? `<section class="card"><h3>Sua evolução</h3><p class="small">Mostre seu progresso: uma imagem com sua nota, o que melhorou e sua constância, sem foto (a não ser que você queira).</p>
+      <button class="btn" data-act="tela:compartilhar">Compartilhar minha evolução</button></section>` : ""}
     <section class="card"><h3>Próxima foto</h3>
       <p>${hoje() >= prox ? "Já é hora de uma nova foto para acompanhar a evolução." : `Sugerida para <b>${fmt(prox)}</b>. Intervalos de 4 semanas mostram mudanças reais.`}</p>
       ${hoje() >= prox ? `<button class="btn primary" data-act="tela:analisar">Nova análise</button>` : `<button class="btn sm" data-act="lembrete:${prox}">Lembrar no meu calendário</button>`}</section>
@@ -494,7 +497,7 @@ function comparaUltima(a, ant) {
     ${melhor.length ? `<div class="stack"><span class="small muted">Melhorou</span>${melhor.map(linha).join("")}</div>` : ""}
     ${pior.length ? `<div class="stack"><span class="small muted">Pede atenção</span>${pior.map(linha).join("")}</div>` : ""}
     ${!melhor.length && !pior.length ? `<p class="small muted">Sem mudanças importantes: a pele está estável.</p>` : ""}
-    <button class="btn sm" data-act="compara:${ant.id}:${a.id}">Comparar as fotos lado a lado</button></section>`;
+    <div class="btns"><button class="btn sm" data-act="compara:${ant.id}:${a.id}">Comparar as fotos lado a lado</button><button class="btn sm" data-act="tela:compartilhar">Compartilhar evolução</button></div></section>`;
 }
 
 // overall score = plain average of the categories the AI could assess (same rule as the server)
@@ -718,6 +721,105 @@ async function assinar(plano) {
   } catch (e) { S.ocupado = false; render(); toast(e?.message || "A compra não foi concluída."); }
 }
 
+// ----- compartilhar a evolução: imagem gerada no aparelho, sem foto por padrão
+const SITE = "my-skin-care.jr-airton.workers.dev";
+function resumoEvolucao() {
+  const l = ordenadas(), a = l.at(-1);
+  if (!a || l.length < 2) return null;
+  // compare with the analysis closest to 30 days earlier (or the first one)
+  const alvo = soma(a.data, -30);
+  const base = [...l.slice(0, -1)].reverse().find((x) => x.data <= alvo) || l[0];
+  const melhoras = CATS.map(([k, n]) => ({ n, d: Number.isFinite(a.notas[k]?.nota) && Number.isFinite(base.notas[k]?.nota) ? a.notas[k].nota - base.notas[k].nota : null }))
+    .filter((x) => x.d > 0).sort((x, y) => y.d - x.d).slice(0, 3);
+  return { a, base, diasEntre: dias(base.data, a.data), melhoras, seq: sequencia() };
+}
+const cssVar = (n) => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const carregaImg = (url) => new Promise((ok, erro) => { const i = new Image(); i.onload = () => ok(i); i.onerror = erro; i.src = url; });
+async function geraCard() {
+  const r = resumoEvolucao(); if (!r) return null;
+  const W = 1080, H = S.card.formato === "stories" ? 1920 : 1350;
+  const cv = document.createElement("canvas"); cv.width = W; cv.height = H;
+  const c = cv.getContext("2d");
+  const cor = { bg: cssVar("--bg") || "#F8F3EF", ink: cssVar("--ink") || "#3A2C27", ink2: cssVar("--ink-2") || "#5E4C45", gold: cssVar("--gold-ink") || "#B9785F", soft: cssVar("--gold-soft") || "#F6E6E0", good: cssVar("--good") || "#2F7D55" };
+  const serif = `"Cormorant Garamond", "Marcellus", Georgia, serif`, sans = `"Manrope", system-ui, sans-serif`;
+  await document.fonts?.ready;
+  const g = c.createLinearGradient(0, 0, W, H); g.addColorStop(0, cor.soft); g.addColorStop(1, cor.bg);
+  c.fillStyle = g; c.fillRect(0, 0, W, H);
+  c.textAlign = "center"; c.fillStyle = cor.ink;
+  let y = S.card.formato === "stories" ? 210 : 120;
+  c.font = `600 64px ${serif}`; c.fillText("MY Skin", W / 2, y);
+  c.fillStyle = cor.gold; c.font = `600 30px ${sans}`; c.fillText(r.diasEntre >= 1 ? `MINHA EVOLUÇÃO EM ${r.diasEntre} ${r.diasEntre === 1 ? "DIA" : "DIAS"}` : "MINHA EVOLUÇÃO", W / 2, y += 70);
+  // body blocks measured first, then drawn centred between the header and the footer
+  const post = S.card.formato === "post", comFoto = S.card.foto && fotoUrl(r.base) && fotoUrl(r.a);
+  const fotos = comFoto ? await Promise.all([carregaImg(fotoUrl(r.base)), carregaImg(fotoUrl(r.a))]) : null;
+  const fw = post ? 205 : 380, fh = post ? 270 : 500, nota = comFoto ? (post ? 100 : 150) : (post ? 170 : 210);
+  const melhoras = r.melhoras.slice(0, comFoto && post ? 2 : 3), d = r.a.skin_score - r.base.skin_score;
+  const blocos = [];
+  if (fotos) blocos.push([fh + 70, (y0) => {
+    const gap = 40, x0 = (W - 2 * fw - gap) / 2;
+    [[fotos[0], x0, fmtC(r.base.data)], [fotos[1], x0 + fw + gap, fmtC(r.a.data)]].forEach(([img, x, rot]) => {
+      const k = Math.max(fw / img.width, fh / img.height), sw = fw / k, sh = fh / k;
+      c.save(); c.beginPath(); c.roundRect(x, y0, fw, fh, 28); c.clip();
+      c.drawImage(img, (img.width - sw) / 2, (img.height - sh) / 2, sw, sh, x, y0, fw, fh); c.restore();
+      c.fillStyle = cor.ink2; c.font = `500 28px ${sans}`; c.fillText(rot, x + fw / 2, y0 + fh + 42);
+    });
+  }]);
+  blocos.push([50 + nota + (d ? 80 : 0), (y0) => {
+    c.fillStyle = cor.ink2; c.font = `500 34px ${sans}`; c.fillText("Skin Score", W / 2, y0 + 34);
+    c.fillStyle = cor.ink; c.font = `600 ${nota}px ${serif}`; c.fillText(`${r.base.skin_score} → ${r.a.skin_score}`, W / 2, y0 + 40 + nota * 0.82);
+    if (d) { c.fillStyle = d > 0 ? cor.good : cor.gold; c.font = `700 44px ${sans}`; c.fillText(`${d > 0 ? "+" : "−"}${Math.abs(d)} pontos`, W / 2, y0 + 50 + nota + 50); }
+  }]);
+  if (melhoras.length) blocos.push([50 + melhoras.length * 76, (y0) => {
+    c.fillStyle = cor.gold; c.font = `600 30px ${sans}`; c.fillText("O QUE MAIS MELHOROU", W / 2, y0 + 30);
+    melhoras.forEach((m, i) => {
+      const yy = y0 + 60 + i * 76;
+      c.fillStyle = "rgba(255,255,255,.7)"; c.beginPath(); c.roundRect(160, yy, W - 320, 62, 31); c.fill();
+      c.fillStyle = cor.ink; c.font = `600 34px ${sans}`; c.textAlign = "left"; c.fillText(m.n, 200, yy + 43);
+      c.fillStyle = cor.good; c.textAlign = "right"; c.fillText(`+${m.d}`, W - 200, yy + 43); c.textAlign = "center";
+    });
+  }]);
+  if (r.seq >= 2) blocos.push([50, (y0) => { c.fillStyle = cor.ink2; c.font = `500 34px ${sans}`; c.fillText(`${r.seq} dias seguidos de rotina ✓`, W / 2, y0 + 36); }]);
+  const espaco = post ? 44 : 70, topo = y + 40, fim = H - 210;
+  const total = blocos.reduce((t, [h]) => t + h, 0) + espaco * (blocos.length - 1);
+  let yb = topo + Math.max(0, (fim - topo - total) / 2);
+  for (const [h, desenha] of blocos) { desenha(yb); yb += h + espaco; }
+  // footer with the app link
+  c.fillStyle = cor.ink2; c.font = `500 30px ${sans}`; c.fillText("Avaliação da pele por IA e rotina sob medida", W / 2, H - 150);
+  c.fillStyle = cor.gold; c.font = `600 32px ${sans}`; c.fillText(SITE, W / 2, H - 100);
+  return new Promise((ok) => cv.toBlob(ok, "image/png"));
+}
+async function atualizaCard() {
+  const blob = await geraCard();
+  if (S.card.url) URL.revokeObjectURL(S.card.url);
+  S.card.blob = blob; S.card.url = blob ? URL.createObjectURL(blob) : null;
+  if (S.tela === "compartilhar") render();
+}
+function vCompartilhar() {
+  const r = resumoEvolucao();
+  if (!r) return `<section class="card empty"><h2>Sua evolução</h2><p class="lede">A imagem de evolução fica disponível a partir da segunda análise.</p><button class="btn primary" data-act="tela:analisar">Nova análise</button></section>`;
+  if (!S.card.url) atualizaCard();
+  const op = (k, v, l) => `<button data-act="card:${k}:${v}" aria-pressed="${String(S.card[k]) === String(v)}">${l}</button>`;
+  return `
+    <button class="btn ghost sm" data-act="tela:inicio" style="justify-self:start">← Voltar</button>
+    <section class="card"><h2>Compartilhar evolução</h2>
+      <p class="small muted">A imagem é criada no seu celular. Por padrão ela <b>não mostra sua foto</b>: só a nota, o que melhorou e sua constância.</p>
+      <div class="row"><div class="seg" role="group" aria-label="Formato">${op("formato", "stories", "Stories")}${op("formato", "post", "Post")}</div>
+        <div class="seg" role="group" aria-label="Foto">${op("foto", false, "Sem foto")}${op("foto", true, "Com minhas fotos")}</div></div>
+      ${S.card.foto ? aviso("warn", "As fotos do seu rosto vão aparecer na imagem. Depois de compartilhada, ela sai do seu controle.") : ""}
+      <div class="card-prev">${S.card.url ? `<img src="${S.card.url}" alt="Prévia da imagem de evolução">` : `<span class="small muted">Gerando a imagem…</span>`}</div>
+      <div class="btns"><button class="btn primary" data-act="card-enviar"${S.card.blob ? "" : " disabled"}>Compartilhar</button><button class="btn" data-act="card-salvar"${S.card.blob ? "" : " disabled"}>Salvar imagem</button></div></section>`;
+}
+async function enviaCard(salvar) {
+  if (!S.card.blob) return;
+  const file = new File([S.card.blob], `myskin-evolucao-${hoje()}.png`, { type: "image/png" });
+  if (!salvar && navigator.canShare?.({ files: [file] })) {
+    try { await navigator.share({ files: [file], text: `Minha evolução no MY Skin: https://${SITE}` }); return; } catch (e) { if (e.name === "AbortError") return; }
+  }
+  const u = URL.createObjectURL(file), l = document.createElement("a");
+  l.href = u; l.download = file.name; document.body.append(l); l.click(); l.remove(); setTimeout(() => URL.revokeObjectURL(u), 4000);
+  if (!salvar) toast("Imagem salva. Agora é só postar onde quiser.");
+}
+
 // ---------- ações ----------
 async function salvaPerfil(p) { S.perfil = { ...S.perfil, ...p }; await DB.set("perfil", S.perfil); }
 async function salvaChecks() { await DB.set("checks", S.checks); }
@@ -830,6 +932,9 @@ async function acao(act, el) {
       return vai("evolucao");
     case "exportar": return exportar();
     case "lembrete": return lembrete(v);
+    case "card": { const [k, val] = v.split(":"); S.card[k] = k === "foto" ? val === "true" : val; render(); return atualizaCard(); }
+    case "card-enviar": return enviaCard(false);
+    case "card-salvar": return enviaCard(true);
     case "tenho": { const t = new Set(S.tenho); t.has(v) ? t.delete(v) : t.add(v); S.tenho = [...t]; await DB.set("tenho", S.tenho); return render(); }
     case "importar": return $("#in-backup").click();
     case "apagar-tudo":
