@@ -26,7 +26,14 @@ análise grátis e quantos assinam; se a conversão for baixa, testar R$ 14,90.
 - Termos e política publicados no app: `/termos.html` e `/privacidade.html`, gerados por
   `python3 scripts/gera_juridico.py` a partir de `docs/juridico/`. **O endereço da política para as
   lojas é** https://my-skin-care.jr-airton.workers.dev/privacidade.html.
-- Primeira tela do app e Ajustes com o responsável, o e-mail e os links.
+- Primeira tela do app e Ajustes com a marca MY Skin, o e-mail e os links; o nome do responsável fica só
+  nos Termos e na Política, onde a LGPD exige (decisão de 09/10/2026, após a revisão de textos do app).
+- Revisão de textos e telas (PDF de 09/10/2026): texto de boas-vindas que valoriza o resultado; "Antes de
+  começar" em tópicos (primeiro passo, como funciona, o que saber, seus dados); aviso da foto diz quais
+  itens estão razoáveis; explicação de que o Skin Score é a média das notas; resumo da avaliação com a
+  idade aparente e o foco; instruções de uso da rotina; passo feito em verde em vez de riscado; efeito
+  do registro de procedimento; desenho por categoria nos produtos; texto do "Seu foco agora";
+  explicação do arquivo .json da cópia. Fotos reais dos produtos dependem de autorização das marcas.
 
 ## Pendências
 

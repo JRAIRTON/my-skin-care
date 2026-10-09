@@ -254,12 +254,11 @@ function lePerfil() {
 }
 const TEXTO_PRIVACIDADE = `
   <ul>
-    <li><b>Suas fotos e resultados ficam só neste aparelho.</b> Não há conta nem cópia em nuvem.</li>
-    <li>Na hora da análise, a foto passa pelo nosso servidor e vai à Anthropic (empresa do Claude, nos EUA), que devolve as notas. Nosso servidor não guarda a foto. A Anthropic não a usa para treinar IA e só pode guardá-la por prazo limitado, para segurança.</li>
-    <li>A avaliação é <b>cosmética</b>, feita por IA a partir de uma foto. Não é diagnóstico médico e não substitui o dermatologista.</li>
-    <li>Rotina e produtos saem de regras fixas e de um catálogo de 34 produtos vendidos no Brasil. O app não vende nada e não ganha comissão.</li>
-    <li>Você pode exportar ou apagar todos os seus dados a qualquer momento, em Ajustes.</li>
-    <li>Responsável: Airton Carvalho Junior · <a href="mailto:myskincare.ia.sac@gmail.com">myskincare.ia.sac@gmail.com</a>. Leia os <a href="termos.html">Termos de Uso</a> e a <a href="privacidade.html">Política de Privacidade</a>.</li>
+    <li><b>O primeiro passo</b> é enviar uma foto do seu rosto, num lugar bem iluminado e com o rosto em foco. Para acompanhar de perto, repita uma vez por mês e veja a evolução.</li>
+    <li><b>Como funciona?</b> A foto passa por uma avaliação cosmética feita por inteligência artificial. A partir dela, o app sugere uma rotina de cuidados personalizada, com produtos escolhidos numa seleção de opções vendidas no Brasil, de marcas reconhecidas. Não é diagnóstico médico e não substitui o dermatologista.</li>
+    <li><b>O que você precisa saber?</b> O app indica produtos, mas não vende nada e não recebe comissão. Sua foto não fica guardada no nosso servidor e não é usada para treinar a IA. Ela passa pela Anthropic, empresa da inteligência artificial usada pelo MY Skin, que pode guardá-la por prazo limitado, só para segurança.</li>
+    <li><b>Seus dados</b> ficam só neste aparelho, sem conta nem cópia na nuvem. Você pode exportar ou apagar tudo a qualquer momento, em Ajustes.</li>
+    <li><b>Contato:</b> MY Skin · <a href="mailto:myskincare.ia.sac@gmail.com">myskincare.ia.sac@gmail.com</a>. Leia os <a href="termos.html">Termos de Uso</a> e a <a href="privacidade.html">Política de Privacidade</a>.</li>
   </ul>`;
 function vOnboarding() {
   const passo = S.perfil?.consentimento ? 2 : S.onb;
@@ -267,7 +266,8 @@ function vOnboarding() {
   if (passo === 0) return `
     <section class="card center" style="padding-block:28px">${LOGO.replace('width="28" height="28"', 'width="56" height="56"')}
       <h1>Sua pele, acompanhada de perto</h1>
-      <p class="lede">Tire uma foto do rosto e receba notas em 10 aspectos da pele, uma rotina simples e produtos com preço. Repita a cada 4 semanas para ver a evolução.</p></section>
+      <p class="lede">Conhecer sua pele é o primeiro passo para cuidar melhor dela ao longo do tempo e suavizar os efeitos naturais do envelhecimento. O MY Skin avalia 10 aspectos da sua pele e sugere uma rotina de cuidados personalizada, com produtos adequados às suas necessidades.</p>
+      <p class="lede"><b>É fácil, simples e seguro.</b> Sua pele bem cuidada para viver o melhor de cada fase.</p></section>
     <section class="card"><h3>Antes de começar</h3><div class="legal">${TEXTO_PRIVACIDADE}</div>
       <label class="agree"><input type="checkbox" id="ok-termos"><span>Tenho 18 anos ou mais, li e concordo com os <a href="termos.html">Termos de Uso</a> e a <a href="privacidade.html">Política de Privacidade</a>.</span></label>
       <label class="agree"><input type="checkbox" id="ok-dados"><span>Autorizo o uso das fotos do meu rosto e das informações da minha pele para a avaliação, como descrito acima. Posso retirar esta autorização apagando meus dados.</span></label>
@@ -301,7 +301,7 @@ function vInicio() {
     <section class="card"><div class="row between"><h3>Rotina de hoje</h3><span class="chip gold num">${feitos} de ${passos.length}</span></div>
       <button class="btn block" data-act="tela:rotina">${feitos >= passos.length ? "Tudo feito hoje ✓" : "Marcar os passos"}</button></section>
     ${r.prioridades.length ? `<section class="card"><h3>Seu foco agora</h3><div class="checks">${r.prioridades.slice(0, 3).map((p) => `<span class="chip gold">${esc(p.objetivo)}</span>`).join("")}</div>
-      <p class="small muted">Os aspectos com as notas mais baixas${S.perfil.objetivos?.length ? ", junto com o que você escolheu" : ""}.</p></section>` : ""}
+      <p class="small muted">Sugerimos combinar os aspectos com menor pontuação${S.perfil.objetivos?.length ? " com as suas prioridades de cuidado" : ""}.</p></section>` : ""}
     <section class="card"><h3>Próxima foto</h3>
       <p>${hoje() >= prox ? "Já é hora de uma nova foto para acompanhar a evolução." : `Sugerida para <b>${fmt(prox)}</b>. Intervalos de 4 semanas mostram mudanças reais.`}</p>
       ${hoje() >= prox ? `<button class="btn primary" data-act="tela:analisar">Nova análise</button>` : ""}</section>
@@ -335,7 +335,7 @@ function vAnalisar() {
     <section class="card"><h2>Confira a foto</h2>
       <div class="preview"><img class="photo" src="${d.url}" alt="Foto escolhida">
         <ul class="qlist">${q.itens.map((i) => `<li><span class="dot" style="color:var(--${cor[i.s]})"></span><span>${i.k}</span><span class="small muted">${i.s === "ok" ? "boa" : i.s === "warn" ? "razoável" : "ruim"}</span>${i.s !== "ok" ? `<span class="tip">${esc(i.dica)}</span>` : ""}</li>`).join("")}</ul></div>
-      ${q.nivel === "bad" ? aviso("bad", "A foto tem problemas que podem distorcer as notas. O melhor é tirar outra seguindo o guia.") : q.nivel === "warn" ? aviso("warn", "A foto está razoável. Dá para analisar, mas uma foto melhor deixa a evolução mais confiável.") : ""}
+      ${q.nivel === "bad" ? aviso("bad", "A foto tem problemas que podem distorcer as notas. O melhor é tirar outra seguindo o guia.") : q.nivel === "warn" ? aviso("warn", `A foto está razoável em: <b>${q.itens.filter((i) => i.s !== "ok").map((i) => esc(i.k.toLowerCase())).join(", ")}</b>. Dá para analisar assim; se puder, siga a dica ao lado do item. A nova foto é medida de novo do zero.`) : ""}
       <div class="btns">
         <button class="btn ${q.nivel === "bad" ? "" : "primary"}" data-act="analisar">${q.nivel === "bad" ? "Analisar mesmo assim" : "Analisar"}</button>
         <button class="btn ${q.nivel === "bad" ? "primary" : ""}" data-act="camera">Tirar outra</button></div>
@@ -394,13 +394,30 @@ function vDetalhe() {
       ${a.modelo && a.modelo !== MODELO_VALIDADO ? aviso("warn", "Esta análise foi feita por um modelo de reserva, ainda não validado. Considere o resultado provisório.") : ""}
     </section>
     ${url ? `<section class="card"><img class="photo" src="${url}" alt="Foto de ${fmt(a.data)}"></section>` : ""}
-    <section class="card"><h3>As 10 notas</h3><p class="small muted">De 0 a 100: maior é melhor. Abaixo de cada nota, o que a IA viu.</p>${barras(a, ant)}</section>
+    <section class="card"><h3>As 10 notas</h3><p class="small muted">De 0 a 100: maior é melhor. Abaixo de cada nota, o que a IA viu. ${explicaScore(a)}</p>${barras(a, ant)}</section>
     ${r.alertas.length ? aviso("bad", r.alertas.map(esc).join("<br>")) : ""}
-    <section class="card"><h3>O que fazer</h3>
-      <p>${r.prioridades.length ? `Foco em <b>${r.prioridades.slice(0, 2).map((p) => p.objetivo.toLowerCase()).join("</b> e <b>")}</b>.` : "Pele em bom estado: o essencial é manter limpeza, hidratação e protetor solar."}</p>
+    <section class="card"><h3>Resumo e o que fazer</h3>
+      <p>${resumo(a, r)}</p>
       <div class="btns"><button class="btn primary" data-act="tela:rotina">Ver rotina</button><button class="btn" data-act="tela:produtos">Ver produtos</button></div></section>
     ${aviso("", "Avaliação visual e cosmética feita por IA. Não é diagnóstico. Em caso de ferida que não cicatriza, pinta que muda ou lesão que sangra, procure um dermatologista.")}
     <button class="btn danger ghost sm" data-act="apagar-analise:${a.id}" style="justify-self:center">Apagar esta análise</button>`;
+}
+
+// overall score = plain average of the categories the AI could assess (same rule as the server)
+function explicaScore(a) {
+  const v = CATS.map(([k]) => a.notas[k]?.nota).filter(Number.isFinite);
+  if (!v.length || a.skin_score == null) return "";
+  return `<b>O Skin Score (${a.skin_score}) é a média simples das ${v.length} notas</b>${v.length < CATS.length ? ` avaliadas nesta foto (${CATS.length - v.length} não puderam ser avaliadas)` : ""}.`;
+}
+function resumo(a, r) {
+  const partes = [`A avaliação geral da sua pele é de <b>${a.skin_score} pontos</b>`];
+  const idade = Number(S.perfil?.idade), ap = Number(a.idade_aparente);
+  if (idade && ap) {
+    const d = ap - idade;
+    partes[0] += Math.abs(d) <= 1 ? ", compatível com a sua idade" : d < 0 ? ` e a pele aparenta <b>${-d} anos a menos</b> que a sua idade` : ` e a pele aparenta ${d} anos a mais que a sua idade`;
+  }
+  const foco = r.prioridades.slice(0, 2).map((p) => p.objetivo.toLowerCase());
+  return `${partes[0]}. ${foco.length ? `Sugerimos uma rotina de cuidados com mais foco em <b>${foco.join("</b> e <b>")}</b>, sem deixar de lado limpeza, hidratação e protetor solar.` : "A pele está em bom estado: o essencial é manter limpeza, hidratação e protetor solar."}`;
 }
 
 // ----- evolução
@@ -474,6 +491,8 @@ function vRotina() {
   return `
     <section class="card"><div class="row between"><div class="stack" style="gap:2px"><h2>Sua rotina</h2><p class="small muted">Pela análise de ${fmt(a.data)}. Pele ${esc(TIPOS_PELE[r.pele]?.toLowerCase() || r.pele)}${S.perfil.tipoPele === "nao_sei" ? " (estimada pela foto)" : ""}.</p></div><span class="chip gold num">${n} de ${ativos.length} hoje</span></div>
       <div class="week" aria-label="Últimos 7 dias">${semana.map((w) => `<span class="day"><i class="${w.n === 0 ? "" : w.n >= ativos.length ? "full" : "part"}" title="${fmt(w.s)}: ${w.n} de ${ativos.length}"></i>${w.l}</span>`).join("")}</div></section>
+    ${aviso("", `<b>Como usar:</b> todo dia, marque os passos que você fez de manhã e à noite. A fileira acima mostra os últimos 7 dias (cheio: tudo feito; metade: parte feita). Fica guardado só neste aparelho, para você acompanhar a sua constância.`)}
+    <p class="small" style="padding-inline:4px">Com base na avaliação da sua pele${S.perfil.tipoPele && S.perfil.tipoPele !== "nao_sei" ? ` e na sua indicação de pele ${esc(TIPOS_PELE[S.perfil.tipoPele]?.toLowerCase() || "")}` : ""}, sugerimos os produtos abaixo, numa rotina para a manhã e a noite.</p>
     ${emRec ? aviso("warn", `<b>Recuperação de ${esc(emRec.tipo.toLowerCase())}</b> até ${fmt(soma(emRec.data, emRec.dias))}. Só limpeza suave, hidratante e protetor; ativos pausados, a menos que o profissional oriente diferente. <button class="btn sm ghost" data-act="apagar-proc:${emRec.id}">Remover registro</button>`) : ""}
     ${r.passos.manha.some((p) => p.ativo) || r.passos.noite.some((p) => p.ativo) ? aviso("gold", "Os ativos entram aos poucos: duas semanas só com o básico, depois um ativo, e o segundo duas semanas depois. Assim dá para saber o que a pele aceita.") : ""}
     ${bloco("Manhã", r.passos.manha)}
@@ -481,6 +500,7 @@ function vRotina() {
     ${S.procForm ? `<section class="card"><h3>Procedimento estético</h3><div class="fields">
         <label class="f">Qual?<select id="proc-tipo">${PROCS.map(([p, d]) => `<option value="${esc(p)}" data-dias="${d}">${esc(p)}</option>`).join("")}</select></label>
         <label class="f">Data<input type="date" id="proc-data" value="${t}" max="${t}"></label></div>
+        <p class="small muted">Registrar não muda as notas já feitas. Durante a recuperação, a rotina fica só com o básico (os ativos pausam), e o gráfico de evolução marca a data, para explicar uma variação nas próximas análises.</p>
         <div class="btns"><button class="btn primary" data-act="salva-proc">Registrar</button><button class="btn" data-act="proc-form">Cancelar</button></div></section>`
       : `<button class="btn ghost sm" data-act="proc-form" style="justify-self:center">Fiz um procedimento estético</button>`}
     ${aviso("", "Rotina educativa. Ao começar um ativo, teste antes numa pequena área. Pele sensível, gestação ou tratamento em curso: confirme com um dermatologista.")}`;
@@ -492,10 +512,18 @@ const LOJAS = (q) => [
   ["Mercado Livre", "https://lista.mercadolivre.com.br/" + encodeURIComponent(q.trim().replace(/\s+/g, "-"))],
   ["Amazon", "https://www.amazon.com.br/s?k=" + encodeURIComponent(q)],
 ];
+// simple drawings per category (no brand photos: they need the brands' permission)
+const ILUSTRA = {
+  "Limpeza": '<rect x="20" y="16" width="24" height="40" rx="6"/><rect x="26" y="8" width="12" height="9" rx="2"/><path d="M28 30h8M28 36h8"/>',
+  "Hidratante": '<rect x="12" y="28" width="40" height="24" rx="8"/><rect x="16" y="20" width="32" height="9" rx="3"/><path d="M24 40h16"/>',
+  "Protetor solar": '<rect x="22" y="18" width="20" height="38" rx="5"/><rect x="27" y="10" width="10" height="9" rx="2"/><circle cx="32" cy="36" r="5"/>',
+  "Sérum": '<rect x="22" y="30" width="20" height="26" rx="5"/><path d="M27 30v-8h10v8M32 22V8"/><circle cx="32" cy="8" r="3"/>',
+};
+const ilustra = (cat) => `<svg class="prod-ic" viewBox="0 0 64 64" aria-hidden="true">${ILUSTRA[cat] || ILUSTRA["Hidratante"]}</svg>`;
 function cardProduto(titulo, p, porque, opcoes = []) {
   if (!p) return "";
   const q = `${p.marca} ${p.produto}`;
-  return `<article class="card"><div class="stack" style="gap:2px"><span class="small muted">${esc(titulo)}</span><span class="prod-n">${esc(p.marca)} ${esc(p.produto)}</span><span class="chip gold" style="justify-self:start;white-space:normal">${esc(p.ativos)}</span></div>
+  return `<article class="card"><div class="prod-top">${ilustra(p.categoria)}<div class="stack" style="gap:2px"><span class="small muted">${esc(titulo)}</span><span class="prod-n">${esc(p.marca)} ${esc(p.produto)}</span><span class="chip gold" style="justify-self:start;white-space:normal">${esc(p.ativos)}</span></div></div>
     <div class="box rec"><span>${esc(porque)}</span>${p.obs ? `<span class="small">${esc(p.obs)}</span>` : ""}</div>
     <div class="box"><span class="price-v">${preco(p)}</span><span class="small muted">${esc(p.tamanho)} · preço pesquisado em ${fmt(p.data_preco)}. Preços mudam: confira.</span></div>
     <div class="links">${LOJAS(q).map(([n, u]) => `<a href="${esc(u)}" target="_blank" rel="noopener">${n} ↗</a>`).join("")}</div>
@@ -544,6 +572,7 @@ function vAjustes() {
     <section class="card"><h3>Seus dados</h3>
       <p class="small">${n} ${n === 1 ? "análise guardada" : "análises guardadas"} neste aparelho. Faça uma cópia de segurança de vez em quando: se o app for apagado ou você trocar de celular, é ela que traz o histórico de volta.</p>
       <div class="btns"><button class="btn" data-act="exportar"${n ? "" : " disabled"}>Exportar cópia</button><button class="btn" data-act="importar">Restaurar cópia</button></div>
+      <p class="small muted">A cópia é um arquivo <b>.json</b>: ele não é feito para abrir ou ler, só para trazer seus dados de volta. Guarde-o (no e-mail, Drive ou iCloud) e, no celular novo, use <b>Restaurar cópia</b>.</p>
       <button class="btn danger" data-act="apagar-tudo">Apagar todos os dados</button></section>
     <section class="card"><h3>Privacidade</h3><div class="legal">${TEXTO_PRIVACIDADE}</div>
       <p class="small muted">Consentimento dado em ${S.perfil.consentimento ? fmt(ymd(new Date(S.perfil.consentimento))) : "—"}. Para retirar, apague seus dados.</p></section>
