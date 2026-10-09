@@ -1,6 +1,6 @@
 // Service worker: guarda os arquivos do app para abrir sem internet. A análise sempre vai à rede.
-const VERSAO = "myskin-v18";
-const ARQUIVOS = ["./", "index.html", "estilo.css", "visual-novo.css", "app.js", "recomenda.js", "lib/qrcode.mjs", "nativo.js", "catalogo.json", "termos.html", "privacidade.html", "manifest.webmanifest", "icones/icone-192.png", "icones/icone-512.png", "icones/apple-touch-icon.png"];
+const VERSAO = "myskin-v19";
+const ARQUIVOS = ["./", "index.html", "estilo.css", "visual-novo.css", "app.js", "recomenda.js", "nativo.js", "catalogo.json", "termos.html", "privacidade.html", "manifest.webmanifest", "icones/icone-192.png", "icones/icone-512.png", "icones/apple-touch-icon.png"];
 
 self.addEventListener("install", (e) => {
   e.waitUntil(caches.open(VERSAO).then((c) => c.addAll(ARQUIVOS)).then(() => self.skipWaiting()));

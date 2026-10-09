@@ -2,7 +2,6 @@
 // Os dados ficam só neste aparelho (IndexedDB). A foto vai ao servidor apenas para a análise
 // (POST /analise) e não é guardada lá. A rotina e os produtos saem de regras fixas (recomenda.js).
 import { CATS, GRAUS, OBJETIVOS, TIPOS_PELE, FOTOTIPOS, recomenda, liberadoEm, skinScore } from "./recomenda.js";
-import qrcode from "./lib/qrcode.mjs";
 
 const MODELO_VALIDADO = "claude-sonnet-5-5";
 const INTERVALO_DIAS = 28;      // próxima foto sugerida
@@ -725,14 +724,6 @@ async function assinar(plano) {
 // ----- compartilhar a evolução: imagem gerada no aparelho, sem foto por padrão
 const SITE = "my-skin-care.jr-airton.workers.dev";
 const BAIXAR = `https://${SITE}/baixar`; // sends each phone to its store (app/baixar.js)
-// QR code drawn on the canvas: dark modules in the ink colour on a white rounded square
-function desenhaQR(c, x, y, tam, cor) {
-  const qr = qrcode(0, "M"); qr.addData(BAIXAR); qr.make();
-  const n = qr.getModuleCount(), m = 2, cel = tam / (n + 2 * m);
-  c.fillStyle = "#FFFFFF"; c.beginPath(); c.roundRect(x, y, tam, tam, 18); c.fill();
-  c.fillStyle = cor;
-  for (let r = 0; r < n; r++) for (let k = 0; k < n; k++) if (qr.isDark(r, k)) c.fillRect(x + (k + m) * cel, y + (r + m) * cel, Math.ceil(cel), Math.ceil(cel));
-}
 function resumoEvolucao() {
   const l = ordenadas(), a = l.at(-1);
   if (!a || l.length < 2) return null;
@@ -789,26 +780,24 @@ async function geraCard() {
     });
   }]);
   if (r.seq >= 2) blocos.push([50, (y0) => { c.fillStyle = cor.ink2; c.font = `500 34px ${sans}`; c.fillText(`${r.seq} dias seguidos de rotina ✓`, W / 2, y0 + 36); }]);
-  const rodape = post ? 350 : 400; // tagline, invitation and the download row
+  const rodape = post ? 350 : 400; // tagline, invitation and the download button
   const espaco = post ? 44 : 70, topo = y + 40, fim = H - rodape;
   const total = blocos.reduce((t, [h]) => t + h, 0) + espaco * (blocos.length - 1);
   let yb = topo + Math.max(0, (fim - topo - total) / 2);
   for (const [h, desenha] of blocos) { desenha(yb); yb += h + espaco; }
   // footer with the app link
-  const qrT = post ? 128 : 150, baseY = H - (post ? 56 : 70), linhaY = baseY - qrT;
+  const bh = 104, linhaY = H - (post ? 80 : 110) - bh;
   c.strokeStyle = cor.gold; c.globalAlpha = .4; c.lineWidth = 2; c.beginPath(); c.moveTo(W / 2 - 60, linhaY - 150); c.lineTo(W / 2 + 60, linhaY - 150); c.stroke(); c.globalAlpha = 1;
   c.fillStyle = cor.ink; c.font = `italic 600 46px ${serif}`; c.fillText("Sua pele, acompanhada de perto.", W / 2, linhaY - 88);
   c.fillStyle = cor.ink2; c.font = `500 30px ${sans}`; c.fillText("Faça sua primeira avaliação", W / 2, linhaY - 36);
-  // "button" with the app logo + QR code to download (an image cannot hold a real link)
+  // "button" with the app logo (drawn: an image cannot hold a real link; the link goes in the message)
   const icone = await carregaImg("icones/icone-192.png").catch(() => null);
-  const bw = 430, bh = 104, gap = 34, x0 = (W - bw - gap - qrT) / 2, by = linhaY + (qrT - bh) / 2;
+  const bw = 430, x0 = (W - bw) / 2, by = linhaY;
   c.fillStyle = cor.gold; c.beginPath(); c.roundRect(x0, by, bw, bh, bh / 2); c.fill();
   if (icone) { c.save(); c.beginPath(); c.roundRect(x0 + 14, by + 14, bh - 28, bh - 28, 18); c.clip(); c.drawImage(icone, x0 + 14, by + 14, bh - 28, bh - 28); c.restore(); }
   c.fillStyle = "#FFFFFF"; c.textAlign = "left";
   c.font = `500 24px ${sans}`; c.fillText("Baixe o app", x0 + bh + 6, by + 42);
   c.font = `700 36px ${sans}`; c.fillText("MY Skin  ›", x0 + bh + 6, by + 80); c.textAlign = "center";
-  desenhaQR(c, x0 + bw + gap, linhaY, qrT, cor.ink);
-  c.fillStyle = cor.muted || cor.ink2; c.font = `500 20px ${sans}`; c.fillText("aponte a câmera", x0 + bw + gap + qrT / 2, linhaY + qrT + 26);
   return new Promise((ok) => cv.toBlob(ok, "image/png"));
 }
 async function atualizaCard() {

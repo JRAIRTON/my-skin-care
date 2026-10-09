@@ -43,8 +43,9 @@ análise grátis e quantos assinam; se a conversão for baixa, testar R$ 14,90.
 - Compartilhar evolução (10/10/2026): imagem gerada no aparelho (stories 1080×1920 ou post 1080×1350)
   com a nota antes e agora, o que mais melhorou, os dias seguidos de rotina e o link do app; sem foto
   por padrão, com aviso quando a pessoa escolhe incluir as fotos.
-  No rodapé, um "botão" com o logo ("Baixe o app MY Skin") e um QR Code para `/baixar` (imagem não tem
-  clique; o QR faz esse papel), e o link vai também no texto da mensagem compartilhada.
+  No rodapé, um "botão" desenhado com o logo ("Baixe o app MY Skin"); a imagem não tem clique, então o
+  link para `/baixar` vai no texto da mensagem compartilhada (clicável no WhatsApp e no Facebook). O QR
+  Code foi testado e retirado (decisão de 10/10/2026).
 - Página `/baixar` (`app/baixar.html` e `app/baixar.js`): manda o iPhone para a App Store e o Android
   para o Google Play. **Ao publicar nas lojas, preencher os dois endereços em `LOJAS` de
   `app/baixar.js`**; até lá, mostra o botão para abrir o app pelo navegador.
