@@ -18,10 +18,11 @@ workflows:
         script: cd mobile && npm ci
       - name: Copiar o app web para o Android
         script: cd mobile && npx cap sync android
-      - name: Gerar o pacote AAB
-        script: cd mobile/android && ./gradlew bundleRelease
+      - name: Gerar o pacote AAB (Google Play) e o APK (instalar direto, para testes)
+        script: cd mobile/android && ./gradlew bundleRelease assembleRelease
     artifacts:
       - mobile/android/app/build/outputs/**/*.aab
+      - mobile/android/app/build/outputs/**/*.apk
     # a 1ª versão vai à mão no Play Console (baixar o .aab dos artefatos); depois, descomentar:
     # publishing:
     #   google_play:
