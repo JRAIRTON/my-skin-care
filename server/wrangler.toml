@@ -3,6 +3,12 @@ main = "src/index.js"
 compatibility_date = "2026-09-01"
 
 # o app web (pasta ../app) é servido pelo mesmo endereço; o que não é arquivo do app cai no Worker
+# endereço do app no domínio próprio (o domínio já está na Cloudflare). O endereço workers.dev continua
+# funcionando para quem já usa o app por ele e para os apps de teste já instalados.
+routes = [
+  { pattern = "app.myskincareapp.com.br", custom_domain = true },
+]
+
 [assets]
 directory = "../app"
 

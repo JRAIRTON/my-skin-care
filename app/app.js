@@ -115,7 +115,7 @@ const ERROS = {
 // the store app runs from capacitor://localhost (iOS) or https://localhost (Android), so it calls the
 // published server by its full address; the web version uses the same origin
 const NATIVO = !!window.Capacitor?.isNativePlatform?.();
-const SERVIDOR = NATIVO ? "https://my-skin-care.jr-airton.workers.dev/" : "";
+const SERVIDOR = NATIVO ? "https://app.myskincareapp.com.br/" : "";
 async function chama(caminho, opcoes = {}, codigo = S.codigo) {
   let r;
   try {

@@ -2,7 +2,7 @@
 
 Página de apresentação do app: o que faz, como funciona, recursos, planos, dúvidas, Termos e
 Privacidade. É um Worker da Cloudflare separado do app (`my-skin-care`, pasta `server/`), com o nome
-`myskincare-site`. Os botões "Abrir o app" levam ao app em https://my-skin-care.jr-airton.workers.dev/.
+`myskincare-site`. Os botões "Abrir o app" levam ao app em https://app.myskincareapp.com.br/.
 
 | Arquivo | O que é |
 |---|---|

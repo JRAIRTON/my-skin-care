@@ -18,7 +18,7 @@ códigos de programas de afiliados: quem compra pelo link gera comissão para o 
 
 Cadastre-se com o mesmo CPF das lojas de apps e declare as comissões no carnê-leão (como a receita das
 lojas, `docs/etapa8-lojas.md`). Ao cadastrar, informe o site
-`https://my-skin-care.jr-airton.workers.dev` e, depois de publicado, os links do app nas lojas.
+`https://www.myskincareapp.com.br` e, depois de publicado, os links do app nas lojas.
 
 1. **Amazon Associados** (associados.amazon.com.br): depois de aprovado, copie o "ID de
    rastreamento" (termina em `-20`) para `amazon`. A Amazon costuma exigir **3 vendas nos primeiros 180 dias**

@@ -1,7 +1,7 @@
 name = "myskincare-site"  # Worker separado do app (que continua em my-skin-care)
 main = "worker.js"
 compatibility_date = "2026-09-01"
-workers_dev = true        # também fica em https://myskincare-site.<conta>.workers.dev, para conferir
+workers_dev = false       # só no domínio próprio (o endereço workers.dev leva o nome da conta)
 
 # O domínio precisa estar na Cloudflare antes da publicação (passo a passo em site/README.md)
 routes = [

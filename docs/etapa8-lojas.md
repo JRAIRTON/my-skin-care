@@ -26,7 +26,8 @@ análise grátis e quantos assinam; se a conversão for baixa, testar R$ 14,90.
   só em trânsito pelo servidor e pela Anthropic).
 - Termos e política publicados no app: `/termos.html` e `/privacidade.html`, gerados por
   `python3 scripts/gera_juridico.py` a partir de `docs/juridico/`. **O endereço da política para as
-  lojas é** https://my-skin-care.jr-airton.workers.dev/privacidade.html.
+  lojas é** https://www.myskincareapp.com.br/privacidade (a mesma política também fica no app, em
+  https://app.myskincareapp.com.br/privacidade.html).
 - Primeira tela do app e Ajustes com a marca MY Skin, o e-mail e os links; o nome do responsável fica só
   nos Termos e na Política, onde a LGPD exige (decisão de 09/10/2026, após a revisão de textos do app).
 - Revisão de textos e telas (PDF de 09/10/2026): texto de boas-vindas que valoriza o resultado; "Antes de
@@ -49,6 +50,11 @@ análise grátis e quantos assinam; se a conversão for baixa, testar R$ 14,90.
   Code foi testado e retirado (decisão de 10/10/2026).
   Ao compartilhar ou salvar, o app também copia o link `/baixar` para colar no adesivo de link do Stories
   do Instagram, e há o botão "Copiar só o link do app".
+- Endereço do app no domínio próprio (17/10/2026): https://app.myskincareapp.com.br (rota em
+  `server/wrangler.toml`), sem o nome da conta. O endereço workers.dev continua no ar por enquanto: os dados
+  de cada pessoa ficam no navegador e são separados por endereço, e os apps de teste já instalados chamam
+  o servidor por ele. Desligar só depois de avisar os testadores (Ajustes → Exportar cópia, no endereço
+  antigo, e importar no novo) e de um novo build dos apps das lojas.
 - Link da imagem compartilhada (17/10/2026): agora é https://www.myskincareapp.com.br/baixar, a página `/baixar`
   do site (`site/public/baixar.html`), que leva o celular à loja ou, sem loja, à página inicial do site; o
   endereço também vai escrito na imagem. Ao publicar nas lojas, preencher `site/public/lojas.js`.
