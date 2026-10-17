@@ -7,7 +7,9 @@ Privacidade. É um Worker da Cloudflare separado do app (`my-skin-care`, pasta `
 | Arquivo | O que é |
 |---|---|
 | `public/index.html` e `public/estilo.css` | A página, com a mesma identidade visual do app (claro e escuro) |
-| `public/site.js` | Endereços da App Store e do Google Play: vazios mostram "Em breve" |
+| `public/lojas.js` | Endereços da App Store e do Google Play: vazios mostram "Em breve" |
+| `public/site.js` | Liga os botões das lojas na página inicial |
+| `public/baixar.html` | `/baixar`, o link da imagem de evolução do app: leva o celular à loja ou, sem loja, ao site |
 | `public/termos.html` e `public/privacidade.html` | Geradas por `python3 scripts/gera_juridico.py`; não editar à mão |
 | `public/img/` | Telas do app com dados fictícios ("Ana") e `og.png`, a prévia ao compartilhar o link |
 | `worker.js` | Redireciona `myskincareapp.com.br` para `www.` e põe os cabeçalhos de segurança |
@@ -35,7 +37,7 @@ Privacidade. É um Worker da Cloudflare separado do app (`my-skin-care`, pasta `
 
 ## Depois
 
-- **Lojas publicadas:** preencher os endereços em `public/site.js` (e em `app/baixar.js`).
+- **Lojas publicadas:** preencher os endereços em `public/lojas.js` (e em `app/baixar.js`).
 - **Fichas das lojas:** dá para usar `https://www.myskincareapp.com.br/privacidade` como endereço da
   política de privacidade e o site como "site de marketing".
 - **Google:** cadastrar o site no [Google Search Console](https://search.google.com/search-console)

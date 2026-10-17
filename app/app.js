@@ -727,8 +727,8 @@ async function assinar(plano) {
 }
 
 // ----- compartilhar a evolução: imagem gerada no aparelho, sem foto por padrão
-const SITE = "my-skin-care.jr-airton.workers.dev";
-const BAIXAR = `https://${SITE}/baixar`; // sends each phone to its store (app/baixar.js)
+const SITE = "www.myskincareapp.com.br"; // the app's site (site/)
+const BAIXAR = `https://${SITE}/baixar`; // sends each phone to its store, or to the site (site/public/baixar.js)
 function resumoEvolucao() {
   const l = ordenadas(), a = l.at(-1);
   if (!a || l.length < 2) return null;
@@ -804,6 +804,8 @@ async function geraCard() {
   c.fillStyle = "#FFFFFF"; c.textAlign = "left";
   c.font = `500 24px ${sans}`; c.fillText("Baixe o app", x0 + bh + 6, by + 42);
   c.font = `700 36px ${sans}`; c.fillText("MY Skin Care  ›", x0 + bh + 6, by + 80); c.textAlign = "center";
+  // the address in writing, since the image itself cannot hold a link
+  c.fillStyle = cor.ink2; c.font = `500 26px ${sans}`; c.fillText(SITE.replace(/^www\./, ""), W / 2, by + bh + 44);
   return new Promise((ok) => cv.toBlob(ok, "image/png"));
 }
 async function atualizaCard() {

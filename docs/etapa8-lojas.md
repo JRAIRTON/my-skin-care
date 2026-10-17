@@ -49,6 +49,9 @@ análise grátis e quantos assinam; se a conversão for baixa, testar R$ 14,90.
   Code foi testado e retirado (decisão de 10/10/2026).
   Ao compartilhar ou salvar, o app também copia o link `/baixar` para colar no adesivo de link do Stories
   do Instagram, e há o botão "Copiar só o link do app".
+- Link da imagem compartilhada (17/10/2026): agora é https://www.myskincareapp.com.br/baixar, a página `/baixar`
+  do site (`site/public/baixar.html`), que leva o celular à loja ou, sem loja, à página inicial do site; o
+  endereço também vai escrito na imagem. Ao publicar nas lojas, preencher `site/public/lojas.js`.
 - Página `/baixar` (`app/baixar.html` e `app/baixar.js`): manda o iPhone para a App Store e o Android
   para o Google Play. **Ao publicar nas lojas, preencher os dois endereços em `LOJAS` de
   `app/baixar.js`**; até lá, mostra o botão para abrir o app pelo navegador.
