@@ -7,6 +7,7 @@ Converte só o Markdown que esses documentos usam: títulos, parágrafos, listas
 """
 import html
 import re
+import unicodedata
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -21,6 +22,12 @@ def inline(t):
     return re.sub(r"(?<![\"/>])(www\.gov\.br/anpd)", r'<a href="https://\1">\1</a>', t)
 
 
+def ancora(t):
+    """Âncora do título para links diretos, ex.: "9. Seus direitos" -> "9-seus-direitos"."""
+    t = unicodedata.normalize("NFKD", t).encode("ascii", "ignore").decode().lower()
+    return re.sub(r"[^a-z0-9]+", "-", t).strip("-")
+
+
 def converte(md):
     out, linhas, i = [], md.splitlines(), 0
     while i < len(linhas):
@@ -29,7 +36,8 @@ def converte(md):
             i += 1
         elif l.startswith("#"):
             n = len(l) - len(l.lstrip("#"))
-            out.append(f"<h{n}>{inline(l[n:].strip())}</h{n}>")
+            texto = l[n:].strip()
+            out.append(f'<h{n} id="{ancora(texto)}">{inline(texto)}</h{n}>' if n > 1 else f"<h{n}>{inline(texto)}</h{n}>")
             i += 1
         elif l.startswith("|"):
             rows = []
