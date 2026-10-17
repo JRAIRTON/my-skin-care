@@ -242,7 +242,7 @@ const TELAS = [["inicio", "Início"], ["evolucao", "Evolução"], ["analisar", "
 
 function render() {
   const pronto = S.perfil?.consentimento && (S.codigo || S.perfil.semCodigo);
-  $("#topo").innerHTML = `<div class="top-in"><span class="brand">${LOGO}<b>MY <span>Skin</span></b></span>
+  $("#topo").innerHTML = `<div class="top-in"><span class="brand">${LOGO}<b>MY <span>Skin Care</span></b></span>
     ${pronto ? `<button class="icon-btn" data-act="tela:ajustes" aria-label="Ajustes"${S.tela === "ajustes" ? ' aria-current="page"' : ""}>${ico("ajustes")}</button>` : ""}</div>`;
   $("#nav").hidden = !pronto;
   $("#nav").innerHTML = `<div class="nav-in">${TELAS.map(([k, l]) => `<button data-act="tela:${k}" class="${k === "analisar" ? "cta" : ""}"${S.tela === k && !S.detalhe ? ' aria-current="page"' : ""}>${k === "analisar" ? `<span class="ic">${ico(k)}</span>` : ico(k)}${l}</button>`).join("")}</div>`;
