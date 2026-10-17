@@ -1,7 +1,8 @@
 """Gera as páginas públicas de Termos de Uso e Política de Privacidade do app a partir de docs/juridico/.
 
 Uso: python3 scripts/gera_juridico.py
-Saída: app/termos.html e app/privacidade.html (servidas pelo Worker; o endereço da política vai nas lojas).
+Saída: app/termos.html e app/privacidade.html (servidas pelo Worker do app) e as mesmas páginas no
+site, em site/public/ (www.myskincareapp.com.br).
 Converte só o Markdown que esses documentos usam: títulos, parágrafos, listas, tabelas, negrito e links.
 """
 import html
@@ -57,6 +58,27 @@ def converte(md):
     return "\n".join(out)
 
 
+def pagina_site(titulo, corpo):
+    return f"""<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>{html.escape(titulo)}</title>
+<link rel="icon" href="icones/icone-192.png" type="image/png">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600&family=Manrope:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="estilo.css">
+</head>
+<body>
+<main class="doc">
+<p><a class="voltar" href="./">← Voltar ao site do MY Skin Care</a></p>
+{corpo}
+</main>
+</body>
+</html>
+"""
+
+
 def pagina(titulo, corpo):
     return f"""<!doctype html>
 <html lang="pt-BR">
@@ -81,4 +103,5 @@ for saida, fonte in PAGINAS.items():
     md = (ROOT / "docs/juridico" / fonte).read_text()
     titulo = md.splitlines()[0].lstrip("# ").strip()
     (ROOT / "app" / saida).write_text(pagina(titulo, converte(md)))
-    print(f"app/{saida} <- docs/juridico/{fonte}")
+    (ROOT / "site/public" / saida).write_text(pagina_site(titulo, converte(md)))
+    print(f"app/{saida} e site/public/{saida} <- docs/juridico/{fonte}")

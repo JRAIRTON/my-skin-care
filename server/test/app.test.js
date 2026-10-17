@@ -114,3 +114,15 @@ test("links de compra: sem códigos são links comuns; com códigos levam a comi
   assert.ok(Array.isArray(LOJAS_AWIN) && typeof AFILIADOS.amazon === "string");
   assert.ok(!readFileSync(new URL("../../app/recomenda.js", import.meta.url), "utf8").includes("afiliados"));
 });
+
+test("site: o domínio sem www redireciona e as respostas levam os cabeçalhos de segurança", async () => {
+  const { default: site } = await import("../../site/worker.js");
+  const env = { ASSETS: { fetch: async () => new Response("ok", { headers: { "Content-Type": "text/html" } }) } };
+  const r = await site.fetch(new Request("https://myskincareapp.com.br/privacidade?a=1"), env);
+  assert.equal(r.status, 301);
+  assert.equal(r.headers.get("location"), "https://www.myskincareapp.com.br/privacidade?a=1");
+  const ok = await site.fetch(new Request("https://www.myskincareapp.com.br/"), env);
+  assert.equal(ok.status, 200);
+  assert.match(ok.headers.get("content-security-policy"), /frame-ancestors 'none'/);
+  assert.equal(ok.headers.get("x-content-type-options"), "nosniff");
+});

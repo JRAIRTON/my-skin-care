@@ -1,0 +1,16 @@
+name = "myskincare-site"  # Worker separado do app (que continua em my-skin-care)
+main = "worker.js"
+compatibility_date = "2026-09-01"
+workers_dev = true        # também fica em https://myskincare-site.<conta>.workers.dev, para conferir
+
+# O domínio precisa estar na Cloudflare antes da publicação (passo a passo em site/README.md)
+routes = [
+  { pattern = "www.myskincareapp.com.br", custom_domain = true },
+  { pattern = "myskincareapp.com.br", custom_domain = true },
+]
+
+[assets]
+directory = "./public"
+binding = "ASSETS"
+not_found_handling = "404-page"
+run_worker_first = true   # o worker redireciona o domínio sem www e põe os cabeçalhos
