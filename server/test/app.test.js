@@ -125,4 +125,7 @@ test("site: o domínio sem www redireciona e as respostas levam os cabeçalhos d
   assert.equal(ok.status, 200);
   assert.match(ok.headers.get("content-security-policy"), /frame-ancestors 'none'/);
   assert.equal(ok.headers.get("x-content-type-options"), "nosniff");
+  const g = await site.fetch(new Request("https://www.myskincareapp.com.br/google04d0a35e2af0efe8.html"), env);
+  assert.equal(g.status, 200);
+  assert.equal(await g.text(), "google-site-verification: google04d0a35e2af0efe8.html");
 });

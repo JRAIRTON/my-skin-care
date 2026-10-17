@@ -8,12 +8,20 @@ const SEGURANCA = {
   "Content-Security-Policy": "default-src 'self'; style-src 'self' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; script-src 'self'; connect-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'",
 };
 
+// Arquivos de verificação do Google Search Console, respondidos direto: o servidor de arquivos
+// redirecionaria o ".html" para o endereço sem extensão, e o Google não aceita redirecionamento.
+const VERIFICACAO = ["google04d0a35e2af0efe8.html"];
+
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
     if (url.hostname === DOMINIO.replace(/^www\./, "")) {
       url.hostname = DOMINIO;
       return Response.redirect(url.toString(), 301);
+    }
+    const arquivo = url.pathname.slice(1);
+    if (VERIFICACAO.includes(arquivo)) {
+      return new Response(`google-site-verification: ${arquivo}`, { headers: { "Content-Type": "text/html; charset=utf-8", ...SEGURANCA } });
     }
     const r = await env.ASSETS.fetch(request);
     const h = new Headers(r.headers);
