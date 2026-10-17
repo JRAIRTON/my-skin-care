@@ -88,3 +88,29 @@ test("skin score e calendário de introdução", () => {
   assert.equal(liberadoEm("2026-10-01", 0), "2026-10-15");
   assert.equal(liberadoEm("2026-10-01", 1), "2026-10-29");
 });
+
+test("links de compra: sem códigos são links comuns; com códigos levam a comissão e vêm primeiro", async () => {
+  const { linksCompra, temAfiliado, AFILIADOS, LOJAS_AWIN } = await import("../../app/afiliados.js");
+  const vazio = { amazon: "", mercadoLivre: { matt_tool: "", matt_word: "" }, awin: "" };
+  const comum = linksCompra("CeraVe Gel de Limpeza", vazio);
+  assert.deepEqual(comum.map((l) => l[0]), ["Mercado Livre", "Amazon", "Google Shopping"]);
+  assert.ok(comum.every((l) => !l[2] && !/tag=|matt_|awin/.test(l[1])));
+  assert.equal(temAfiliado(vazio), false);
+
+  const cfg = { amazon: "myskin-20", mercadoLivre: { matt_tool: "123", matt_word: "myskin" }, awin: "999" };
+  const awin = [{ nome: "Farmácia A", awinmid: "111", busca: "https://a.com/busca?q=" }, { nome: "Farmácia B", awinmid: "", busca: "https://b.com/?q=" }];
+  const ls = linksCompra("La Roche-Posay Anthelios", cfg, awin);
+  assert.deepEqual(ls.map((l) => l[0]), ["Mercado Livre", "Amazon", "Farmácia A", "Google Shopping"]);
+  assert.equal(ls[0][1], "https://lista.mercadolivre.com.br/La-Roche-Posay-Anthelios?matt_tool=123&matt_word=myskin");
+  assert.equal(ls[1][1], "https://www.amazon.com.br/s?k=La%20Roche-Posay%20Anthelios&tag=myskin-20");
+  const ued = new URL(ls[2][1]).searchParams;
+  assert.equal(ued.get("awinmid"), "111");
+  assert.equal(ued.get("awinaffid"), "999");
+  assert.equal(ued.get("ued"), "https://a.com/busca?q=La%20Roche-Posay%20Anthelios");
+  assert.equal(temAfiliado(cfg, awin), true);
+  // só Amazon ativa: Amazon sobe para o topo, o resto mantém a ordem
+  assert.deepEqual(linksCompra("x", { ...vazio, amazon: "t-20" }).map((l) => l[0]), ["Amazon", "Mercado Livre", "Google Shopping"]);
+  // a configuração publicada é válida e a escolha dos produtos não depende dela
+  assert.ok(Array.isArray(LOJAS_AWIN) && typeof AFILIADOS.amazon === "string");
+  assert.ok(!readFileSync(new URL("../../app/recomenda.js", import.meta.url), "utf8").includes("afiliados"));
+});

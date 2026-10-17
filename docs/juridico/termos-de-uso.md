@@ -1,6 +1,6 @@
 # Termos de Uso — MY Skin Care
 
-Versão 2 · 07/10/2026
+Versão 3 · 17/10/2026
 
 ## 1. Quem somos
 
@@ -50,8 +50,12 @@ apagados. Detalhes na **Política de Privacidade**.
 - A rotina e as sugestões de produtos saem de regras fixas e de um catálogo de produtos vendidos no
   Brasil. São informações educativas: leia o rótulo e faça teste em pequena área antes de usar um
   produto novo. Em caso de reação, suspenda o uso e procure um médico.
-- Não vendemos produtos e não recebemos comissão pelas sugestões. Os preços são de referência,
-  podem mudar e não são garantidos por nós.
+- Não vendemos produtos. Alguns links de compra podem ser de **lojas parceiras** (programas de
+  afiliados): se você comprar por eles, a loja pode nos pagar uma comissão, **sem custo extra para
+  você**. Esses links aparecem identificados no app. A comissão não influencia as sugestões, que saem
+  das regras fixas e do catálogo, sempre pela opção mais em conta que serve.
+- A compra é feita no site da loja, sob as condições dela. Os preços são de referência, podem mudar e
+  não são garantidos por nós.
 
 ## 8. Inteligência artificial
 

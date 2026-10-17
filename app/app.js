@@ -2,6 +2,7 @@
 // Os dados ficam só neste aparelho (IndexedDB). A foto vai ao servidor apenas para a análise
 // (POST /analise) e não é guardada lá. A rotina e os produtos saem de regras fixas (recomenda.js).
 import { CATS, GRAUS, OBJETIVOS, TIPOS_PELE, FOTOTIPOS, recomenda, liberadoEm, skinScore } from "./recomenda.js";
+import { linksCompra, temAfiliado } from "./afiliados.js";
 
 const MODELO_VALIDADO = "claude-sonnet-5-5";
 const INTERVALO_DIAS = 28;      // próxima foto sugerida
@@ -279,7 +280,7 @@ const TEXTO_PRIVACIDADE = `
   <ul>
     <li><b>O primeiro passo</b> é enviar uma foto do seu rosto, num lugar bem iluminado e com o rosto em foco. Para acompanhar de perto, repita uma vez por mês e veja a evolução.</li>
     <li><b>Como funciona?</b> A foto passa por uma avaliação cosmética feita por inteligência artificial. A partir dela, o app sugere uma rotina de cuidados personalizada, com produtos escolhidos numa seleção de opções vendidas no Brasil, de marcas reconhecidas. Não é diagnóstico médico e não substitui o dermatologista.</li>
-    <li><b>O que você precisa saber?</b> O app indica produtos, mas não vende nada e não recebe comissão. Sua foto não fica guardada no nosso servidor e não é usada para treinar a IA. Ela passa pela Anthropic, empresa da inteligência artificial usada pelo MY Skin Care, que pode guardá-la por prazo limitado, só para segurança.</li>
+    <li><b>O que você precisa saber?</b> O app indica produtos, mas não vende nada${temAfiliado() ? ". Alguns links de compra são de lojas parceiras, que pagam comissão ao app sem custo para você; isso não muda a escolha dos produtos" : " e não recebe comissão"}. Sua foto não fica guardada no nosso servidor e não é usada para treinar a IA. Ela passa pela Anthropic, empresa da inteligência artificial usada pelo MY Skin Care, que pode guardá-la por prazo limitado, só para segurança.</li>
     <li><b>Seus dados</b> ficam só neste aparelho, sem conta nem cópia na nuvem. Você pode exportar ou apagar tudo a qualquer momento, em Ajustes.</li>
     <li><b>Contato:</b> MY Skin Care · <a href="mailto:myskincare.ia.sac@gmail.com">myskincare.ia.sac@gmail.com</a>. Leia os <a href="termos.html">Termos de Uso</a> e a <a href="privacidade.html">Política de Privacidade</a>.</li>
   </ul>`;
@@ -613,11 +614,15 @@ function vRotina() {
 }
 
 // ----- produtos
-const LOJAS = (q) => [
-  ["Google Shopping", "https://www.google.com/search?tbm=shop&q=" + encodeURIComponent(q)],
-  ["Mercado Livre", "https://lista.mercadolivre.com.br/" + encodeURIComponent(q.trim().replace(/\s+/g, "-"))],
-  ["Amazon", "https://www.amazon.com.br/s?k=" + encodeURIComponent(q)],
-];
+// texto sobre comissão: muda sozinho quando algum programa de afiliados é ativado (afiliados.js)
+const COMISSAO = temAfiliado()
+  ? "Alguns links de compra são de lojas parceiras: se você comprar por eles, a loja paga uma comissão ao app, sem custo extra para você. A comissão não muda a escolha dos produtos."
+  : "O app não vende nada e não ganha comissão.";
+function linksLojas(q) {
+  const ls = linksCompra(q);
+  const a = ([n, u, parc]) => `<a href="${esc(u)}" target="_blank" rel="noopener${parc ? " sponsored" : ""}">${n} ↗</a>`;
+  return `${ls.some((l) => l[2]) ? `<span class="small muted">Onde comprar · lojas parceiras primeiro</span>` : ""}<div class="links">${ls.map(a).join("")}</div>`;
+}
 // simple drawings per category (no brand photos: they need the brands' permission)
 const ILUSTRA = {
   "Limpeza": '<rect x="20" y="16" width="24" height="40" rx="6"/><rect x="26" y="8" width="12" height="9" rx="2"/><path d="M28 30h8M28 36h8"/>',
@@ -633,7 +638,7 @@ function cardProduto(titulo, p, porque, opcoes = []) {
     <div class="box rec"><span>${esc(porque)}</span>${p.obs ? `<span class="small">${esc(p.obs)}</span>` : ""}</div>
     <div class="box"><span class="price-v">${preco(p)}</span><span class="small muted">${esc(p.tamanho)} · preço pesquisado em ${fmt(p.data_preco)}. Preços mudam: confira.</span></div>
     <div class="row between"><button class="btn sm${tem ? " tenho" : ""}" data-act="tenho:${esc(p.id)}" aria-pressed="${tem}">${tem ? "✓ Já tenho" : "Já tenho este"}</button></div>
-    ${tem ? "" : `<div class="links">${LOJAS(q).map(([n, u]) => `<a href="${esc(u)}" target="_blank" rel="noopener">${n} ↗</a>`).join("")}</div>`}
+    ${tem ? "" : linksLojas(q)}
     ${opcoes.length ? `<details><summary class="small">Outras opções</summary><div class="list">${opcoes.map((o) => `<div class="item" style="cursor:default"><span class="item-b"><span class="item-t">${esc(o.marca)} ${esc(o.produto)}</span><span class="small muted">${esc(o.ativos)} · ${esc(o.tamanho)}</span></span><span class="num small">${preco(o)}</span></div>`).join("")}</div></details>` : ""}
   </article>`;
 }
@@ -651,7 +656,7 @@ function vProdutos() {
   const total = (k) => custo.reduce((s, p) => s + p[k], 0);
   return `
     <section class="card"><h2>Produtos para você</h2>
-      <p class="small muted">Escolhidos por regras fixas a partir da análise de ${fmt(a.data)}, do seu tipo de pele e dos seus objetivos, sempre pela opção mais em conta que serve. O app não vende nada e não ganha comissão.</p>
+      <p class="small muted">Escolhidos por regras fixas a partir da análise de ${fmt(a.data)}, do seu tipo de pele e dos seus objetivos, sempre pela opção mais em conta que serve. ${COMISSAO}</p>
       <div class="box"><span class="small muted">${jaTem ? `Falta comprar (${custo.length} de ${kit.length} itens; você já tem ${jaTem})` : `Kit completo (${kit.length} itens)`}</span><span class="price-v">${!custo.length ? "Você já tem tudo ✓" : total("preco_min") === total("preco_max") ? brl(total("preco_min")) : `${brl(total("preco_min"))} a ${brl(total("preco_max"))}`}</span><span class="small muted">Marque "Já tenho este" nos produtos que você já usa. Comece pelo básico; os séruns entram depois.</span></div></section>
     <h3 style="padding-inline:4px">O básico</h3>
     ${cardProduto("Protetor solar", P.protetor.produto, "Todo dia de manhã, mesmo em casa ou nublado. É o que mais previne manchas e linhas.", P.protetor.opcoes)}

@@ -1,6 +1,6 @@
 # Política de Privacidade — MY Skin Care
 
-Versão 2 · 07/10/2026
+Versão 3 · 17/10/2026
 
 ## 1. Quem é o responsável pelos seus dados
 
@@ -55,6 +55,9 @@ Só com fornecedores que processam os dados em nosso nome, para prestar o servi�
 - **A Anthropic não usa as fotos enviadas pelo app para treinar modelos de IA.** Ela pode guardar o
   pedido por prazo limitado, apenas para segurança e prevenção de abusos, conforme a política dela.
 - Também compartilhamos dados com autoridades quando exigido por lei ou ordem judicial.
+- **Links para lojas:** ao tocar num link de compra, você sai do app e vai ao site da loja, que tem a
+  própria política de privacidade. O app não envia seus dados à loja: o link leva só o nome do produto
+  e, quando a loja é parceira, o nosso código de afiliado, para a loja saber que a visita veio do app.
 
 ## 6. Transferência internacional
 

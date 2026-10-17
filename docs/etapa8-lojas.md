@@ -52,6 +52,9 @@ análise grátis e quantos assinam; se a conversão for baixa, testar R$ 14,90.
 - Página `/baixar` (`app/baixar.html` e `app/baixar.js`): manda o iPhone para a App Store e o Android
   para o Google Play. **Ao publicar nas lojas, preencher os dois endereços em `LOJAS` de
   `app/baixar.js`**; até lá, mostra o botão para abrir o app pelo navegador.
+- Links de afiliados (17/10/2026): botões de compra prontos para os códigos da Amazon, do Mercado
+  Livre e de farmácias pela Awin, com aviso de parceria automático; Termos e Política na versão 3.
+  Falta o cadastro nos programas (`docs/afiliados.md`).
 - Fotos dos produtos: ficam de fora por enquanto (decisão de 09/10/2026); os cards usam o desenho da
   categoria. Copiar ou linkar as fotos dos sites das marcas tem risco autoral. Se voltar ao tema: fotos
   próprias dos produtos ou autorização das marcas (kit de imprensa).
