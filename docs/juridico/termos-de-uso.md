@@ -1,19 +1,19 @@
-# Termos de Uso — MY Skin AI
+# Termos de Uso — MY Skin Care
 
 Versão 2 · 07/10/2026
 
 ## 1. Quem somos
 
-O MY Skin AI é oferecido por **Airton Carvalho Junior**, pessoa física, de **Foz do Iguaçu (PR)**
+O MY Skin Care é oferecido por **Airton Carvalho Junior**, pessoa física, de **Foz do Iguaçu (PR)**
 ("nós"). Contato: **myskincare.ia.sac@gmail.com**.
 
 ## 2. O que é o serviço
 
-O MY Skin AI faz uma **avaliação visual automatizada, com fins cosméticos**, da aparência da pele a
+O MY Skin Care faz uma **avaliação visual automatizada, com fins cosméticos**, da aparência da pele a
 partir de uma foto do rosto. Oferece notas em 10 aspectos da pele (Skin Score), acompanhamento da
 evolução, uma rotina de cuidados e sugestões de produtos de um catálogo, com preço de referência.
 
-**O MY Skin AI não é um serviço médico.** Ele não faz diagnóstico, não avalia doenças nem pintas,
+**O MY Skin Care não é um serviço médico.** Ele não faz diagnóstico, não avalia doenças nem pintas,
 não indica tratamento e não substitui consulta com dermatologista. Os resultados são estimativas e
 dependem da qualidade da foto: luz, distância, ângulo, maquiagem e filtros mudam a avaliação.
 

@@ -1,4 +1,4 @@
-// MY Skin AI — app web instalável (PWA).
+// MY Skin Care — app web instalável (PWA).
 // Os dados ficam só neste aparelho (IndexedDB). A foto vai ao servidor apenas para a análise
 // (POST /analise) e não é guardada lá. A rotina e os produtos saem de regras fixas (recomenda.js).
 import { CATS, GRAUS, OBJETIVOS, TIPOS_PELE, FOTOTIPOS, recomenda, liberadoEm, skinScore } from "./recomenda.js";
@@ -279,9 +279,9 @@ const TEXTO_PRIVACIDADE = `
   <ul>
     <li><b>O primeiro passo</b> é enviar uma foto do seu rosto, num lugar bem iluminado e com o rosto em foco. Para acompanhar de perto, repita uma vez por mês e veja a evolução.</li>
     <li><b>Como funciona?</b> A foto passa por uma avaliação cosmética feita por inteligência artificial. A partir dela, o app sugere uma rotina de cuidados personalizada, com produtos escolhidos numa seleção de opções vendidas no Brasil, de marcas reconhecidas. Não é diagnóstico médico e não substitui o dermatologista.</li>
-    <li><b>O que você precisa saber?</b> O app indica produtos, mas não vende nada e não recebe comissão. Sua foto não fica guardada no nosso servidor e não é usada para treinar a IA. Ela passa pela Anthropic, empresa da inteligência artificial usada pelo MY Skin, que pode guardá-la por prazo limitado, só para segurança.</li>
+    <li><b>O que você precisa saber?</b> O app indica produtos, mas não vende nada e não recebe comissão. Sua foto não fica guardada no nosso servidor e não é usada para treinar a IA. Ela passa pela Anthropic, empresa da inteligência artificial usada pelo MY Skin Care, que pode guardá-la por prazo limitado, só para segurança.</li>
     <li><b>Seus dados</b> ficam só neste aparelho, sem conta nem cópia na nuvem. Você pode exportar ou apagar tudo a qualquer momento, em Ajustes.</li>
-    <li><b>Contato:</b> MY Skin · <a href="mailto:myskincare.ia.sac@gmail.com">myskincare.ia.sac@gmail.com</a>. Leia os <a href="termos.html">Termos de Uso</a> e a <a href="privacidade.html">Política de Privacidade</a>.</li>
+    <li><b>Contato:</b> MY Skin Care · <a href="mailto:myskincare.ia.sac@gmail.com">myskincare.ia.sac@gmail.com</a>. Leia os <a href="termos.html">Termos de Uso</a> e a <a href="privacidade.html">Política de Privacidade</a>.</li>
   </ul>`;
 function vOnboarding() {
   const passo = S.perfil?.consentimento ? 2 : S.onb;
@@ -289,7 +289,7 @@ function vOnboarding() {
   if (passo === 0) return `
     <section class="card center" style="padding-block:28px">${LOGO.replace('width="28" height="28"', 'width="56" height="56"')}
       <h1>Sua pele, acompanhada de perto</h1>
-      <p class="lede">Conhecer sua pele é o primeiro passo para cuidar melhor dela ao longo do tempo e suavizar os efeitos naturais do envelhecimento. O MY Skin avalia 10 aspectos da sua pele e sugere uma rotina de cuidados personalizada, com produtos adequados às suas necessidades.</p>
+      <p class="lede">Conhecer sua pele é o primeiro passo para cuidar melhor dela ao longo do tempo e suavizar os efeitos naturais do envelhecimento. O MY Skin Care avalia 10 aspectos da sua pele e sugere uma rotina de cuidados personalizada, com produtos adequados às suas necessidades.</p>
       <p class="lede"><b>É fácil, simples e seguro.</b> Sua pele bem cuidada para viver o melhor de cada fase.</p></section>
     <section class="card"><h3>Antes de começar</h3><div class="legal">${TEXTO_PRIVACIDADE}</div>
       <label class="agree"><input type="checkbox" id="ok-termos"><span>Tenho 18 anos ou mais, li e concordo com os <a href="termos.html">Termos de Uso</a> e a <a href="privacidade.html">Política de Privacidade</a>.</span></label>
@@ -687,7 +687,7 @@ function vAjustes() {
       <button class="btn danger" data-act="apagar-tudo">Apagar todos os dados</button></section>
     <section class="card"><h3>Privacidade</h3><div class="legal">${TEXTO_PRIVACIDADE}</div>
       <p class="small muted">Consentimento dado em ${S.perfil.consentimento ? fmt(ymd(new Date(S.perfil.consentimento))) : "—"}. Para retirar, apague seus dados.</p></section>
-    <p class="foot">MY Skin AI · análise pelo Método MY Skin v1 · <a href="termos.html">Termos de Uso</a> · <a href="privacidade.html">Privacidade</a></p>`;
+    <p class="foot">MY Skin Care · análise pelo Método MY Skin v1 · <a href="termos.html">Termos de Uso</a> · <a href="privacidade.html">Privacidade</a></p>`;
 }
 
 // ----- assinatura
@@ -701,13 +701,13 @@ function vAssinar() {
   const loja = compras(), a = ultima();
   const foco = a ? rec(a).prioridades.slice(0, 2).map((p) => p.objetivo.toLowerCase()) : [];
   return `
-    <section class="card"><h2>Assine o MY Skin</h2>
+    <section class="card"><h2>Assine o MY Skin Care</h2>
       <p class="lede">${a ? `Sua primeira análise deu <b>${a.skin_score} pontos</b>.${foco.length ? ` Com a assinatura, você acompanha mês a mês a evolução de <b>${foco.join("</b> e <b>")}</b>.` : " Com a assinatura, você acompanha a evolução mês a mês."}` : "Análises sem limite, evolução, rotina e produtos."} Cancele quando quiser, pela loja.</p>
       ${a ? `<div class="bloqueado" aria-hidden="true"><svg viewBox="0 0 300 90"><polyline points="10,70 70,58 130,62 190,44 250,36 290,26"/></svg><span>Sua evolução aparece aqui a partir da 2ª análise</span></div>` : ""}
       <ul class="beneficios small"><li>Nova análise todo mês, com comparação automática</li><li>Gráfico da evolução e antes e depois</li><li>Rotina e produtos atualizados a cada análise</li></ul>
       <div class="stack">${PLANOS.map((p) => `<button class="btn plano${p.id === "anual" ? " primary" : ""} block" data-act="assinar:${p.id}"${loja && !S.ocupado ? "" : " disabled"}>
         ${p.selo ? `<span class="selo">${p.selo}</span>` : ""}<b>${p.nome} · ${p.preco}</b><span class="small">${p.detalhe}</span></button>`).join("")}</div>
-      ${loja ? `<button class="btn sm" data-act="assinar:restaurar">Já assinei: restaurar compra</button>` : aviso("info", "A assinatura é feita pelo app MY Skin da App Store ou do Google Play. Se você recebeu um código de convite, use em Ajustes.")}
+      ${loja ? `<button class="btn sm" data-act="assinar:restaurar">Já assinei: restaurar compra</button>` : aviso("info", "A assinatura é feita pelo app MY Skin Care da App Store ou do Google Play. Se você recebeu um código de convite, use em Ajustes.")}
       <p class="small muted">Renovação automática até o cancelamento. Veja os <a href="termos.html">Termos de Uso</a> e a <a href="privacidade.html">Política de Privacidade</a>.</p></section>`;
 }
 async function assinar(plano) {
@@ -748,7 +748,7 @@ async function geraCard() {
   c.fillStyle = g; c.fillRect(0, 0, W, H);
   c.textAlign = "center"; c.fillStyle = cor.ink;
   let y = S.card.formato === "stories" ? 210 : 120;
-  c.font = `600 64px ${serif}`; c.fillText("MY Skin", W / 2, y);
+  c.font = `600 64px ${serif}`; c.fillText("MY Skin Care", W / 2, y);
   c.fillStyle = cor.gold; c.font = `600 30px ${sans}`; c.fillText(r.diasEntre >= 1 ? `MINHA EVOLUÇÃO EM ${r.diasEntre} ${r.diasEntre === 1 ? "DIA" : "DIAS"}` : "MINHA EVOLUÇÃO", W / 2, y += 70);
   // body blocks measured first, then drawn centred between the header and the footer
   const post = S.card.formato === "post", comFoto = S.card.foto && fotoUrl(r.base) && fotoUrl(r.a);
@@ -792,12 +792,13 @@ async function geraCard() {
   c.fillStyle = cor.ink2; c.font = `500 30px ${sans}`; c.fillText("Faça sua primeira avaliação", W / 2, linhaY - 36);
   // "button" with the app logo (drawn: an image cannot hold a real link; the link goes in the message)
   const icone = await carregaImg("icones/icone-192.png").catch(() => null);
-  const bw = 430, x0 = (W - bw) / 2, by = linhaY;
+  c.font = `700 36px ${sans}`;
+  const bw = Math.max(430, bh + 6 + c.measureText("MY Skin Care  ›").width + 44), x0 = (W - bw) / 2, by = linhaY;
   c.fillStyle = cor.gold; c.beginPath(); c.roundRect(x0, by, bw, bh, bh / 2); c.fill();
   if (icone) { c.save(); c.beginPath(); c.roundRect(x0 + 14, by + 14, bh - 28, bh - 28, 18); c.clip(); c.drawImage(icone, x0 + 14, by + 14, bh - 28, bh - 28); c.restore(); }
   c.fillStyle = "#FFFFFF"; c.textAlign = "left";
   c.font = `500 24px ${sans}`; c.fillText("Baixe o app", x0 + bh + 6, by + 42);
-  c.font = `700 36px ${sans}`; c.fillText("MY Skin  ›", x0 + bh + 6, by + 80); c.textAlign = "center";
+  c.font = `700 36px ${sans}`; c.fillText("MY Skin Care  ›", x0 + bh + 6, by + 80); c.textAlign = "center";
   return new Promise((ok) => cv.toBlob(ok, "image/png"));
 }
 async function atualizaCard() {
@@ -838,7 +839,7 @@ async function enviaCard(salvar) {
   if (copiou) toast("Link do app copiado. No Stories do Instagram, cole no adesivo de link.");
   const file = new File([S.card.blob], `myskin-evolucao-${hoje()}.png`, { type: "image/png" });
   if (!salvar && navigator.canShare?.({ files: [file] })) {
-    try { await navigator.share({ files: [file], text: `Minha evolução no MY Skin. Baixe o app: ${BAIXAR}` }); return; } catch (e) { if (e.name === "AbortError") return; }
+    try { await navigator.share({ files: [file], text: `Minha evolução no MY Skin Care. Baixe o app: ${BAIXAR}` }); return; } catch (e) { if (e.name === "AbortError") return; }
   }
   const u = URL.createObjectURL(file), l = document.createElement("a");
   l.href = u; l.download = file.name; document.body.append(l); l.click(); l.remove(); setTimeout(() => URL.revokeObjectURL(u), 4000);
@@ -863,12 +864,12 @@ async function verificaCodigo() {
 // .ics event at 10:00 on the suggested date, with an alert; opens in the phone's calendar app
 async function lembrete(data) {
   const d = data.replaceAll("-", ""), agora = new Date().toISOString().replace(/[-:]/g, "").replace(/\.\d+/, "");
-  const ics = ["BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//MY Skin//PT-BR", "BEGIN:VEVENT", `UID:${d}-${S.usuario}@myskin`, `DTSTAMP:${agora}`,
-    `DTSTART:${d}T100000`, `DTEND:${d}T101500`, "SUMMARY:MY Skin: hora da nova foto",
+  const ics = ["BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//MY Skin Care//PT-BR", "BEGIN:VEVENT", `UID:${d}-${S.usuario}@myskin`, `DTSTAMP:${agora}`,
+    `DTSTART:${d}T100000`, `DTEND:${d}T101500`, "SUMMARY:MY Skin Care: hora da nova foto",
     "DESCRIPTION:Tire a nova foto no mesmo lugar e com a mesma luz da anterior para ver a evolução da sua pele.",
-    "BEGIN:VALARM", "ACTION:DISPLAY", "DESCRIPTION:MY Skin: hora da nova foto", "TRIGGER:PT0M", "END:VALARM", "END:VEVENT", "END:VCALENDAR"].join("\r\n");
+    "BEGIN:VALARM", "ACTION:DISPLAY", "DESCRIPTION:MY Skin Care: hora da nova foto", "TRIGGER:PT0M", "END:VALARM", "END:VEVENT", "END:VCALENDAR"].join("\r\n");
   const nome = "myskin-nova-foto.ics", file = new File([ics], nome, { type: "text/calendar" });
-  if (navigator.canShare?.({ files: [file] })) { try { await navigator.share({ files: [file], title: "Lembrete MY Skin" }); return; } catch (e) { if (e.name === "AbortError") return; } }
+  if (navigator.canShare?.({ files: [file] })) { try { await navigator.share({ files: [file], title: "Lembrete MY Skin Care" }); return; } catch (e) { if (e.name === "AbortError") return; } }
   const u = URL.createObjectURL(file), l = document.createElement("a");
   l.href = u; l.download = nome; document.body.append(l); l.click(); l.remove(); setTimeout(() => URL.revokeObjectURL(u), 4000);
   toast("Abra o arquivo baixado para adicionar o lembrete ao calendário.");
@@ -882,7 +883,7 @@ async function exportar() {
   const nome = `myskin-copia-${hoje()}.json`;
   const file = new File([blob], nome, { type: "application/json" });
   if (navigator.canShare?.({ files: [file] })) {
-    try { await navigator.share({ files: [file], title: "Cópia do MY Skin" }); return; } catch (e) { if (e.name === "AbortError") return; }
+    try { await navigator.share({ files: [file], title: "Cópia do MY Skin Care" }); return; } catch (e) { if (e.name === "AbortError") return; }
   }
   const u = URL.createObjectURL(blob), l = document.createElement("a");
   l.href = u; l.download = nome; document.body.append(l); l.click(); l.remove(); setTimeout(() => URL.revokeObjectURL(u), 4000);
@@ -891,7 +892,7 @@ async function importar(file) {
   if (!file) return;
   let d;
   try { d = JSON.parse(await file.text()); } catch { return toast("Arquivo inválido."); }
-  if (d?.app !== "myskin" || !Array.isArray(d.analises)) return toast("Este arquivo não é uma cópia do MY Skin.");
+  if (d?.app !== "myskin" || !Array.isArray(d.analises)) return toast("Este arquivo não é uma cópia do MY Skin Care.");
   if (!confirm(`Restaurar ${d.analises.length} análises de ${d.exportadoEm ? fmt(ymd(new Date(d.exportadoEm))) : "data desconhecida"}? Os dados atuais deste aparelho serão substituídos.`)) return;
   const deB64 = async (u) => u ? (await fetch(u)).blob() : null;
   const analises = await Promise.all(d.analises.map(async (a) => ({ ...a, foto: await deB64(a.foto) })));

@@ -1,4 +1,4 @@
-# Política de Privacidade — MY Skin AI
+# Política de Privacidade — MY Skin Care
 
 Versão 2 · 07/10/2026
 
@@ -9,7 +9,7 @@ Encarregado de dados: **Airton Carvalho Junior**, **myskincare.ia.sac@gmail.com*
 
 ## 2. Resumo
 
-- **Suas fotos, notas e rotina ficam só no seu celular.** O MY Skin AI não tem conta nem cópia
+- **Suas fotos, notas e rotina ficam só no seu celular.** O MY Skin Care não tem conta nem cópia
   das suas fotos na nuvem.
 - Na hora da análise, a foto é enviada ao nosso servidor e à Anthropic (a empresa que faz a
   inteligência artificial Claude), que devolve as notas. Nós não guardamos a foto.

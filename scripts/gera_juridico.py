@@ -69,7 +69,7 @@ def pagina(titulo, corpo):
 </head>
 <body>
 <main class="wrap doc">
-<p><a href="./">← Voltar ao MY Skin AI</a></p>
+<p><a href="./">← Voltar ao MY Skin Care</a></p>
 {corpo}
 </main>
 </body>

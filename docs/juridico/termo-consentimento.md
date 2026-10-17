@@ -1,4 +1,4 @@
-# Termo de consentimento para tratamento de dados sensíveis — MY Skin AI
+# Termo de consentimento para tratamento de dados sensíveis — MY Skin Care
 
 Versão 2 · 07/10/2026 · Base: LGPD, art. 11, I (consentimento específico e destacado).
 O texto exibido no app (`app/app.js`, primeira tela) é o resumo deste termo e deve continuar
@@ -6,7 +6,7 @@ equivalente a ele.
 
 ---
 
-**Antes de continuar, leia com atenção.** Para funcionar, o MY Skin AI usa fotos do seu rosto e
+**Antes de continuar, leia com atenção.** Para funcionar, o MY Skin Care usa fotos do seu rosto e
 informações sobre a sua pele. A lei considera esses dados **sensíveis**. Por isso pedimos sua
 autorização separada, que você pode retirar quando quiser.
 

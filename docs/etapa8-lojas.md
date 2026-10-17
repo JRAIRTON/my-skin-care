@@ -13,6 +13,7 @@ o público e para as lojas.
 | Imposto | Receita das lojas (vem do exterior) declarada no carnê-leão, pela tabela do IR da pessoa física |
 | Preço | R$ 19,90 por mês ou R$ 129,90 por ano, renovação automática; **primeira análise grátis**, sem período de teste |
 | Cobrança | Pela loja (obrigatório para assinatura digital), com RevenueCat para unificar iPhone e Android e o servidor conferir a assinatura |
+| Nome do app | **MY Skin Care** no aparelho e no app; nas lojas, **"MY Skin Care: Análise de Pele"** (decisão de 17/10/2026). "MY Skin" sozinho já existe na App Store; o nome da loja precisa ser único e só se confirma ao criar o app no App Store Connect. O id `br.com.myskin.app` e o endereço do site não mudam |
 | Empacotamento | Capacitor sobre o app web atual (`app/`), com câmera nativa; o mesmo servidor de `server/` |
 
 O preço é uma estimativa (a validação de mercado, etapa 6, foi pulada). Acompanhar quantos fazem a

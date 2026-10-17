@@ -1,6 +1,6 @@
 {
   "appId": "br.com.myskin.app",
-  "appName": "MY Skin",
+  "appName": "MY Skin Care",
   "webDir": "../app",
   "ios": { "contentInset": "never" },
   "android": { "allowMixedContent": false }

@@ -1,4 +1,4 @@
-# Relatório de Impacto à Proteção de Dados Pessoais (RIPD) — MY Skin AI
+# Relatório de Impacto à Proteção de Dados Pessoais (RIPD) — MY Skin Care
 
 Versão 2 · 07/10/2026 (revisada para o app web com dados só no aparelho) · Base: LGPD, arts. 5º, XVII, e 38. Deve ser revisado a cada mudança relevante
 do produto.

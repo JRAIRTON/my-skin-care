@@ -3,9 +3,9 @@
 <plist version="1.0">
 <dict>
 	<key>NSCameraUsageDescription</key>
-	<string>O MY Skin usa a câmera para tirar a foto do seu rosto para a análise da pele.</string>
+	<string>O MY Skin Care usa a câmera para tirar a foto do seu rosto para a análise da pele.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
-	<string>O MY Skin abre suas fotos para você escolher uma foto do rosto para a análise da pele.</string>
+	<string>O MY Skin Care abre suas fotos para você escolher uma foto do rosto para a análise da pele.</string>
 	<key>ITSAppUsesNonExemptEncryption</key>
 	<false/>
   <key>CAPACITOR_DEBUG</key>
@@ -13,7 +13,7 @@
 	<key>CFBundleDevelopmentRegion</key>
 	<string>en</string>
 	<key>CFBundleDisplayName</key>
-        <string>MY Skin</string>
+        <string>MY Skin Care</string>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIdentifier</key>
