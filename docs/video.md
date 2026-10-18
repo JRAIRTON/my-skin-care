@@ -11,7 +11,7 @@ para Reels, Stories e TikTok, gerada a partir deste vídeo (enviada no chat; nã
 Voz do Google Cloud Text-to-Speech (pt-BR-Chirp3-HD-Leda), gerada por `scripts/video/voz_google.py`; uma fala por tela:
 
 1. Início: "Conheça o MY Skin Care, o aplicativo que acompanha a sua pele de perto." (no roteiro da voz:
-   "Mai Skin Kér", para a pronúncia sair certa; o endereço do site também vai escrito como se fala)
+   "Mai Skin Care", para a pronúncia sair certa; o endereço do site também vai escrito como se fala)
 2. Foto: "Primeiro, tire uma foto do rosto. O aplicativo mostra como fazer: luz boa e sem maquiagem."
 3. Resultado: "Em segundos, você recebe o seu Skin Score e uma nota para cada um dos dez aspectos da pele,
    com a explicação de cada uma."
@@ -19,6 +19,12 @@ Voz do Google Cloud Text-to-Speech (pt-BR-Chirp3-HD-Leda), gerada por `scripts/v
 5. Rotina: "O aplicativo monta uma rotina de cuidados para a manhã e a noite. É só marcar os passos do dia."
 6. Produtos: "E indica produtos vendidos no Brasil, sempre pela opção mais em conta, com o preço de referência."
 7. Final: "Faça a sua primeira análise grátis. Acesse myskincareapp.com.br."
+
+## Transições da voz
+
+`monta.sh` corta o silêncio do começo e do fim de cada fala, aplica entrada (40 ms) e saída suave (180 ms) e
+deixa a mesma pausa entre as cenas (`PAUSA`, padrão 0,5 s, em `grava.mjs`); a fala começa 0,3 s depois da troca
+de tela.
 
 ## Trocar a voz por uma mais humana
 

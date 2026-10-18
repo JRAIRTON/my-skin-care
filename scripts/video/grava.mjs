@@ -62,7 +62,7 @@ let seg0 = 0;
 const segmento = async (nome, acoes) => {
   seg0 = f; inicios[nome] = f / 30;
   await acoes();
-  const alvo = Math.round((DUR[nome] + 0.9) * 30);
+  const alvo = Math.round((DUR[nome] + Number(process.env.PAUSA || 0.5)) * 30); // fala + pausa até a próxima cena
   if (f - seg0 < alvo) await segura((alvo - (f - seg0)) / 30);
 };
 await p.evaluate(() => scrollTo(0, 0)); await p.waitForTimeout(600);
