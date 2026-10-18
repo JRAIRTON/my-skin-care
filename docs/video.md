@@ -1,13 +1,13 @@
 # Vídeo do app
 
-18/10/2026. `site/public/video/app.mp4` (58 s, 600×1298, H.264 + AAC) toca no celular do topo do site, sem som
+18/10/2026. `site/public/video/app.mp4` (45 s, 600×1298, H.264 + AAC) toca no celular do topo do site, sem som
 e em loop; o botão "Ouvir o passo a passo" recomeça com a narração. Gravado do app de verdade com os
 dados fictícios da "Ana" (as mesmas das imagens do site). Existe também a versão vertical 1080×1920
 para Reels, Stories e TikTok, gerada a partir deste vídeo (enviada no chat; não fica no repositório).
 
 ## Narração
 
-Voz sintética em português (Piper, voz "pt-br-edresson-low", de uso livre), uma fala por tela:
+Voz sintética feminina em português do Brasil (Kokoro, voz "pf_dora", licença Apache 2.0), uma fala por tela:
 
 1. Início: "Conheça o MY Skin Care, o aplicativo que acompanha a sua pele de perto."
 2. Foto: "Primeiro, tire uma foto do rosto. O aplicativo mostra como fazer: luz boa e sem maquiagem."
