@@ -6,8 +6,8 @@ Privacidade. É um Worker da Cloudflare separado do app (`my-skin-care`, pasta `
 
 | Arquivo | O que é |
 |---|---|
-| `public/index.html` e `public/estilo.css` | A página, com a identidade "Direção 04" (grafite, verde clínico, menta e pele; logo "myskin care" em texto, com o círculo de foco no i), em claro e escuro |
-| `scripts/marca_site.mjs` | Gera os ícones (símbolo "my" no visor) e a prévia `img/og.png` com o site rodando localmente |
+| `public/index.html` e `public/estilo.css` | A página, na paleta do app (creme, nude e café), com o logo "myskin care" da Direção 04 em texto (círculo de foco no i), em claro e escuro |
+| `scripts/marca_site.mjs` | Gera os ícones (símbolo "my" no visor, nas cores da paleta) e a prévia `img/og.png` com o site rodando localmente |
 | `public/lojas.js` | Endereços da App Store e do Google Play: vazios mostram "Em breve" |
 | `public/site.js` | Liga os botões das lojas na página inicial |
 | `public/baixar.html` | `/baixar`, o link da imagem de evolução do app: leva o celular à loja ou, sem loja, ao site |

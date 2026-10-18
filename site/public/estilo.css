@@ -1,22 +1,21 @@
-/* Site do MY Skin Care. Identidade "Direção 04 · refinada": grafite, verde clínico, menta e pele.
-   (Os nomes das variáveis vêm da paleta anterior: --ouro é o verde clínico, --cafe é o grafite.) */
+/* Site do MY Skin Care. Paleta do app (visual "novo"): creme, nude rosado e café. Logo "myskin care" da Direção 04 nessas cores. */
 :root {
-  --fundo: #F6F8F7;
-  --sup: #FFFFFF;
-  --sup-2: #EEF4F2;
-  --tinta: #0F1B22;
-  --tinta-2: #3E4C53;
-  --apagado: #6B7A80;
-  --linha: #DCE5E2;
-  --ouro: #1F7A75;
-  --ouro-tinta: #1A6964;
-  --ouro-suave: #E3F0EC;
-  --pele: #E8DDD3;
-  --cafe: #0F1B22;
-  --creme: #F3F7F6;
-  --care: #4E5D65;
-  --sombra: 0 1px 1px rgba(15, 27, 34, .04), 0 18px 40px -18px rgba(15, 27, 34, .22);
-  --serifa: "Instrument Serif", Georgia, serif;
+  --fundo: #F7F2EC;
+  --sup: #FFFDFB;
+  --sup-2: #F1E9E0;
+  --tinta: #2E211B;
+  --tinta-2: #5A4A40;
+  --apagado: #8E7D71;
+  --linha: #E8DDD2;
+  --ouro: #B88A6A;
+  --ouro-tinta: #8A5F43;
+  --ouro-suave: #F4E8DE;
+  --cafe: #3B2A22;
+  --creme: #F7EFE7;
+  --sombra: 0 1px 1px rgba(59, 42, 34, .04), 0 18px 40px -18px rgba(59, 42, 34, .25);
+  --serifa: "Cormorant Garamond", Georgia, serif;
+  --logo-serifa: "Instrument Serif", Georgia, serif;  /* só o "my" do logo */
+  --care: #6F5C50;
   --texto: "Manrope", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   --largura: 1120px;
   color-scheme: light;
@@ -24,15 +23,15 @@
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
     color-scheme: dark;
-    --fundo: #0B1418; --sup: #111E24; --sup-2: #16262D; --tinta: #E8F0EE; --tinta-2: #B5C4C2; --apagado: #85979A;
-    --linha: #20323A; --ouro: #4FB3A9; --ouro-tinta: #6CC5BB; --ouro-suave: #15302E; --pele: #2A2420; --cafe: #050B0E; --creme: #E8F0EE; --care: #9FB0B4;
+    --fundo: #17110E; --sup: #211915; --sup-2: #2B211C; --tinta: #F3E9DF; --tinta-2: #D2C2B5; --apagado: #A08E80;
+    --linha: #34281F; --ouro: #D2A587; --ouro-tinta: #E2BBA0; --ouro-suave: #2E2119; --cafe: #0F0B09; --creme: #F3E9DF; --care: #BFAE9F;
     --sombra: 0 1px 1px rgba(0, 0, 0, .3), 0 18px 40px -18px rgba(0, 0, 0, .8);
   }
 }
 :root[data-theme="dark"] {
   color-scheme: dark;
-  --fundo: #0B1418; --sup: #111E24; --sup-2: #16262D; --tinta: #E8F0EE; --tinta-2: #B5C4C2; --apagado: #85979A;
-  --linha: #20323A; --ouro: #4FB3A9; --ouro-tinta: #6CC5BB; --ouro-suave: #15302E; --pele: #2A2420; --cafe: #050B0E; --creme: #E8F0EE; --care: #9FB0B4;
+  --fundo: #17110E; --sup: #211915; --sup-2: #2B211C; --tinta: #F3E9DF; --tinta-2: #D2C2B5; --apagado: #A08E80;
+  --linha: #34281F; --ouro: #D2A587; --ouro-tinta: #E2BBA0; --ouro-suave: #2E2119; --cafe: #0F0B09; --creme: #F3E9DF; --care: #BFAE9F;
   --sombra: 0 1px 1px rgba(0, 0, 0, .3), 0 18px 40px -18px rgba(0, 0, 0, .8);
 }
 
@@ -62,7 +61,7 @@ img { display: block; max-width: 100%; height: auto; }
 .marca { display: inline-flex; align-items: center; color: var(--tinta); text-decoration: none; }
 /* Logo: "my" itálico com serifa + "skin" negrito + "care" leve; o ponto do i é o círculo de foco */
 .logo { display: inline-flex; align-items: baseline; font-family: var(--texto); font-size: 30px; line-height: 1; letter-spacing: -.035em; white-space: nowrap; color: var(--tinta); }
-.logo i { font-family: var(--serifa); font-style: italic; font-weight: 400; font-size: 1.16em; letter-spacing: -.02em; margin-right: .03em; }
+.logo i { font-family: var(--logo-serifa); font-style: italic; font-weight: 400; font-size: 1.16em; letter-spacing: -.02em; margin-right: .03em; }
 .logo b { font-weight: 700; }
 .logo .i { position: relative; }
 .logo .i::before { content: ""; position: absolute; left: 50%; top: .07em; width: .29em; height: .29em; transform: translateX(-50%); box-sizing: border-box;
@@ -77,14 +76,14 @@ img { display: block; max-width: 100%; height: auto; }
   font-weight: 600; font-size: 15.5px; text-decoration: none; border: 1px solid transparent; transition: transform .15s ease, box-shadow .15s ease, background .15s ease; }
 .btn:hover { transform: translateY(-1px); }
 .btn-p { min-height: 42px; padding: 0 18px; font-size: 14px; white-space: nowrap; }
-.btn-escuro { background: var(--ouro); color: #FFFFFF; box-shadow: 0 12px 24px -12px rgba(31, 122, 117, .65); }
+.btn-escuro { background: var(--cafe); color: var(--creme); box-shadow: 0 12px 24px -12px rgba(59, 42, 34, .7); }
 /* No escuro, o café some no fundo: os botões principais ficam em nude */
 @media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) .btn-escuro { background: var(--ouro); color: #04120F; box-shadow: none; }
+  :root:not([data-theme="light"]) .btn-escuro { background: var(--ouro); color: #1A120E; box-shadow: none; }
 }
-:root[data-theme="dark"] .btn-escuro { background: var(--ouro); color: #04120F; box-shadow: none; }
+:root[data-theme="dark"] .btn-escuro { background: var(--ouro); color: #1A120E; box-shadow: none; }
 .btn-claro { background: var(--sup); color: var(--tinta); border-color: var(--linha); }
-.btn-ouro { background: var(--ouro); color: #FFFFFF; }
+.btn-ouro { background: var(--ouro); color: #FFFDFB; }
 .btn-loja { background: var(--sup); color: var(--tinta); border-color: var(--linha); padding: 0 20px 0 16px; text-align: left; }
 .btn-loja svg { width: 22px; height: 22px; flex: none; }
 .btn-loja span { display: flex; flex-direction: column; line-height: 1.15; font-size: 15px; }
@@ -112,7 +111,7 @@ img { display: block; max-width: 100%; height: auto; }
 .selos li { display: inline-flex; align-items: center; gap: 8px; }
 .selos li::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: var(--ouro); }
 .hero-vis { position: relative; height: 600px; }
-.celular { border-radius: 42px; padding: 10px; background: var(--cafe); box-shadow: var(--sombra), 0 40px 80px -40px rgba(15, 27, 34, .5); }
+.celular { border-radius: 42px; padding: 10px; background: var(--cafe); box-shadow: var(--sombra), 0 40px 80px -40px rgba(59, 42, 34, .55); }
 .celular img, .celular video { display: block; border-radius: 33px; width: 100%; height: auto; }
 @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .celular, :root:not([data-theme="light"]) .btn-escuro { box-shadow: var(--sombra), inset 0 0 0 1px rgba(255, 255, 255, .08); } }
 .hero-vis .celular { position: absolute; width: 280px; }
@@ -172,8 +171,8 @@ img { display: block; max-width: 100%; height: auto; }
 .plano.melhor .lista li, .plano.melhor .sub, .plano.melhor .preco small { color: color-mix(in srgb, var(--creme) 78%, transparent); }
 .plano.melhor .lista li::before { background: color-mix(in srgb, var(--ouro) 25%, transparent); box-shadow: none; }
 .plano.melhor .lista li::after { border-color: var(--ouro); }
-.plano.melhor .btn-escuro { background: var(--ouro); color: #FFFFFF; box-shadow: none; }
-.etiqueta { position: absolute; top: -13px; left: 28px; background: var(--ouro); color: #FFFFFF; font-size: 12px; font-weight: 600; padding: 5px 12px; border-radius: 999px; }
+.plano.melhor .btn-escuro { background: var(--ouro); color: #FFFDFB; box-shadow: none; }
+.etiqueta { position: absolute; top: -13px; left: 28px; background: var(--ouro); color: #FFFDFB; font-size: 12px; font-weight: 600; padding: 5px 12px; border-radius: 999px; }
 .indique { display: flex; align-items: center; gap: 14px; max-width: 760px; margin: 24px auto 0; padding: 16px 20px; border-radius: 20px; background: var(--ouro-suave); color: var(--tinta-2); }
 .indique svg { flex: none; width: 30px; height: 30px; fill: none; stroke: var(--ouro-tinta); stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
 .indique b { color: var(--tinta); }
@@ -288,8 +287,3 @@ html:not(.novidades) [data-novidade], html.novidades [data-sem-novidade] { displ
 .planos { grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); }
 html:not(.novidades) .planos { max-width: 760px; margin-inline: auto; }
 
-/* Instrument Serif tem um só peso: títulos em peso normal, sem negrito artificial */
-h1, h2, .passos h3, .card h3, .recurso h3, .plano .preco, .depo blockquote, .passos .num { font-weight: 400; }
-h1, h2 { letter-spacing: -.01em; }
-.indique { background: var(--pele); }
-@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .indique { background: var(--ouro-suave); } }

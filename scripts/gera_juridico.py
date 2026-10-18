@@ -74,7 +74,7 @@ def pagina_site(titulo, corpo):
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>{html.escape(titulo)}</title>
 <link rel="icon" href="icones/icone-192.png" type="image/png">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Manrope:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600&family=Instrument+Serif:ital@1&family=Manrope:wght@400;500;600;700&display=swap">
 <link rel="stylesheet" href="estilo.css">
 </head>
 <body>
