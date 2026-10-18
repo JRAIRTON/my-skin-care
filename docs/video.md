@@ -1,7 +1,8 @@
 # Vídeo do app
 
 18/10/2026. `site/public/video/app.mp4` (45 s, 600×1298, H.264 + AAC) toca no celular do topo do site, sem som
-e em loop; o botão "Ouvir o passo a passo" recomeça com a narração. Gravado do app de verdade com os
+e em loop. Por enquanto vai sem a faixa de áudio e sem o botão de som (decisão de 18/10/2026: a voz
+sintética soou artificial); voltam quando houver a voz humana. Gravado do app de verdade com os
 dados fictícios da "Ana" (as mesmas das imagens do site). Existe também a versão vertical 1080×1920
 para Reels, Stories e TikTok, gerada a partir deste vídeo (enviada no chat; não fica no repositório).
 
