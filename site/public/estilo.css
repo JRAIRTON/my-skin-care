@@ -273,3 +273,8 @@ img { display: block; max-width: 100%; height: auto; }
 .codigo-caixa span { font-size: 13px; color: var(--apagado); }
 .codigo-caixa b { font: 600 30px/1.2 ui-monospace, Menlo, monospace; letter-spacing: .14em; color: var(--tinta); }
 .passos-convite { font-size: 14px; max-width: 460px; margin: 18px auto !important; }
+
+/* Novidades (teste grátis, Plano Família, indique uma amiga): escondidas até ligar NOVIDADES em site.js */
+html:not(.novidades) [data-novidade], html.novidades [data-sem-novidade] { display: none !important; }
+.planos { grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); }
+html:not(.novidades) .planos { max-width: 760px; margin-inline: auto; }

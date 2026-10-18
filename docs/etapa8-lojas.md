@@ -156,6 +156,11 @@ O id `br.com.myskin.app` não pode ser trocado depois do primeiro envio às loja
 
 O app e o servidor já estão prontos; falta configurar nas lojas e no RevenueCat.
 
+**Escondido por enquanto (decisão de 18/10/2026):** até a configuração abaixo, as três novidades não aparecem
+no app nem no site. Para ligar: `NOVIDADES = true` em `app/app.js` e em `site/public/site.js`, e devolver os
+planos da família ao JSON-LD de `site/public/index.html`. Testadores com código de convite já veem os perfis
+da família no app.
+
 **Produtos nas lojas** (Google Play Console → app → Monetizar com o Google Play → Produtos → Assinaturas;
 App Store Connect → app → Assinaturas, no mesmo grupo de assinaturas):
 

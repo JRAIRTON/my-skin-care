@@ -81,6 +81,10 @@ const S = {
   perfis: [], perfilAtivo: "principal", familia: false, fimTeste: null, ofertas: null, convite: null,
 };
 const MAX_PERFIS = 4;
+// Teste grátis, Plano Família e "indique uma amiga" ficam escondidos até os produtos estarem configurados nas
+// lojas e no RevenueCat (docs/etapa8-lojas.md). Para ligar tudo: true (e o mesmo em site/public/site.js).
+// Testadores com código de convite já veem os perfis da família.
+const NOVIDADES = false;
 // key of a per-profile item: the main profile keeps the original keys (older installs keep working)
 const K = (nome, id = S.perfilAtivo) => (id === "principal" ? nome : `p:${id}:${nome}`);
 const doPerfil = (a, id = S.perfilAtivo) => (a.perfil || "principal") === id;
@@ -343,7 +347,7 @@ function avisoTeste() {
 }
 // home: an invite link was opened and not used yet
 function avisoConvite() {
-  const c = lsGet("myskin-convite");
+  const c = NOVIDADES && lsGet("myskin-convite");
   return c ? aviso("gold", `<b>Você recebeu um convite: 1 mês grátis.</b> <button class="btn sm primary" data-act="convite-usar:${esc(c)}">Ativar</button>`) : "";
 }
 // home: up to 5 days before a serum starts, ask whether the person already has it
@@ -753,15 +757,15 @@ function vAjustes() {
     <section class="card"><h3>Assinatura</h3>
       <p class="small">${S.codigo ? "Você usa um código de convite: as análises estão liberadas." : "A primeira análise é grátis; as seguintes fazem parte da assinatura."}</p>
       ${S.codigo ? "" : `<button class="btn" data-act="tela:assinar">Ver planos</button>`}</section>
-    <section class="card"><h3>Família</h3>
+    ${NOVIDADES || S.codigo ? `<section class="card"><h3>Família</h3>
       <div class="list">${listaPerfis().map((x) => `<div class="item" style="cursor:default"><span class="item-b"><span class="item-t">${esc(x.nome || "Novo perfil")}${x.id === "principal" ? " · principal" : ""}</span></span>
         ${x.id === S.perfilAtivo ? `<span class="chip gold">em uso</span>` : `<button class="btn sm" data-act="perfil-usar:${x.id}">Usar</button>`}
         ${x.id !== "principal" ? `<button class="btn sm ghost danger" data-act="perfil-remover:${x.id}" aria-label="Apagar perfil">Apagar</button>` : ""}</div>`).join("")}</div>
       ${podeFamilia()
         ? `${listaPerfis().length < MAX_PERFIS ? `<button class="btn" data-act="perfil-novo">Adicionar pessoa</button>` : ""}
            <p class="small muted">Cada pessoa tem o próprio perfil, com fotos, análises e rotina. Quem vai usar o perfil preenche e autoriza o uso da própria foto. Só para maiores de 18 anos.</p>`
-        : `<p class="small">Com o <b>Plano Família</b>, até ${MAX_PERFIS} pessoas usam o app neste celular, cada uma com a sua análise e rotina.</p><button class="btn" data-act="tela:assinar">Ver planos</button>`}</section>
-    <section class="card"><h3>Indique uma amiga</h3>
+        : `<p class="small">Com o <b>Plano Família</b>, até ${MAX_PERFIS} pessoas usam o app neste celular, cada uma com a sua análise e rotina.</p><button class="btn" data-act="tela:assinar">Ver planos</button>`}</section>` : ""}
+    ${NOVIDADES ? `<section class="card"><h3>Indique uma amiga</h3>
       <p class="small">Sua amiga ganha <b>1 mês grátis</b> ao usar o seu código, e você ganha <b>1 mês grátis</b> quando ela assinar.</p>
       ${S.convite ? `<div class="box center"><span class="small muted">Seu código</span><span class="codigo-convite">${esc(S.convite.codigo)}</span>
           <span class="small muted">${S.convite.convidadas} ${S.convite.convidadas === 1 ? "amiga usou" : "amigas usaram"} · ${S.convite.premiadas} ${S.convite.premiadas === 1 ? "mês ganho" : "meses ganhos"}</span></div>
@@ -770,7 +774,7 @@ function vAjustes() {
       <details${lsGet("myskin-convite") ? " open" : ""}><summary class="small">Recebeu o código de uma amiga?</summary>
         <label class="f">Código da amiga<input id="in-convite" value="${esc(lsGet("myskin-convite") || "")}" autocomplete="off" autocapitalize="characters" spellcheck="false" maxlength="12"></label>
         <button class="btn" data-act="convite-usar"${S.ocupado ? " disabled" : ""}>Ganhar 1 mês grátis</button></details>
-      <p class="small muted">Regras nos <a href="termos.html">Termos de Uso</a>.</p></section>
+      <p class="small muted">Regras nos <a href="termos.html">Termos de Uso</a>.</p></section>` : ""}
     <section class="card"><h3>Código de convite</h3>
       <label class="f">Código<input type="password" id="in-codigo" value="" placeholder="••••••••" autocomplete="off" autocapitalize="off" spellcheck="false"></label>
       <button class="btn" data-act="codigo"${S.ocupado ? " disabled" : ""}>${S.ocupado ? "Conferindo…" : "Trocar código"}</button></section>
@@ -804,7 +808,7 @@ function vAssinar() {
   const loja = compras(), a = ultima();
   const foco = a ? rec(a).prioridades.slice(0, 2).map((p) => p.objetivo.toLowerCase()) : [];
   // in the store app the trial shows only when the store offers it to this person (it is given once)
-  const teste = (p) => (loja ? S.ofertas?.[p.id]?.testeDias || 0 : p.id.endsWith("anual") ? TESTE_DIAS : 0);
+  const teste = (p) => (!NOVIDADES ? 0 : loja ? S.ofertas?.[p.id]?.testeDias || 0 : p.id.endsWith("anual") ? TESTE_DIAS : 0);
   const preco = (p) => S.ofertas?.[p.id]?.preco || p.preco;
   const botao = (p) => { const t = teste(p); return `<button class="btn plano${p.id === "anual" ? " primary" : ""} block" data-act="assinar:${p.id}"${loja && !S.ocupado ? "" : " disabled"}>
     ${t ? `<span class="selo">${t} dias grátis</span>` : p.selo ? `<span class="selo">${p.selo}</span>` : ""}<b>${p.nome} · ${esc(preco(p))}</b>
@@ -816,8 +820,8 @@ function vAssinar() {
       <p class="lede">${a ? `Sua primeira análise deu <b>${a.skin_score} pontos</b>.${foco.length ? ` Com a assinatura, você acompanha mês a mês a evolução de <b>${foco.join("</b> e <b>")}</b>.` : " Com a assinatura, você acompanha a evolução mês a mês."}` : "Análises sem limite, evolução, rotina e produtos."} Cancele quando quiser, pela loja.</p>
       ${a ? `<div class="bloqueado" aria-hidden="true"><svg viewBox="0 0 300 90"><polyline points="10,70 70,58 130,62 190,44 250,36 290,26"/></svg><span>Sua evolução aparece aqui a partir da 2ª análise</span></div>` : ""}
       <ul class="beneficios small"><li>Nova análise todo mês, com comparação automática</li><li>Gráfico da evolução e antes e depois</li><li>Rotina e produtos atualizados a cada análise</li></ul>
-      <h3>Individual</h3><div class="stack">${grupo("Individual")}</div>
-      <h3>Família</h3><p class="small muted">Até ${MAX_PERFIS} pessoas neste celular, cada uma com o próprio perfil, análises e rotina. Só para maiores de 18 anos.</p><div class="stack">${grupo("Família")}</div>
+      ${NOVIDADES ? "<h3>Individual</h3>" : ""}<div class="stack">${grupo("Individual")}</div>
+      ${NOVIDADES ? `<h3>Família</h3><p class="small muted">Até ${MAX_PERFIS} pessoas neste celular, cada uma com o próprio perfil, análises e rotina. Só para maiores de 18 anos.</p><div class="stack">${grupo("Família")}</div>` : ""}
       ${loja ? `<button class="btn sm" data-act="assinar:restaurar">Já assinei: restaurar compra</button>` : aviso("info", `A assinatura é feita pelo app MY Skin Care da App Store ou do Google Play${algumTeste ? `, com ${TESTE_DIAS} dias grátis nos planos anuais` : ""}. Se você recebeu um código de convite, use em Ajustes.`)}
       <p class="small muted">${algumTeste ? `No teste grátis, nada é cobrado nos primeiros ${TESTE_DIAS} dias. Se não cancelar até o fim do teste, a loja cobra o plano escolhido. ` : ""}Renovação automática até o cancelamento, que é feito na loja. Veja os <a href="termos.html">Termos de Uso</a> e a <a href="privacidade.html">Política de Privacidade</a>.</p></section>`;
 }

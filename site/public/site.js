@@ -2,6 +2,12 @@
 import { LOJAS } from "./lojas.js";
 import { DEPOIMENTOS } from "./depoimentos.js";
 
+// Teste grátis, Plano Família e "indique uma amiga": ligar (true) junto com NOVIDADES em app/app.js,
+// quando os produtos estiverem configurados nas lojas e no RevenueCat. Ao ligar, devolver os planos da
+// família ao JSON-LD do index.html.
+const NOVIDADES = false;
+if (NOVIDADES) document.documentElement.classList.add("novidades");
+
 for (const a of document.querySelectorAll("[data-loja]")) {
   const url = LOJAS[a.dataset.loja];
   if (url) {
