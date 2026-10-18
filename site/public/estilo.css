@@ -104,7 +104,7 @@ img { display: block; max-width: 100%; height: auto; }
 .selos li::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: var(--ouro); }
 .hero-vis { position: relative; height: 600px; }
 .celular { border-radius: 42px; padding: 10px; background: var(--cafe); box-shadow: var(--sombra), 0 40px 80px -40px rgba(59, 42, 34, .55); }
-.celular img { border-radius: 33px; width: 100%; }
+.celular img, .celular video { display: block; border-radius: 33px; width: 100%; height: auto; }
 @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .celular, :root:not([data-theme="light"]) .btn-escuro { box-shadow: var(--sombra), inset 0 0 0 1px rgba(255, 255, 255, .08); } }
 .hero-vis .celular { position: absolute; width: 280px; }
 .hero-vis .frente { left: 50%; top: 0; transform: translateX(-62%) rotate(-3deg); z-index: 2; }
@@ -140,6 +140,14 @@ img { display: block; max-width: 100%; height: auto; }
 .card svg { width: 44px; height: 44px; padding: 10px; border-radius: 14px; background: var(--ouro-suave); fill: none; stroke: var(--ouro-tinta); stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; margin-bottom: 18px; }
 .card h3 { font-family: var(--serifa); font-size: 26px; margin-bottom: 8px; }
 .card p { color: var(--tinta-2); }
+
+/* Depoimentos */
+.depos { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 20px; }
+.depo { margin: 0; display: flex; flex-direction: column; justify-content: space-between; gap: 20px; background: var(--sup); border: 1px solid var(--linha); border-radius: 28px; padding: 30px 28px; box-shadow: var(--sombra); }
+.depo blockquote { margin: 0; font-family: var(--serifa); font-size: 22px; line-height: 1.35; color: var(--tinta); }
+.depo figcaption { display: flex; flex-direction: column; font-size: 14px; }
+.depo figcaption b { font-weight: 600; }
+.depo figcaption span { color: var(--apagado); font-size: 13px; }
 
 /* Planos */
 .planos { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; align-items: stretch; }
@@ -246,7 +254,7 @@ img { display: block; max-width: 100%; height: auto; }
   .hero-vis .celular { width: 196px; border-radius: 32px; padding: 7px; }
   .hero-vis .frente { transform: translateX(-74%) rotate(-3deg); }
   .hero-vis .atras { transform: translateX(-12%) rotate(5deg); }
-  .hero-vis .celular img { border-radius: 26px; }
+  .hero-vis .celular img, .hero-vis .celular video { border-radius: 26px; }
   .secao { padding: 64px 16px 0; }
   .titulo { margin-bottom: 32px; }
   .passos li, .card, .plano { padding: 26px 22px; border-radius: 24px; }

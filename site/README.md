@@ -11,6 +11,8 @@ Privacidade. É um Worker da Cloudflare separado do app (`my-skin-care`, pasta `
 | `public/site.js` | Liga os botões das lojas na página inicial |
 | `public/baixar.html` | `/baixar`, o link da imagem de evolução do app: leva o celular à loja ou, sem loja, ao site |
 | `public/termos.html` e `public/privacidade.html` | Geradas por `python3 scripts/gera_juridico.py`; não editar à mão |
+| `public/video/app.mp4` | Vídeo do app (dados fictícios) dentro do celular do topo; toca sem som, em loop, e não toca para quem pediu menos movimento |
+| `public/depoimentos.js` | Depoimentos reais e autorizados; lista vazia esconde a seção (regras em `docs/depoimentos.md`) |
 | `public/img/` | Telas do app com dados fictícios ("Ana") e `og.png`, a prévia ao compartilhar o link |
 | `worker.js` | Redireciona `myskincareapp.com.br` para `www.` e põe os cabeçalhos de segurança |
 | `wrangler.toml` | Nome do Worker e os dois endereços do domínio |
