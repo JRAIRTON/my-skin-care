@@ -18,6 +18,17 @@ Voz sintética feminina em português do Brasil (Kokoro, voz "pf_dora", licença
 6. Produtos: "E indica produtos vendidos no Brasil, sempre pela opção mais em conta, com o preço de referência."
 7. Final: "Faça a sua primeira análise grátis. Acesse myskincareapp.com.br."
 
-A voz sintética gratuita soa um pouco robótica. Para uma versão melhor: gravar estas falas no celular
-(lugar silencioso, uma por arquivo) ou usar um serviço de voz profissional, e pedir ao Claude para
-sincronizar com o vídeo.
+## Trocar a voz por uma mais humana
+
+A voz atual é sintética e gratuita (gerada aqui, sem serviço externo) e soa artificial. Dois caminhos,
+ambos com os programas de `scripts/video/` (o `monta.sh` regrava as telas no tempo de cada fala e gera
+o vídeo do site e a versão para redes):
+
+1. **Voz profissional do Google (recomendado, praticamente de graça).** No Google Cloud: criar um projeto,
+   ativar a "Cloud Text-to-Speech API" e criar uma chave de API restrita a ela. Guardar a chave no ambiente
+   da sessão do Claude como variável `GOOGLE_TTS_API_KEY` (nunca no chat) e abrir uma nova sessão. Depois:
+   `python3 scripts/video/voz_google.py <falas>` e `scripts/video/monta.sh <falas> <trabalho>`. O roteiro
+   tem uns 600 caracteres; o Google cobra por milhão, então o custo é de centavos ou zero na cota grátis.
+2. **Voz de uma pessoa.** Gravar as 7 frases no celular, num lugar silencioso, um áudio por frase, com os
+   nomes `1-inicio` a `7-final`. Depois: `scripts/video/converte_gravacoes.sh <gravacoes> <falas>` e o
+   `monta.sh`. Uma locutora profissional (Workana, 99Freelas, Fiverr) costuma cobrar pouco por 45 segundos.
