@@ -50,6 +50,8 @@ análise grátis e quantos assinam; se a conversão for baixa, testar R$ 14,90.
   Code foi testado e retirado (decisão de 10/10/2026).
   Ao compartilhar ou salvar, o app também copia o link `/baixar` para colar no adesivo de link do Stories
   do Instagram, e há o botão "Copiar só o link do app".
+- Aviso de sérum novo (18/10/2026): o resultado da análise lista os séruns que vão começar e quando, com "Ver onde
+  comprar"; até 5 dias antes, a tela inicial pergunta se a pessoa já tem o produto ("Já tenho" ou "Ver onde comprar").
 - Rotina depois da 1ª análise (18/10/2026): um ativo que entra por uma nova análise (ou volta depois de sair)
   só começa 2 semanas depois dela (4 para o segundo, se entrarem juntos), além do calendário de sempre
   (dia 15 e dia 29); regra em `app/recomenda.js` (`liberaAtivo`, `entradaDosAtivos`). Com a última análise

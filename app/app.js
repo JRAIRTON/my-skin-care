@@ -319,6 +319,15 @@ function vOnboarding() {
 }
 
 // ----- início
+// home: up to 5 days before a serum starts, ask whether the person already has it
+function lembreteSerum(r) {
+  const x = proximosAtivos(r).find((y) => !temProduto(y.p) && dias(hoje(), y.data) <= 5);
+  if (!x) return "";
+  const n = dias(hoje(), x.data), quando = n <= 1 ? "Amanhã" : `Em ${n} dias`;
+  return `<section class="card"><h3>Novo passo na rotina</h3>
+    <p><b>${quando} começa: ${esc(x.p.passo)}.</b>${x.p.produto ? ` Você já tem o ${nomeProduto(x.p)}?` : ""}</p>
+    <div class="btns">${x.p.produto ? `<button class="btn" data-act="tenho:${esc(x.p.produto.id)}">Já tenho</button>` : ""}<button class="btn primary" data-act="tela:produtos">Ver onde comprar</button></div></section>`;
+}
 function vInicio() {
   const a = ultima(), nome = S.perfil.nome ? `, ${esc(S.perfil.nome)}` : "";
   const instalar = dicaInstalar();
@@ -331,6 +340,7 @@ function vInicio() {
     <section class="card"><div class="hero">${anel(a.skin_score)}
       <div class="stack"><h2>Olá${nome}</h2><p class="small muted">Última análise em ${fmt(a.data)}${ant ? ` · ${delta(a.skin_score, ant.skin_score) || ""} desde ${fmtC(ant.data)}` : ""}</p>
       <button class="btn sm" data-act="ver:${a.id}">Ver detalhes</button></div></div></section>
+    ${lembreteSerum(r)}
     ${recuperacao() ? aviso("warn", `<b>Pele em recuperação</b> até ${fmt(soma(recuperacao().data, recuperacao().dias))}: a rotina está só com o básico.`) : ""}
     <section class="card"><div class="row between"><h3>Rotina de hoje</h3><span class="chip gold num">${feitos} de ${passos.length}</span></div>${seloSeq()}
       <button class="btn block" data-act="tela:rotina">${feitos >= passos.length ? "Tudo feito hoje ✓" : "Marcar os passos"}</button></section>
@@ -490,11 +500,23 @@ function vDetalhe() {
     ${url ? `<section class="card"><img class="photo" src="${url}" alt="Foto de ${fmt(a.data)}"></section>` : ""}
     <section class="card"><h3>As 10 notas</h3><p class="small muted">Cada aspecto da pele recebe uma nota de 0 a 100: quanto maior, melhor. Abaixo de cada nota, um resumo do que a avaliação observou na sua foto. ${explicaScore(a)}</p>${barras(a, ant)}</section>
     ${r.alertas.length ? aviso("bad", r.alertas.map(esc).join("<br>")) : ""}
+    ${a.id === ultima()?.id ? avisoSeruns(r) : ""}
     <section class="card"><h3>Resumo e o que fazer</h3>
       <p>${resumo(a, r)}</p>
       <div class="btns"><button class="btn primary" data-act="tela:rotina">Ver rotina</button><button class="btn" data-act="tela:produtos">Ver produtos</button></div></section>
     ${aviso("", "Avaliação visual e cosmética feita por IA. Não é diagnóstico. Em caso de ferida que não cicatriza, pinta que muda ou lesão que sangra, procure um dermatologista.")}
     <button class="btn danger ghost sm" data-act="apagar-analise:${a.id}" style="justify-self:center">Apagar esta análise</button>`;
+}
+
+// on the result: which serums are coming and when, so there is time to buy them
+function avisoSeruns(r) {
+  const prox = proximosAtivos(r);
+  if (!prox.length) return "";
+  const primeira = S.analises.length === 1, falta = prox.filter((x) => !temProduto(x.p));
+  const itens = prox.map((x) => `<li><b>${esc(x.p.passo)}</b> começa em ${fmt(x.data)}${x.p.produto ? ` · ${nomeProduto(x.p)}` : ""}${temProduto(x.p) ? " (você já tem)" : ""}</li>`).join("");
+  return aviso("gold", `<b>${primeira ? "Os séruns da sua rotina" : "Mudança na sua rotina"}</b>
+    <ul class="lista-seruns">${itens}</ul>
+    ${falta.length ? `Dá tempo de comprar antes. <button class="btn sm primary" data-act="tela:produtos">Ver onde comprar</button>` : "Você já tem tudo para começar."}`);
 }
 
 // what changed since the previous photo, shown right in the result
@@ -585,6 +607,14 @@ function sequencia() {
 const seloSeq = () => { const n = sequencia(); return n >= 2 ? `<span class="chip good">${n} dias seguidos ✓</span>` : ""; };
 // date each active may start: routine calendar plus 2 weeks of adaptation when a new analysis brings it in
 const libera = (p, r) => liberaAtivo(p, r.passos, S.rotinaInicio || hoje(), entradaDosAtivos(S.analises, S.perfil, S.catalogo));
+// actives of the routine that start in the future, so the person can buy them in time
+function proximosAtivos(r) {
+  const t = hoje();
+  return [...r.passos.manha, ...r.passos.noite].filter((p) => p.ativo).map((p) => ({ p, data: libera(p, r) }))
+    .filter((x) => x.data > t).sort((x, y) => x.data.localeCompare(y.data));
+}
+const nomeProduto = (p) => (p.produto ? `${esc(p.produto.marca)} ${esc(p.produto.produto)}` : "");
+const temProduto = (p) => p.produto && S.tenho.includes(p.produto.id);
 function passosDeHoje(r) {
   const emRec = !!recuperacao();
   return [...r.passos.manha, ...r.passos.noite].filter((p) => !p.ativo || (!emRec && hoje() >= libera(p, r)));

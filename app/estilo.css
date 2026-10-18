@@ -143,6 +143,8 @@ input[type="text"], input[type="password"], input[type="date"], input[type="numb
 .chip.bad { background: var(--bad-soft); color: var(--bad); }
 .chip.gold { background: var(--gold-soft); color: var(--gold-ink); }
 .notice { display: flex; gap: 12px; padding: 12px 14px; border-radius: 12px; font-size: 14px; background: var(--surface-2); color: var(--ink-2); align-items: flex-start; }
+.notice .lista-seruns { margin: 6px 0 8px; padding-left: 18px; }
+.notice .lista-seruns li { margin: 2px 0; }
 .notice .ico { flex: none; width: 22px; height: 22px; border-radius: 50%; display: grid; place-items: center; font-weight: 700; font-size: 13px; background: var(--ink-2); color: var(--surface); }
 .notice.warn { background: var(--warn-soft); color: var(--ink); }
 .notice.warn .ico { background: var(--warn); }
