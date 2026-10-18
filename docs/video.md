@@ -36,7 +36,8 @@ o vídeo do site e a versão para redes):
 
 ## Retomar com a voz do Google (checklist para a próxima sessão)
 
-1. Conferir a chave: `[ -n "$GOOGLE_TTS_API_KEY" ] && echo ok` (variável do ambiente da sessão; nunca no chat).
+1. A chave: segredo de rede do ambiente "Default" (cabeçalho `X-Goog-Api-Key` para `texttospeech.googleapis.com`,
+   cadastrado em 18/10/2026) ou a variável `GOOGLE_TTS_API_KEY`; nunca no chat. O passo 3 já mostra se ela funciona.
 2. Servir o app (`cd app && python3 -m http.server 8765`) e o site (`cd site && ../server/node_modules/.bin/wrangler dev --port 8787 --local`).
 3. Gerar as falas: `python3 scripts/video/voz_google.py <pasta-falas>` (voz feminina pt-BR; ouvir antes de seguir).
 4. Montar: `scripts/video/monta.sh <pasta-falas> <pasta-trabalho>` (regrava as telas no tempo das falas, gera
