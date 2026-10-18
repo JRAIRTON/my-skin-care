@@ -46,3 +46,9 @@ Privacidade. É um Worker da Cloudflare separado do app (`my-skin-care`, pasta `
 - **Google:** cadastrar o site no [Google Search Console](https://search.google.com/search-console)
   e enviar o `sitemap.xml`, para aparecer nas buscas mais rápido.
 - **Preços ou textos mudaram no app:** atualizar a seção de planos e as dúvidas em `index.html`.
+
+## Trocar imagens, vídeo ou ícones
+
+O site manda o navegador guardar imagens e ícones por 7 dias. Ao substituir um arquivo de `img/`, `icones/` ou
+`video/`, troque também o número de versão (`?v=AAAAMMDD`) nos endereços em `public/*.html` (e no
+`scripts/gera_juridico.py`), senão quem já visitou continua vendo o arquivo antigo.
