@@ -189,6 +189,7 @@ img { display: block; max-width: 100%; height: auto; }
 .rodape nav a, .rodape-contato a { color: var(--tinta-2); text-decoration: none; font-size: 14.5px; overflow-wrap: anywhere; }
 .rodape nav a:hover, .rodape-contato a:hover { color: var(--tinta); text-decoration: underline; }
 .rodape-contato p { color: var(--apagado); font-size: 13px; }
+.copy .assina { color: var(--tinta-2); font-weight: 600; }
 .copy { display: flex; justify-content: space-between; gap: 8px 24px; flex-wrap: wrap; margin-top: 40px; padding-top: 20px; border-top: 1px solid var(--linha); color: var(--apagado); font-size: 13px; }
 @media (max-width: 980px) {
   .selos-conf { grid-template-columns: repeat(2, 1fr); }
