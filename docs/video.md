@@ -33,3 +33,14 @@ o vídeo do site e a versão para redes):
 2. **Voz de uma pessoa.** Gravar as 7 frases no celular, num lugar silencioso, um áudio por frase, com os
    nomes `1-inicio` a `7-final`. Depois: `scripts/video/converte_gravacoes.sh <gravacoes> <falas>` e o
    `monta.sh`. Uma locutora profissional (Workana, 99Freelas, Fiverr) costuma cobrar pouco por 45 segundos.
+
+## Retomar com a voz do Google (checklist para a próxima sessão)
+
+1. Conferir a chave: `[ -n "$GOOGLE_TTS_API_KEY" ] && echo ok` (variável do ambiente da sessão; nunca no chat).
+2. Servir o app (`cd app && python3 -m http.server 8765`) e o site (`cd site && ../server/node_modules/.bin/wrangler dev --port 8787 --local`).
+3. Gerar as falas: `python3 scripts/video/voz_google.py <pasta-falas>` (voz feminina pt-BR; ouvir antes de seguir).
+4. Montar: `scripts/video/monta.sh <pasta-falas> <pasta-trabalho>` (regrava as telas no tempo das falas, gera
+   `site/public/video/app.mp4` com áudio e `<pasta-trabalho>/myskincare-reels.mp4`).
+5. Devolver ao site o botão "Ouvir o passo a passo" (removido em 18/10/2026; ver o commit "Remove the sound
+   button and the narration from the site video for now" para o HTML, o CSS e o trecho de `site.js`).
+6. Mandar a versão vertical ao usuário e publicar.
