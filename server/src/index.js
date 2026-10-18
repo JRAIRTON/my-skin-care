@@ -105,13 +105,17 @@ export async function apagaAcessosAntigos(env, agora = new Date()) {
   await garanteGratis(env.REGISTROS);
   const doisDias = new Date(agora.getTime() - 2 * 864e5).toISOString();
   await env.REGISTROS.prepare("UPDATE gratis SET ip = '' WHERE quando < ?1 AND ip <> ''").bind(doisDias).run();
+  // the IP of an invite only serves the 30-day limit: blank it after 31 days
+  await garanteIndicacao(env.REGISTROS);
+  const trintaUm = new Date(agora.getTime() - 31 * 864e5).toISOString();
+  await env.REGISTROS.prepare("UPDATE indicacoes SET ip = '' WHERE quando < ?1 AND ip <> ''").bind(trintaUm).run();
 }
 
 // ---------- anonymous usage counts ----------
 // POST /evento {nome, plataforma}: adds 1 to the day's count of that event. Only the day, the event name
 // and the platform are kept: no IP, no install id, nothing from the profile. GET /metricas shows them.
 export const EVENTOS = new Set(["primeiro_acesso", "abriu", "consentiu", "primeira_analise", "analise_gratis", "analise",
-  "viu_planos", "iniciou_compra", "assinou", "compartilhou", "clicou_loja"]);
+  "viu_planos", "iniciou_compra", "assinou", "compartilhou", "clicou_loja", "convidou", "usou_convite"]);
 const PLATAFORMAS = new Set(["web", "ios", "android"]);
 let metricasPronta = null;
 function garanteMetricas(db) {
@@ -189,9 +193,9 @@ th,td{border-color:#2B211C}th{color:#E2BBA0}input{background:#211915;color:#F3E9
 <p>Contagens anônimas: só o dia, o evento e a plataforma. Ninguém é identificado.</p>
 <form id="f"><input id="c" type="password" placeholder="Código de convite (APP_TOKEN)" autocomplete="current-password" required><button>Ver</button></form>
 <div id="r"></div></main><script>
-const NOMES={primeiro_acesso:"Abriram o app pela 1ª vez",consentiu:"Aceitaram os termos",primeira_analise:"Fizeram a 1ª análise",analise_gratis:"Usaram a análise grátis",viu_planos:"Viram os planos",iniciou_compra:"Tocaram em assinar",assinou:"Assinaram",abriu:"Aberturas (1 por aparelho por dia)",analise:"Análises feitas",compartilhou:"Compartilharam a evolução",clicou_loja:"Cliques em lojas de produtos"};
+const NOMES={primeiro_acesso:"Abriram o app pela 1ª vez",consentiu:"Aceitaram os termos",primeira_analise:"Fizeram a 1ª análise",analise_gratis:"Usaram a análise grátis",viu_planos:"Viram os planos",iniciou_compra:"Tocaram em assinar",assinou:"Assinaram ou começaram o teste grátis",convidou:"Enviaram convite",usou_convite:"Usaram convite de amiga",abriu:"Aberturas (1 por aparelho por dia)",analise:"Análises feitas",compartilhou:"Compartilharam a evolução",clicou_loja:"Cliques em lojas de produtos"};
 const FUNIL=["primeiro_acesso","consentiu","primeira_analise","viu_planos","iniciou_compra","assinou"];
-const USO=["abriu","analise","analise_gratis","compartilhou","clicou_loja"];
+const USO=["abriu","analise","analise_gratis","compartilhou","clicou_loja","convidou","usou_convite"];
 const PL=["web","android","ios"],esc=s=>String(s).replace(/[&<>]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]));
 function tabela(cab,linhas){return '<div class="tbl"><table><thead><tr>'+cab.map(c=>'<th>'+c+'</th>').join("")+'</tr></thead><tbody>'+linhas.map(l=>'<tr>'+l.map(c=>'<td>'+c+'</td>').join("")+'</tr>').join("")+'</tbody></table></div>';}
 async function carrega(codigo){const r=await fetch("/metricas.json",{headers:{Authorization:"Bearer "+codigo},cache:"no-store"});
@@ -208,6 +212,92 @@ document.getElementById("r").innerHTML='<h2>Funil (desde o início)</h2>'+tabela
 +'<h2>Últimos 30 dias</h2>'+(dias.length?tabela(["Dia","Aberturas","Novos","Análises","Viram planos","Assinaram","Cliques lojas"],dias):"<p>Sem dados ainda.</p>");}
 document.getElementById("f").addEventListener("submit",e=>{e.preventDefault();carrega(document.getElementById("c").value.trim());});
 </script></body></html>`;
+
+// ---------- "indique uma amiga" ----------
+// Cada aparelho tem um código. Quem usa o código de outra pessoa ganha 1 mês grátis na hora; quem convidou
+// ganha 1 mês quando a amiga vira assinante paga (no máximo PREMIOS_POR_ANO por ano). Os meses grátis são
+// "promotional entitlements" do RevenueCat (precisa da chave secreta sk_ em REVENUECAT_API_KEY).
+export const PREMIOS_POR_ANO = 12;
+export const CONVITES_POR_IP_30_DIAS = 2;
+const LETRAS = "ABCDEFGHJKMNPQRSTUVWXYZ23456789"; // sem 0/O, 1/I/L, para ditar sem confusão
+const indicacaoPronta = new WeakMap(); // per database, so tests with fresh databases also get the tables
+function garanteIndicacao(db) {
+  if (!indicacaoPronta.has(db)) indicacaoPronta.set(db, db.batch([
+    db.prepare("CREATE TABLE IF NOT EXISTS convites (codigo TEXT PRIMARY KEY, usuario TEXT NOT NULL UNIQUE, quando TEXT NOT NULL)"),
+    db.prepare("CREATE TABLE IF NOT EXISTS indicacoes (amiga TEXT PRIMARY KEY, codigo TEXT NOT NULL, ip TEXT NOT NULL, quando TEXT NOT NULL, premiado TEXT)"),
+    db.prepare("CREATE INDEX IF NOT EXISTS indicacoes_codigo ON indicacoes (codigo)"),
+    db.prepare("CREATE INDEX IF NOT EXISTS indicacoes_ip ON indicacoes (ip, quando)"),
+  ]).catch((e) => { indicacaoPronta.delete(db); throw e; }));
+  return indicacaoPronta.get(db);
+}
+async function codigoDe(db, usuario, agora) {
+  const tem = await db.prepare("SELECT codigo FROM convites WHERE usuario = ?1").bind(usuario).first();
+  if (tem) return tem.codigo;
+  for (let i = 0; i < 6; i++) {
+    const codigo = Array.from(crypto.getRandomValues(new Uint8Array(6)), (b) => LETRAS[b % LETRAS.length]).join("");
+    try {
+      await db.prepare("INSERT INTO convites (codigo, usuario, quando) VALUES (?1, ?2, ?3)").bind(codigo, usuario, agora.toISOString()).run();
+      return codigo;
+    } catch {
+      const outro = await db.prepare("SELECT codigo FROM convites WHERE usuario = ?1").bind(usuario).first();
+      if (outro) return outro.codigo; // two requests at once: keep the first code
+    }
+  }
+  throw new Error("não foi possível criar o código");
+}
+const rcBase = (usuario) => `https://api.revenuecat.com/v1/subscribers/${encodeURIComponent(usuario)}`;
+export async function daMesGratis(env, usuario, busca = fetch) {
+  const r = await busca(`${rcBase(usuario)}/entitlements/${env.ENTITLEMENT || "myskincare_pro"}/promotional`, {
+    method: "POST", body: JSON.stringify({ duration: "monthly" }),
+    headers: { Authorization: `Bearer ${env.REVENUECAT_API_KEY.trim()}`, "Content-Type": "application/json", Accept: "application/json" },
+  });
+  if (!r.ok) throw new Error(`RevenueCat ${r.status}`);
+}
+// paid subscriber = a store subscription in its normal (paid) period; trials and free months do not count
+export async function pagou(env, usuario, busca = fetch) {
+  const r = await busca(rcBase(usuario), { headers: { Authorization: `Bearer ${env.REVENUECAT_API_KEY.trim()}`, Accept: "application/json" } });
+  if (!r.ok) throw new Error(`RevenueCat ${r.status}`);
+  const subs = (await r.json())?.subscriber?.subscriptions || {};
+  return Object.values(subs).some((s) => ["app_store", "play_store", "stripe", "amazon"].includes(s.store) && s.period_type === "normal");
+}
+export async function meuConvite(env, usuario, agora = new Date(), busca = fetch) {
+  const db = env.REGISTROS;
+  await garanteIndicacao(db);
+  const codigo = await codigoDe(db, usuario, agora);
+  // reward the inviter for friends who became paying subscribers since the last look
+  const umAno = new Date(agora.getTime() - 365 * 864e5).toISOString();
+  let ganhos = (await db.prepare("SELECT COUNT(*) AS n FROM indicacoes WHERE codigo = ?1 AND premiado >= ?2").bind(codigo, umAno).first())?.n ?? 0;
+  let novos = 0;
+  if (env.REVENUECAT_API_KEY) {
+    const { results: pendentes } = await db.prepare("SELECT amiga FROM indicacoes WHERE codigo = ?1 AND premiado IS NULL ORDER BY quando LIMIT 10").bind(codigo).all();
+    for (const { amiga } of pendentes) {
+      if (ganhos >= PREMIOS_POR_ANO) break;
+      try {
+        if (!(await pagou(env, amiga, busca))) continue;
+        await daMesGratis(env, usuario, busca);
+        await db.prepare("UPDATE indicacoes SET premiado = ?1 WHERE amiga = ?2").bind(agora.toISOString(), amiga).run();
+        ganhos++; novos++;
+      } catch (e) { console.error("falha ao premiar indicação", e?.message); break; }
+    }
+  }
+  const t = await db.prepare("SELECT COUNT(*) AS n, COUNT(premiado) AS p FROM indicacoes WHERE codigo = ?1").bind(codigo).first();
+  return { codigo, convidadas: t?.n ?? 0, premiadas: t?.p ?? 0, novos };
+}
+export async function usaConvite(env, usuario, codigo, ip, agora = new Date(), busca = fetch) {
+  const db = env.REGISTROS;
+  await garanteIndicacao(db);
+  const c = String(codigo || "").trim().toUpperCase().replace(/[^A-Z0-9]/g, "");
+  const dono = c && await db.prepare("SELECT usuario FROM convites WHERE codigo = ?1").bind(c).first();
+  if (!dono) return [404, { erro: "Código de convite não encontrado. Confira as letras." }];
+  if (dono.usuario === usuario) return [400, { erro: "Este é o seu próprio código. Ele serve para enviar às amigas." }];
+  if (await db.prepare("SELECT 1 AS x FROM indicacoes WHERE amiga = ?1").bind(usuario).first()) return [409, { erro: "Este aparelho já usou um convite de amiga." }];
+  const desde = new Date(agora.getTime() - 30 * 864e5).toISOString();
+  const n = (await db.prepare("SELECT COUNT(*) AS n FROM indicacoes WHERE ip = ?1 AND quando >= ?2").bind(ip, desde).first())?.n ?? 0;
+  if (n >= CONVITES_POR_IP_30_DIAS) return [403, { erro: "Limite de convites nesta internet atingido. Tente de novo em alguns dias." }];
+  await daMesGratis(env, usuario, busca);
+  await db.prepare("INSERT INTO indicacoes (amiga, codigo, ip, quando) VALUES (?1, ?2, ?3, ?4)").bind(usuario, c, ip, agora.toISOString()).run();
+  return [200, { ok: true, meses: 1 }];
+}
 
 export function criaApp({ cliente, busca } = {}) {
   const app = {
@@ -253,6 +343,27 @@ export function criaApp({ cliente, busca } = {}) {
         if (!env.APP_TOKEN || !a.startsWith("Bearer ") || !(await mesmoToken(a.slice(7).trim(), env.APP_TOKEN.trim()))) return json(401, { erro: "código inválido" });
         if (!env.REGISTROS) return json(503, { erro: "banco não ligado" });
         return new Response(JSON.stringify(await leMetricas(env)), { headers: { "Content-Type": "application/json; charset=utf-8", "Cache-Control": "no-store" } });
+      }
+      if (pathname === "/indicacao") {
+        if (req.method !== "GET" && req.method !== "POST") return json(405, { erro: "use GET ou POST" });
+        if (env.LIMITE) {
+          const { success } = await env.LIMITE.limit({ key: req.headers.get("CF-Connecting-IP") || "sem-ip" });
+          if (!success) return json(429, { erro: "muitas tentativas seguidas; tente em 1 minuto" });
+        }
+        const usuario = (req.headers.get("X-Usuario") || "").trim();
+        if (!ID_USUARIO.test(usuario)) return json(401, { erro: "aparelho não identificado" });
+        if (!env.REGISTROS) return json(503, { erro: "indicação indisponível" });
+        try {
+          if (req.method === "GET") return json(200, await meuConvite(env, usuario, new Date(), busca));
+          if (!env.REVENUECAT_API_KEY) return json(503, { erro: "indicação indisponível" });
+          let corpo = {};
+          try { corpo = JSON.parse((await req.text()).slice(0, 200)); } catch {}
+          const [status, r] = await usaConvite(env, usuario, corpo.codigo, req.headers.get("CF-Connecting-IP") || "sem-ip", new Date(), busca);
+          return json(status, r);
+        } catch (e) {
+          console.error("falha na indicação", e?.message);
+          return json(503, { erro: "não foi possível usar o convite agora; tente de novo" });
+        }
       }
       if (pathname !== "/analise" && pathname !== "/acesso") return json(404, { erro: "rota inexistente" });
       const metodo = pathname === "/acesso" ? "GET" : "POST";

@@ -254,3 +254,69 @@ test("métricas: /evento conta por dia, evento e plataforma, sem identificar nin
   assert.equal(painel.status, 200);
   assert.match(await painel.text(), /Métricas do MY Skin Care/);
 });
+
+// RevenueCat falso para as indicações: guarda os meses grátis dados e quem já paga
+function rcFalso(pagantes = new Set()) {
+  const meses = [];
+  const busca = async (url, op = {}) => {
+    const u = decodeURIComponent(new URL(url).pathname.split("/")[3]);
+    if (op.method === "POST") { meses.push(u); return new Response("{}", { status: 201 }); }
+    const subs = pagantes.has(u) ? { anual: { store: "play_store", period_type: "normal" } } : { promo: { store: "promotional", period_type: "normal" } };
+    return new Response(JSON.stringify({ subscriber: { subscriptions: subs, entitlements: {} } }), { status: 200 });
+  };
+  return { busca, meses };
+}
+
+test("indique uma amiga: código, mês grátis para a amiga e prêmio para quem convidou quando a amiga paga", async () => {
+  const db = await d1Sqlite();
+  const env = { ...ENV, REGISTROS: db, REVENUECAT_API_KEY: "sk_rc" };
+  const pagantes = new Set(), rc = rcFalso(pagantes);
+  const app = criaApp({ cliente: {}, busca: rc.busca });
+  const req = (usuario, metodo = "GET", corpo, ip = "1.1.1.1") => app.fetch(new Request("https://s/indicacao", { method: metodo,
+    headers: { "X-Usuario": usuario, "CF-Connecting-IP": ip, "Content-Type": "application/json" }, body: corpo ? JSON.stringify(corpo) : undefined }), env);
+
+  const ana = "aparelho-ana-0000001", bia = "aparelho-bia-0000001", cris = "aparelho-cris-000001", duda = "aparelho-duda-000001";
+  const r1 = await (await req(ana)).json();
+  assert.match(r1.codigo, /^[A-HJ-NP-Z2-9]{6}$/);
+  assert.equal((await (await req(ana)).json()).codigo, r1.codigo); // sempre o mesmo código
+  assert.equal((await req("curto")).status, 401);
+
+  // amiga usa o código (com espaço e minúsculas): ganha 1 mês
+  const uso = await req(bia, "POST", { codigo: ` ${r1.codigo.toLowerCase()} ` });
+  assert.equal(uso.status, 200);
+  assert.deepEqual(rc.meses, [bia]);
+  assert.equal((await req(bia, "POST", { codigo: r1.codigo })).status, 409); // só uma vez por aparelho
+  assert.equal((await req(ana, "POST", { codigo: r1.codigo })).status, 400); // nem o próprio código
+  assert.equal((await req(cris, "POST", { codigo: "XXXXXX" })).status, 404);
+
+  // limite de 2 convites por internet em 30 dias
+  assert.equal((await req(cris, "POST", { codigo: r1.codigo })).status, 200);
+  assert.equal((await req(duda, "POST", { codigo: r1.codigo })).status, 403);
+  assert.equal((await req(duda, "POST", { codigo: r1.codigo }, "2.2.2.2")).status, 200);
+
+  // quem convidou só ganha quando a amiga paga (o mês grátis não conta)
+  let st = await (await req(ana)).json();
+  assert.deepEqual([st.convidadas, st.premiadas, st.novos], [3, 0, 0]);
+  pagantes.add(bia);
+  st = await (await req(ana)).json();
+  assert.deepEqual([st.convidadas, st.premiadas, st.novos], [3, 1, 1]);
+  assert.equal(rc.meses.filter((u) => u === ana).length, 1);
+  st = await (await req(ana)).json(); // não premia de novo pela mesma amiga
+  assert.equal(st.novos, 0);
+  assert.equal(rc.meses.filter((u) => u === ana).length, 1);
+});
+
+test("indique uma amiga: sem chave do RevenueCat não dá mês grátis, e falha do RevenueCat não gasta o convite", async () => {
+  const db = await d1Sqlite();
+  const semChave = criaApp({ cliente: {} });
+  const post = (app, env, usuario, codigo) => app.fetch(new Request("https://s/indicacao", { method: "POST", headers: { "X-Usuario": usuario }, body: JSON.stringify({ codigo }) }), env);
+  const { codigo } = await (await semChave.fetch(new Request("https://s/indicacao", { headers: { "X-Usuario": "aparelho-ana-0000002" } }), { ...ENV, REGISTROS: db })).json();
+  assert.equal((await post(semChave, { ...ENV, REGISTROS: db }, "aparelho-bia-0000002", codigo)).status, 503);
+  const err = console.error; console.error = () => {};
+  try {
+    const quebrado = criaApp({ cliente: {}, busca: async () => new Response("", { status: 500 }) });
+    assert.equal((await post(quebrado, { ...ENV, REGISTROS: db, REVENUECAT_API_KEY: "sk" }, "aparelho-bia-0000002", codigo)).status, 503);
+  } finally { console.error = err; }
+  const rc = rcFalso();
+  assert.equal((await post(criaApp({ cliente: {}, busca: rc.busca }), { ...ENV, REGISTROS: db, REVENUECAT_API_KEY: "sk" }, "aparelho-bia-0000002", codigo)).status, 200);
+});

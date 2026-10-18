@@ -1,6 +1,6 @@
 # Política de Privacidade — MY Skin Care
 
-Versão 4 · 18/10/2026
+Versão 5 · 18/10/2026
 
 ## 1. Quem é o responsável pelos seus dados
 
@@ -27,6 +27,8 @@ Encarregado de dados: **Airton Carvalho Junior**, **myskincare.ia.sac@gmail.com*
 | Identificador aleatório do aparelho, criado pelo app (não é nome, e-mail nem número do aparelho) | No celular e no nosso servidor, para saber se a análise grátis já foi usada; enviado ao serviço de gestão de assinaturas | Não |
 | Assinatura: situação da compra informada pela loja | Na loja e no serviço de gestão de assinaturas | Não (não recebemos dados de cartão) |
 | Registros de acesso ao servidor: data, hora e IP | No nosso servidor | Não |
+| Perfis da família (Plano Família): os mesmos dados acima, de cada pessoa, cada uma no seu perfil | No seu celular | **Sim** (fotos e saúde) |
+| Indique uma amiga: o código de convite, os identificadores aleatórios dos aparelhos de quem convidou e de quem usou o convite, a data e o IP do uso | No nosso servidor; o identificador vai ao serviço de gestão de assinaturas para dar o mês grátis | Não |
 | Contagem anônima de uso: quantas vezes por dia o app foi aberto, quantas análises foram feitas, quantas pessoas viram os planos ou assinaram, por plataforma. Não guarda IP, identificador nem nada do perfil, e não identifica ninguém | No nosso servidor | Não |
 
 Antes do envio, o app reduz a foto e envia só a imagem, sem os dados de localização e do aparelho
@@ -40,6 +42,7 @@ que a câmera grava no arquivo.
 | Cobrança e gestão da assinatura | Execução de contrato (art. 7º, V) |
 | Guardar registros de acesso por 6 meses | Obrigação legal (Marco Civil da Internet, art. 15) |
 | Liberar a primeira análise grátis uma vez por aparelho | Execução de contrato (art. 7º, V) |
+| Dar os meses grátis do "indique uma amiga" e evitar abuso (um convite por aparelho, limite por internet) | Execução de contrato (art. 7º, V) e legítimo interesse (art. 7º, IX), só com dados não sensíveis |
 | Contar o uso do app de forma anônima, para melhorar o serviço | Os números não identificam ninguém (art. 12); por transparência, legítimo interesse (art. 7º, IX) |
 | Segurança e prevenção a abusos (limite de análises por minuto e de análises grátis por internet por dia) | Legítimo interesse (art. 7º, IX), só com dados não sensíveis |
 
@@ -74,6 +77,7 @@ contratuais dos fornecedores ou outro mecanismo previsto em lei.
 | Foto enviada para análise | Nosso servidor não guarda. A Anthropic pode guardar por prazo limitado, conforme o item 5 |
 | Registros de acesso | 6 meses |
 | Contagem anônima de uso | Enquanto o serviço existir; não identifica ninguém |
+| Indique uma amiga | Código e identificadores enquanto o serviço existir; o IP é apagado em 31 dias |
 | Identificador do aparelho que usou a análise grátis | Enquanto o serviço existir; o IP ligado a ele é apagado em 2 dias |
 | Dados da assinatura | Pelo prazo exigido pela legislação fiscal e pelas regras das lojas |
 

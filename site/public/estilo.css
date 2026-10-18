@@ -165,6 +165,9 @@ img { display: block; max-width: 100%; height: auto; }
 .plano.melhor .lista li::after { border-color: var(--ouro); }
 .plano.melhor .btn-escuro { background: var(--ouro); color: #FFFDFB; box-shadow: none; }
 .etiqueta { position: absolute; top: -13px; left: 28px; background: var(--ouro); color: #FFFDFB; font-size: 12px; font-weight: 600; padding: 5px 12px; border-radius: 999px; }
+.indique { display: flex; align-items: center; gap: 14px; max-width: 760px; margin: 24px auto 0; padding: 16px 20px; border-radius: 20px; background: var(--ouro-suave); color: var(--tinta-2); }
+.indique svg { flex: none; width: 30px; height: 30px; fill: none; stroke: var(--ouro-tinta); stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+.indique b { color: var(--tinta); }
 .nota { text-align: center; color: var(--apagado); font-size: 14px; margin-top: 22px; }
 
 /* Perguntas */
@@ -261,3 +264,12 @@ img { display: block; max-width: 100%; height: auto; }
   .faq details { padding: 0 18px; }
   .final { width: calc(100% - 32px); margin: 72px auto 0; padding: 56px 20px; border-radius: 28px; }
 }
+
+/* Página de convite */
+.convite { text-align: center; padding-top: 56px; }
+.convite .marca { justify-content: center; margin-bottom: 8px; }
+.convite h1 { margin-top: 18px; }
+.codigo-caixa { display: inline-flex; flex-direction: column; gap: 4px; margin: 18px 0 8px; padding: 16px 28px; border-radius: 20px; background: var(--ouro-suave); }
+.codigo-caixa span { font-size: 13px; color: var(--apagado); }
+.codigo-caixa b { font: 600 30px/1.2 ui-monospace, Menlo, monospace; letter-spacing: .14em; color: var(--tinta); }
+.passos-convite { font-size: 14px; max-width: 460px; margin: 18px auto !important; }

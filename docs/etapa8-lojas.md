@@ -151,3 +151,42 @@ Apple Developer e Google Play aprovadas):
    `app/nativo.js` pelas chaves públicas `appl_` e `goog_`.
 
 O id `br.com.myskin.app` não pode ser trocado depois do primeiro envio às lojas.
+
+## Teste grátis, Plano Família e "Indique uma amiga" (18/10/2026)
+
+O app e o servidor já estão prontos; falta configurar nas lojas e no RevenueCat.
+
+**Produtos nas lojas** (Google Play Console → app → Monetizar com o Google Play → Produtos → Assinaturas;
+App Store Connect → app → Assinaturas, no mesmo grupo de assinaturas):
+
+| ID do produto | Plano | Preço | Teste grátis |
+|---|---|---|---|
+| `myskincare_mensal` | mensal, renovação automática | R$ 19,90 | não |
+| `myskincare_anual` | anual, renovação automática | R$ 129,90 | **7 dias** (oferta introdutória "teste gratuito") |
+| `myskincare_familia_mensal` | mensal, renovação automática | R$ 29,90 | não |
+| `myskincare_familia_anual` | anual, renovação automática | R$ 199,90 | **7 dias** |
+
+No Google Play, o teste é uma "oferta" no plano básico (fase gratuita de 7 dias, para novos clientes). Na
+Apple, é uma "oferta introdutória" do tipo "teste gratuito" de 1 semana. As lojas só dão o teste uma vez
+por conta; o app só mostra "7 dias grátis" quando a loja oferece o teste para aquela pessoa.
+
+**RevenueCat:**
+
+1. Product catalog → Products: importar os 4 produtos de cada loja.
+2. Entitlements: `myskincare_pro` com **os 4 produtos** (libera as análises; o servidor confere este) e
+   `myskincare_familia` só com os 2 da família (libera até 4 perfis no aparelho).
+3. Offerings → `default` (current): pacotes `$rc_monthly` (mensal), `$rc_annual` (anual), e dois pacotes
+   personalizados com os identificadores `familia_mensal` e `familia_anual`.
+4. Project settings → API keys: a chave do servidor (`npx wrangler secret put REVENUECAT_API_KEY`) tem de ser
+   **secreta (sk_)**, com permissão de escrita em "customer information": o "indique uma amiga" dá os meses
+   grátis como *promotional entitlements* pela API.
+
+**Plano Família:** perfis no mesmo aparelho (o compartilhamento familiar da Apple não existe no Google Play,
+por isso não é usado). Cada perfil passa pelo próprio aceite dos termos e da autorização de uso da foto.
+Testadores com código de convite também podem criar perfis.
+
+**Indique uma amiga:** servidor em `POST/GET /indicacao` (`server/src/index.js`), página do link em
+`site/public/convite.html` (`www.myskincareapp.com.br/convite?c=CODIGO`). Regras nos Termos (versão 4):
+amiga ganha 1 mês ao usar o código; quem convidou ganha 1 mês quando a amiga paga (máx. 12 por ano); um
+convite por aparelho; até 2 usos por internet a cada 30 dias. O painel de métricas conta "Enviaram convite"
+e "Usaram convite de amiga".

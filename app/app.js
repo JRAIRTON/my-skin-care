@@ -77,7 +77,13 @@ const S = {
   card: { formato: "stories", foto: false, url: null, blob: null }, analises: [], checks: {}, eventos: [], rotinaInicio: null,
   tela: "inicio", detalhe: null, onb: 0, rascunho: null, ocupado: null, cmp: { a: null, b: null, corte: 50 },
   editando: false, procForm: false, instalar: null, catFiltro: "Todos",
+  // family: profiles on this phone; each one has its own data under K() keys and analyses tagged with perfil
+  perfis: [], perfilAtivo: "principal", familia: false, fimTeste: null, ofertas: null, convite: null,
 };
+const MAX_PERFIS = 4;
+// key of a per-profile item: the main profile keeps the original keys (older installs keep working)
+const K = (nome, id = S.perfilAtivo) => (id === "principal" ? nome : `p:${id}:${nome}`);
+const doPerfil = (a, id = S.perfilAtivo) => (a.perfil || "principal") === id;
 const urls = {};
 const fotoUrl = (a) => { if (!a?.foto) return null; if (!urls[a.id]) urls[a.id] = URL.createObjectURL(a.foto); return urls[a.id]; };
 const ordenadas = () => [...S.analises].sort((a, b) => (a.data + a.criadoEm).localeCompare(b.data + b.criadoEm));
@@ -86,11 +92,14 @@ const anterior = (a) => { const l = ordenadas(); const i = l.findIndex((x) => x.
 const recuperacao = (data = hoje()) => S.eventos.find((e) => data >= e.data && data <= soma(e.data, e.dias)) || null;
 
 async function carrega() {
+  const [perfis, ativo, fimTeste] = await Promise.all([DB.get("perfis"), DB.get("perfilAtivo"), DB.get("fimTeste")]);
+  S.perfis = perfis || []; S.fimTeste = fimTeste || null;
+  S.perfilAtivo = ativo && S.perfis.some((x) => x.id === ativo) ? ativo : "principal";
   const [cat, perfil, codigo, analises, checks, eventos, inicio, usuario, tenho] = await Promise.all([
-    fetch("catalogo.json").then((r) => r.json()), DB.get("perfil"), DB.get("codigo"), DB.todas(),
-    DB.get("checks"), DB.get("eventos"), DB.get("rotinaInicio"), DB.get("usuario"), DB.get("tenho"),
+    S.catalogo.length ? S.catalogo : fetch("catalogo.json").then((r) => r.json()), DB.get(K("perfil")), DB.get("codigo"), DB.todas(),
+    DB.get(K("checks")), DB.get(K("eventos")), DB.get(K("rotinaInicio")), DB.get("usuario"), DB.get(K("tenho")),
   ]);
-  Object.assign(S, { catalogo: cat, perfil: perfil || null, codigo: codigo || null, analises: analises || [], checks: checks || {}, eventos: eventos || [], rotinaInicio: inicio || null, usuario: usuario || null, tenho: tenho || [] });
+  Object.assign(S, { catalogo: cat, perfil: perfil || null, codigo: codigo || null, analises: (analises || []).filter((a) => doPerfil(a)), checks: checks || {}, eventos: eventos || [], rotinaInicio: inicio || null, usuario: usuario || null, tenho: tenho || [] });
   // random id of this install: the server uses it for the free first analysis and the subscription
   if (!S.usuario) { S.usuario = crypto.randomUUID(); await DB.set("usuario", S.usuario); }
 }
@@ -261,7 +270,12 @@ function render() {
   main.innerHTML = !pronto ? vOnboarding() : S.detalhe ? vDetalhe() : ({ inicio: vInicio, evolucao: vEvolucao, analisar: vAnalisar, rotina: vRotina, produtos: vProdutos, ajustes: vAjustes, assinar: vAssinar, compartilhar: vCompartilhar }[S.tela] || vInicio)();
   depois();
 }
-function vai(tela) { if (tela === "assinar") evento("viu_planos", "uma"); if (S.cam) fechaCamera(); if (tela === "compartilhar" && S.card.url) { URL.revokeObjectURL(S.card.url); S.card.url = null; S.card.blob = null; } S.tela = tela; S.detalhe = null; S.editando = false; S.procForm = false; render(); entra(); window.scrollTo(0, 0); }
+function vai(tela) {
+  if (tela === "assinar") {
+    evento("viu_planos", "uma");
+    if (compras() && !S.ofertas) compras().ofertas(S.usuario).then((o) => { S.ofertas = o; if (S.tela === "assinar") render(); }).catch(() => {});
+  }
+  if (S.cam) fechaCamera(); if (tela === "compartilhar" && S.card.url) { URL.revokeObjectURL(S.card.url); S.card.url = null; S.card.blob = null; } S.tela = tela; S.detalhe = null; S.editando = false; S.procForm = false; render(); entra(); window.scrollTo(0, 0); }
 // short entrance animation of the new visual, only when the screen changes
 function entra() { const m = $("#main"); m.classList.remove("entra"); void m.offsetWidth; m.classList.add("entra"); setTimeout(() => m.classList.remove("entra"), 500); }
 
@@ -297,7 +311,8 @@ const TEXTO_PRIVACIDADE = `
 function vOnboarding() {
   const passo = S.perfil?.consentimento ? 2 : S.onb;
   const dots = `<div class="steps-dots" aria-hidden="true">${[0, 1, 2].map((i) => `<i class="${i === passo ? "on" : ""}"></i>`).join("")}</div>`;
-  if (passo === 0) return `
+  const familia = S.perfilAtivo !== "principal" ? aviso("gold", `<b>Novo perfil da família.</b> A pessoa que vai usar este perfil lê e autoriza abaixo, com os dados dela. <button class="btn sm ghost" data-act="perfil-usar:principal">Voltar ao perfil principal</button>`) : "";
+  if (passo === 0) return `${familia}
     <section class="card center" style="padding-block:28px">${LOGO.replace('width="28" height="28"', 'width="56" height="56"')}
       <h1>Sua pele, acompanhada de perto</h1>
       <p class="lede">Conhecer sua pele é o primeiro passo para cuidar melhor dela ao longo do tempo e suavizar os efeitos naturais do envelhecimento. O MY Skin Care avalia 10 aspectos da sua pele e sugere uma rotina de cuidados personalizada, com produtos adequados às suas necessidades.</p>
@@ -319,6 +334,18 @@ function vOnboarding() {
 }
 
 // ----- início
+// home: free trial about to end (CDC: warn before the first charge)
+function avisoTeste() {
+  if (!S.fimTeste) return "";
+  const n = dias(hoje(), S.fimTeste);
+  if (n < 0 || n > 2) return "";
+  return aviso("warn", `<b>Seu teste grátis termina ${n === 0 ? "hoje" : n === 1 ? "amanhã" : `em ${fmt(S.fimTeste)}`}.</b> Se não quiser continuar, cancele na loja (App Store ou Google Play) até lá. Depois disso, começa a cobrança do plano.`);
+}
+// home: an invite link was opened and not used yet
+function avisoConvite() {
+  const c = lsGet("myskin-convite");
+  return c ? aviso("gold", `<b>Você recebeu um convite: 1 mês grátis.</b> <button class="btn sm primary" data-act="convite-usar:${esc(c)}">Ativar</button>`) : "";
+}
 // home: up to 5 days before a serum starts, ask whether the person already has it
 function lembreteSerum(r) {
   const x = proximosAtivos(r).find((y) => !temProduto(y.p) && dias(hoje(), y.data) <= 5);
@@ -333,13 +360,14 @@ function vInicio() {
   const instalar = dicaInstalar();
   if (!a) return `
     <section class="card empty"><h1>Olá${nome}</h1><p class="lede">Comece pela primeira foto. Leva 1 minuto e a análise sai em segundos.</p>
-      <button class="btn primary" data-act="tela:analisar">Fazer a primeira análise</button></section>${instalar}`;
+      <button class="btn primary" data-act="tela:analisar">Fazer a primeira análise</button></section>${avisoTeste()}${avisoConvite()}${instalar}`;
   const ant = anterior(a), prox = soma(a.data, INTERVALO_DIAS), r = rec(a);
   const passos = passosDeHoje(r), feitos = passos.filter((p) => (S.checks[hoje()] || []).includes(p.id)).length;
   return `
     <section class="card"><div class="hero">${anel(a.skin_score)}
       <div class="stack"><h2>Olá${nome}</h2><p class="small muted">Última análise em ${fmt(a.data)}${ant ? ` · ${delta(a.skin_score, ant.skin_score) || ""} desde ${fmtC(ant.data)}` : ""}</p>
-      <button class="btn sm" data-act="ver:${a.id}">Ver detalhes</button></div></div></section>
+      <button class="btn sm" data-act="ver:${a.id}">Ver detalhes</button>${listaPerfis().length > 1 ? `<button class="btn sm ghost" data-act="tela:ajustes">Trocar perfil</button>` : ""}</div></div></section>
+    ${avisoTeste()}${avisoConvite()}
     ${lembreteSerum(r)}
     ${recuperacao() ? aviso("warn", `<b>Pele em recuperação</b> até ${fmt(soma(recuperacao().data, recuperacao().dias))}: a rotina está só com o básico.`) : ""}
     <section class="card"><div class="row between"><h3>Rotina de hoje</h3><span class="chip gold num">${feitos} de ${passos.length}</span></div>${seloSeq()}
@@ -462,11 +490,11 @@ async function analisar() {
     const a = {
       id: novoId(), data: hoje(), criadoEm: new Date().toISOString(), notas: r.notas,
       skin_score: r.skin_score ?? skinScore(r.notas), confianca: r.confianca, idade_aparente: r.idade_aparente,
-      modelo: r.modelo, qualidade: d.q.medidas, nivelQualidade: d.q.nivel, foto: d.blob,
+      modelo: r.modelo, qualidade: d.q.medidas, nivelQualidade: d.q.nivel, foto: d.blob, perfil: S.perfilAtivo,
     };
     await DB.salva(a);
     S.analises.push(a);
-    if (!S.rotinaInicio) { S.rotinaInicio = a.data; await DB.set("rotinaInicio", a.data); }
+    if (!S.rotinaInicio) { S.rotinaInicio = a.data; await DB.set(K("rotinaInicio"), a.data); }
     URL.revokeObjectURL(d.url); S.rascunho = null; S.ocupado = false;
     S.detalhe = a.id; render(); window.scrollTo(0, 0);
     evento("analise"); evento("primeira_analise", "uma");
@@ -725,6 +753,24 @@ function vAjustes() {
     <section class="card"><h3>Assinatura</h3>
       <p class="small">${S.codigo ? "Você usa um código de convite: as análises estão liberadas." : "A primeira análise é grátis; as seguintes fazem parte da assinatura."}</p>
       ${S.codigo ? "" : `<button class="btn" data-act="tela:assinar">Ver planos</button>`}</section>
+    <section class="card"><h3>Família</h3>
+      <div class="list">${listaPerfis().map((x) => `<div class="item" style="cursor:default"><span class="item-b"><span class="item-t">${esc(x.nome || "Novo perfil")}${x.id === "principal" ? " · principal" : ""}</span></span>
+        ${x.id === S.perfilAtivo ? `<span class="chip gold">em uso</span>` : `<button class="btn sm" data-act="perfil-usar:${x.id}">Usar</button>`}
+        ${x.id !== "principal" ? `<button class="btn sm ghost danger" data-act="perfil-remover:${x.id}" aria-label="Apagar perfil">Apagar</button>` : ""}</div>`).join("")}</div>
+      ${podeFamilia()
+        ? `${listaPerfis().length < MAX_PERFIS ? `<button class="btn" data-act="perfil-novo">Adicionar pessoa</button>` : ""}
+           <p class="small muted">Cada pessoa tem o próprio perfil, com fotos, análises e rotina. Quem vai usar o perfil preenche e autoriza o uso da própria foto. Só para maiores de 18 anos.</p>`
+        : `<p class="small">Com o <b>Plano Família</b>, até ${MAX_PERFIS} pessoas usam o app neste celular, cada uma com a sua análise e rotina.</p><button class="btn" data-act="tela:assinar">Ver planos</button>`}</section>
+    <section class="card"><h3>Indique uma amiga</h3>
+      <p class="small">Sua amiga ganha <b>1 mês grátis</b> ao usar o seu código, e você ganha <b>1 mês grátis</b> quando ela assinar.</p>
+      ${S.convite ? `<div class="box center"><span class="small muted">Seu código</span><span class="codigo-convite">${esc(S.convite.codigo)}</span>
+          <span class="small muted">${S.convite.convidadas} ${S.convite.convidadas === 1 ? "amiga usou" : "amigas usaram"} · ${S.convite.premiadas} ${S.convite.premiadas === 1 ? "mês ganho" : "meses ganhos"}</span></div>
+        <button class="btn primary" data-act="convite-compartilhar">Enviar convite</button>`
+        : `<button class="btn" data-act="convite-ver"${S.ocupado ? " disabled" : ""}>Ver meu código</button>`}
+      <details${lsGet("myskin-convite") ? " open" : ""}><summary class="small">Recebeu o código de uma amiga?</summary>
+        <label class="f">Código da amiga<input id="in-convite" value="${esc(lsGet("myskin-convite") || "")}" autocomplete="off" autocapitalize="characters" spellcheck="false" maxlength="12"></label>
+        <button class="btn" data-act="convite-usar"${S.ocupado ? " disabled" : ""}>Ganhar 1 mês grátis</button></details>
+      <p class="small muted">Regras nos <a href="termos.html">Termos de Uso</a>.</p></section>
     <section class="card"><h3>Código de convite</h3>
       <label class="f">Código<input type="password" id="in-codigo" value="" placeholder="••••••••" autocomplete="off" autocapitalize="off" spellcheck="false"></label>
       <button class="btn" data-act="codigo"${S.ocupado ? " disabled" : ""}>${S.ocupado ? "Conferindo…" : "Trocar código"}</button></section>
@@ -740,23 +786,40 @@ function vAjustes() {
 
 // ----- assinatura
 const PLANOS = [
-  { id: "mensal", nome: "Mensal", preco: "R$ 19,90", detalhe: "por mês" },
-  { id: "anual", nome: "Anual", preco: "R$ 129,90", detalhe: "por ano · sai a R$ 10,83 por mês", selo: "Melhor custo · economize 45%" },
+  { id: "anual", grupo: "Individual", nome: "Anual", preco: "R$ 129,90", detalhe: "por ano · sai a R$ 10,83 por mês", selo: "Melhor custo · economize 45%" },
+  { id: "mensal", grupo: "Individual", nome: "Mensal", preco: "R$ 19,90", detalhe: "por mês" },
+  { id: "familia_anual", grupo: "Família", nome: "Família anual", preco: "R$ 199,90", detalhe: "por ano · até 4 pessoas · sai a R$ 16,66 por mês", selo: "Economize 44%" },
+  { id: "familia_mensal", grupo: "Família", nome: "Família mensal", preco: "R$ 29,90", detalhe: "por mês · até 4 pessoas" },
 ];
+const TESTE_DIAS = 7; // free trial on the annual plans, set up in the stores (docs/etapa8-lojas.md)
 // the store app (Capacitor + RevenueCat) provides window.MySkinCompras; the web version has no purchase
 const compras = () => window.MySkinCompras || null;
+// family plan and trial end, as the store reports them (kept so the reminder works offline)
+async function guardaDireitos(st) {
+  if (!st) return;
+  S.familia = !!st.familia; S.fimTeste = st.fimTeste || null;
+  await DB.set("fimTeste", S.fimTeste);
+}
 function vAssinar() {
   const loja = compras(), a = ultima();
   const foco = a ? rec(a).prioridades.slice(0, 2).map((p) => p.objetivo.toLowerCase()) : [];
+  // in the store app the trial shows only when the store offers it to this person (it is given once)
+  const teste = (p) => (loja ? S.ofertas?.[p.id]?.testeDias || 0 : p.id.endsWith("anual") ? TESTE_DIAS : 0);
+  const preco = (p) => S.ofertas?.[p.id]?.preco || p.preco;
+  const botao = (p) => { const t = teste(p); return `<button class="btn plano${p.id === "anual" ? " primary" : ""} block" data-act="assinar:${p.id}"${loja && !S.ocupado ? "" : " disabled"}>
+    ${t ? `<span class="selo">${t} dias grátis</span>` : p.selo ? `<span class="selo">${p.selo}</span>` : ""}<b>${p.nome} · ${esc(preco(p))}</b>
+    <span class="small">${t ? `${t} dias grátis, depois ${esc(preco(p))} ${p.detalhe}` : p.detalhe}</span></button>`; };
+  const grupo = (g) => PLANOS.filter((p) => p.grupo === g).map(botao).join("");
+  const algumTeste = PLANOS.some((p) => teste(p));
   return `
     <section class="card"><h2>Assine o MY Skin Care</h2>
       <p class="lede">${a ? `Sua primeira análise deu <b>${a.skin_score} pontos</b>.${foco.length ? ` Com a assinatura, você acompanha mês a mês a evolução de <b>${foco.join("</b> e <b>")}</b>.` : " Com a assinatura, você acompanha a evolução mês a mês."}` : "Análises sem limite, evolução, rotina e produtos."} Cancele quando quiser, pela loja.</p>
       ${a ? `<div class="bloqueado" aria-hidden="true"><svg viewBox="0 0 300 90"><polyline points="10,70 70,58 130,62 190,44 250,36 290,26"/></svg><span>Sua evolução aparece aqui a partir da 2ª análise</span></div>` : ""}
       <ul class="beneficios small"><li>Nova análise todo mês, com comparação automática</li><li>Gráfico da evolução e antes e depois</li><li>Rotina e produtos atualizados a cada análise</li></ul>
-      <div class="stack">${PLANOS.map((p) => `<button class="btn plano${p.id === "anual" ? " primary" : ""} block" data-act="assinar:${p.id}"${loja && !S.ocupado ? "" : " disabled"}>
-        ${p.selo ? `<span class="selo">${p.selo}</span>` : ""}<b>${p.nome} · ${p.preco}</b><span class="small">${p.detalhe}</span></button>`).join("")}</div>
-      ${loja ? `<button class="btn sm" data-act="assinar:restaurar">Já assinei: restaurar compra</button>` : aviso("info", "A assinatura é feita pelo app MY Skin Care da App Store ou do Google Play. Se você recebeu um código de convite, use em Ajustes.")}
-      <p class="small muted">Renovação automática até o cancelamento. Veja os <a href="termos.html">Termos de Uso</a> e a <a href="privacidade.html">Política de Privacidade</a>.</p></section>`;
+      <h3>Individual</h3><div class="stack">${grupo("Individual")}</div>
+      <h3>Família</h3><p class="small muted">Até ${MAX_PERFIS} pessoas neste celular, cada uma com o próprio perfil, análises e rotina. Só para maiores de 18 anos.</p><div class="stack">${grupo("Família")}</div>
+      ${loja ? `<button class="btn sm" data-act="assinar:restaurar">Já assinei: restaurar compra</button>` : aviso("info", `A assinatura é feita pelo app MY Skin Care da App Store ou do Google Play${algumTeste ? `, com ${TESTE_DIAS} dias grátis nos planos anuais` : ""}. Se você recebeu um código de convite, use em Ajustes.`)}
+      <p class="small muted">${algumTeste ? `No teste grátis, nada é cobrado nos primeiros ${TESTE_DIAS} dias. Se não cancelar até o fim do teste, a loja cobra o plano escolhido. ` : ""}Renovação automática até o cancelamento, que é feito na loja. Veja os <a href="termos.html">Termos de Uso</a> e a <a href="privacidade.html">Política de Privacidade</a>.</p></section>`;
 }
 async function assinar(plano) {
   const loja = compras();
@@ -764,10 +827,15 @@ async function assinar(plano) {
   S.ocupado = true; render();
   if (plano !== "restaurar") evento("iniciou_compra");
   try {
-    const ativa = plano === "restaurar" ? await loja.restaurar(S.usuario) : await loja.comprar(plano, S.usuario);
+    const st = plano === "restaurar" ? await loja.restaurar(S.usuario) : await loja.comprar(plano, S.usuario);
+    const ativa = st?.ativa;
     if (ativa && plano !== "restaurar") evento("assinou");
+    await guardaDireitos(st);
     S.ocupado = false;
-    if (ativa) { toast("Assinatura ativa. Boas análises!"); vai("analisar"); } else { render(); toast(plano === "restaurar" ? "Nenhuma assinatura encontrada nesta conta da loja." : "A compra não foi concluída."); }
+    if (ativa) {
+      toast(st.fimTeste ? `Teste grátis ativo até ${fmt(st.fimTeste)}. Boas análises!` : "Assinatura ativa. Boas análises!");
+      vai(plano.startsWith("familia") && listaPerfis().length < 2 ? "ajustes" : "analisar");
+    } else { render(); toast(plano === "restaurar" ? "Nenhuma assinatura encontrada nesta conta da loja." : "A compra não foi concluída."); }
   } catch (e) { S.ocupado = false; render(); toast(e?.message || "A compra não foi concluída."); }
 }
 
@@ -899,9 +967,77 @@ async function enviaCard(salvar) {
   if (!salvar) toast(copiou ? "Imagem salva e link copiado. No Stories, cole o link no adesivo de link." : "Imagem salva. Agora é só postar onde quiser.");
 }
 
+// ---------- família (perfis neste aparelho) ----------
+// the list always has the main profile first; its name comes from its own profile data
+const listaPerfis = () => {
+  const l = S.perfis.length ? S.perfis : [{ id: "principal" }];
+  return l.map((x) => (x.id === S.perfilAtivo ? { ...x, nome: S.perfil?.nome || x.nome } : x));
+};
+const podeFamilia = () => !!(S.codigo || S.familia);
+async function trocaPerfil(id) {
+  if (id === S.perfilAtivo) return;
+  // keep the current name in the list, then load the other profile's data
+  S.perfis = listaPerfis(); await DB.set("perfis", S.perfis);
+  await DB.set("perfilAtivo", id);
+  Object.values(urls).forEach(URL.revokeObjectURL); for (const k in urls) delete urls[k];
+  S.onb = 0; await carrega(); S.detalhe = null; S.tela = "inicio"; render(); window.scrollTo(0, 0);
+  toast(S.perfil?.nome ? `Perfil de ${S.perfil.nome}.` : "Novo perfil: quem vai usar preenche e autoriza.");
+}
+async function novoPerfil() {
+  if (!podeFamilia()) return vai("assinar");
+  const l = listaPerfis();
+  if (l.length >= MAX_PERFIS) return toast(`O Plano Família tem até ${MAX_PERFIS} perfis.`);
+  const id = novoId();
+  S.perfis = [...l, { id, nome: "" }]; await DB.set("perfis", S.perfis);
+  // the new person goes through the consent screens; no invite-code step
+  await DB.set(K("perfil", id), { semCodigo: true });
+  await trocaPerfil(id);
+}
+async function removePerfil(id) {
+  const x = listaPerfis().find((p) => p.id === id);
+  if (!x || id === "principal") return;
+  if (!confirm(`Apagar o perfil${x.nome ? ` de ${x.nome}` : ""}, com fotos, análises e rotina? Não dá para desfazer.`)) return;
+  for (const a of (await DB.todas()).filter((a) => doPerfil(a, id))) await DB.apaga(a.id);
+  for (const n of ["perfil", "checks", "eventos", "rotinaInicio", "tenho"]) await DB.op("kv", "readwrite", (s) => s.delete(K(n, id)));
+  S.perfis = listaPerfis().filter((p) => p.id !== id); await DB.set("perfis", S.perfis);
+  if (S.perfilAtivo === id) { await DB.set("perfilAtivo", "principal"); await carrega(); }
+  toast("Perfil apagado."); render();
+}
+
+// ---------- indique uma amiga ----------
+const LINK_CONVITE = (c) => `https://www.myskincareapp.com.br/convite?c=${encodeURIComponent(c)}`;
+async function verConvite() {
+  S.ocupado = true; render();
+  try { S.convite = await chama("indicacao"); if (S.convite.novos) toast(`Você ganhou ${S.convite.novos} ${S.convite.novos === 1 ? "mês grátis" : "meses grátis"} por indicação!`); }
+  catch (e) { toast(e.status === 503 ? "Não foi possível agora. Tente de novo em instantes." : e.message); }
+  S.ocupado = false; render();
+}
+async function compartilhaConvite() {
+  if (!S.convite) return;
+  evento("convidou");
+  const c = S.convite.codigo, link = LINK_CONVITE(c);
+  const texto = `Estou usando o MY Skin Care, que analisa a pele por foto e monta a rotina de cuidados. Use o meu código ${c} e ganhe 1 mês grátis: ${link}`;
+  if (navigator.share) { try { await navigator.share({ text: texto }); return; } catch (e) { if (e.name === "AbortError") return; } }
+  try { await navigator.clipboard.writeText(texto); toast("Convite copiado. Cole no WhatsApp ou onde quiser."); } catch { toast(`Seu código é ${c}.`); }
+}
+async function usaConvite(codigo) {
+  const c = (codigo || $("#in-convite")?.value || "").trim().toUpperCase();
+  if (!c) return toast("Digite o código da sua amiga.");
+  S.ocupado = true; render();
+  try {
+    await chama("indicacao", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ codigo: c }) });
+    try { localStorage.removeItem("myskin-convite"); } catch {}
+    evento("usou_convite");
+    S.ocupado = false; toast("Pronto! Você ganhou 1 mês grátis de assinatura."); vai("analisar");
+  } catch (e) {
+    S.ocupado = false; render(); toast(e.status === 503 ? "Não foi possível usar o convite agora. Tente de novo em instantes." : e.message);
+    if (e.status === 409) try { localStorage.removeItem("myskin-convite"); } catch {}
+  }
+}
+
 // ---------- ações ----------
-async function salvaPerfil(p) { S.perfil = { ...S.perfil, ...p }; await DB.set("perfil", S.perfil); }
-async function salvaChecks() { await DB.set("checks", S.checks); }
+async function salvaPerfil(p) { S.perfil = { ...S.perfil, ...p }; await DB.set(K("perfil"), S.perfil); }
+async function salvaChecks() { await DB.set(K("checks"), S.checks); }
 
 async function verificaCodigo() {
   const v = $("#in-codigo")?.value.trim();
@@ -930,8 +1066,16 @@ async function lembrete(data) {
 
 async function exportar() {
   const para64 = (b) => new Promise((ok) => { const r = new FileReader(); r.onload = () => ok(r.result); r.readAsDataURL(b); });
-  const analises = await Promise.all(S.analises.map(async (a) => ({ ...a, foto: a.foto ? await para64(a.foto) : null })));
-  const dados = { app: "myskin", versao: 1, exportadoEm: new Date().toISOString(), perfil: S.perfil, checks: S.checks, eventos: S.eventos, rotinaInicio: S.rotinaInicio, tenho: S.tenho, analises };
+  // every profile on the phone (version 2); the main profile's fields also stay at the top, as in version 1
+  const analises = await Promise.all((await DB.todas()).map(async (a) => ({ ...a, foto: a.foto ? await para64(a.foto) : null })));
+  const perfis = {};
+  for (const { id } of listaPerfis()) {
+    const [perfil, checks, eventos, rotinaInicio, tenho] = await Promise.all(["perfil", "checks", "eventos", "rotinaInicio", "tenho"].map((n) => DB.get(K(n, id))));
+    perfis[id] = { perfil, checks, eventos, rotinaInicio, tenho };
+  }
+  const p0 = perfis.principal || {};
+  const dados = { app: "myskin", versao: 2, exportadoEm: new Date().toISOString(), perfil: p0.perfil, checks: p0.checks, eventos: p0.eventos, rotinaInicio: p0.rotinaInicio, tenho: p0.tenho,
+    listaPerfis: listaPerfis(), perfis, analises };
   const blob = new Blob([JSON.stringify(dados)], { type: "application/json" });
   const nome = `myskin-copia-${hoje()}.json`;
   const file = new File([blob], nome, { type: "application/json" });
@@ -952,9 +1096,14 @@ async function importar(file) {
   const { codigo, usuario } = S;
   await DB.limpa();
   await DB.set("codigo", codigo); await DB.set("usuario", usuario);
-  await DB.set("perfil", d.perfil); await DB.set("checks", d.checks || {}); await DB.set("eventos", d.eventos || []);
-  if (d.rotinaInicio) await DB.set("rotinaInicio", d.rotinaInicio);
-  if (Array.isArray(d.tenho)) await DB.set("tenho", d.tenho);
+  const perfis = d.versao >= 2 && d.perfis ? d.perfis : { principal: { perfil: d.perfil, checks: d.checks, eventos: d.eventos, rotinaInicio: d.rotinaInicio, tenho: d.tenho } };
+  for (const [id, x] of Object.entries(perfis)) {
+    await DB.set(K("perfil", id), x.perfil); await DB.set(K("checks", id), x.checks || {}); await DB.set(K("eventos", id), x.eventos || []);
+    if (x.rotinaInicio) await DB.set(K("rotinaInicio", id), x.rotinaInicio);
+    if (Array.isArray(x.tenho)) await DB.set(K("tenho", id), x.tenho);
+  }
+  if (Array.isArray(d.listaPerfis)) await DB.set("perfis", d.listaPerfis.filter((x) => x.id === "principal" || perfis[x.id]));
+  await DB.set("perfilAtivo", "principal");
   for (const a of analises) await DB.salva(a);
   Object.values(urls).forEach(URL.revokeObjectURL); for (const k in urls) delete urls[k];
   await carrega(); toast("Cópia restaurada."); vai("inicio");
@@ -964,6 +1113,12 @@ async function acao(act, el) {
   const [k, v] = [act.split(":")[0], act.slice(act.indexOf(":") + 1)];
   switch (k) {
     case "tela": return vai(v);
+    case "perfil-usar": return trocaPerfil(v);
+    case "perfil-novo": return novoPerfil();
+    case "perfil-remover": return removePerfil(v);
+    case "convite-ver": return verConvite();
+    case "convite-compartilhar": return compartilhaConvite();
+    case "convite-usar": return usaConvite(act.includes(":") ? v : "");
     case "ver": S.detalhe = v; render(); entra(); window.scrollTo(0, 0); return;
     case "compara": { const [x, y] = v.split(":"); S.cmp.a = x; S.cmp.b = y; return vai("evolucao"); }
     case "onb": {
@@ -973,7 +1128,7 @@ async function acao(act, el) {
       }
       const p = lePerfil();
       await salvaPerfil({ ...p, consentimento: S.perfil._aceite || new Date().toISOString() });
-      delete S.perfil._aceite; await DB.set("perfil", S.perfil);
+      delete S.perfil._aceite; await DB.set(K("perfil"), S.perfil);
       evento("consentiu", "uma");
       S.onb = 2; return render();
     }
@@ -998,9 +1153,9 @@ async function acao(act, el) {
     case "salva-proc": {
       const sel = $("#proc-tipo"), data = $("#proc-data").value || hoje();
       S.eventos.push({ id: novoId(), tipo: sel.value, dias: Number(sel.selectedOptions[0].dataset.dias), data });
-      await DB.set("eventos", S.eventos); S.procForm = false; toast("Procedimento registrado."); return render();
+      await DB.set(K("eventos"), S.eventos); S.procForm = false; toast("Procedimento registrado."); return render();
     }
-    case "apagar-proc": S.eventos = S.eventos.filter((e) => e.id !== v); await DB.set("eventos", S.eventos); return render();
+    case "apagar-proc": S.eventos = S.eventos.filter((e) => e.id !== v); await DB.set(K("eventos"), S.eventos); return render();
     case "catf": S.catFiltro = v; return render();
     case "visual": lsSet("myskin-visual", v); aplicaVisual(); return render();
     case "editar": S.editando = !S.editando; return render();
@@ -1016,7 +1171,7 @@ async function acao(act, el) {
     case "card-enviar": return enviaCard(false);
     case "card-salvar": return enviaCard(true);
     case "copia-link": return toast((await copiaLink()) ? "Link do app copiado." : "Não deu para copiar. O link é " + BAIXAR);
-    case "tenho": { const t = new Set(S.tenho); t.has(v) ? t.delete(v) : t.add(v); S.tenho = [...t]; await DB.set("tenho", S.tenho); return render(); }
+    case "tenho": { const t = new Set(S.tenho); t.has(v) ? t.delete(v) : t.add(v); S.tenho = [...t]; await DB.set(K("tenho"), S.tenho); return render(); }
     case "importar": return $("#in-backup").click();
     case "apagar-tudo":
       if (!confirm("Apagar perfil, fotos, análises e rotina deste aparelho? Não dá para desfazer. Exporte uma cópia antes, se quiser guardar.")) return;
@@ -1074,5 +1229,9 @@ window.addEventListener("beforeinstallprompt", (e) => { e.preventDefault(); S.in
   if (S.perfil?.consentimento && !S.codigo && !S.perfil.semCodigo) S.onb = 2;
   render();
   evento("primeiro_acesso", "uma"); evento("abriu", "dia");
+  if (compras()) compras().direitos(S.usuario).then(async (st) => { await guardaDireitos(st); render(); }).catch(() => {});
+  // invite link opened in the browser (?convite=CODIGO): keep it until the person uses it
+  const conv = new URLSearchParams(location.search).get("convite");
+  if (conv) { lsSet("myskin-convite", conv.toUpperCase()); history.replaceState(null, "", location.pathname); render(); }
   if ("serviceWorker" in navigator && !NATIVO) navigator.serviceWorker.register("sw.js").catch(() => {});
 })();

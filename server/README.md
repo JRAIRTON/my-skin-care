@@ -14,6 +14,8 @@ um só endereço para o app e a análise. É o mesmo pedido e o mesmo schema val
 | `GET /acesso` | Confere o código de acesso (`Authorization: Bearer <APP_TOKEN>`): `200` ou `401` |
 | `POST /analise` | Analisa uma foto |
 | `POST /evento` | Soma 1 à contagem anônima do dia de um evento do app (`{"nome", "plataforma"}`); sem IP nem identificador |
+| `GET /indicacao` | Código de convite do aparelho (`X-Usuario`), quantas amigas usaram e meses ganhos; dá o mês de quem convidou quando a amiga passa a pagar |
+| `POST /indicacao` | Usa o código de uma amiga (`{"codigo"}`): 1 mês grátis pelo RevenueCat (precisa da chave secreta `sk_`) |
 | `GET /metricas` | Painel com o funil e o uso; pede o código de acesso (`APP_TOKEN`) |
 
 `POST /analise` pede:

@@ -1,6 +1,6 @@
 # Termos de Uso — MY Skin Care
 
-Versão 3 · 17/10/2026
+Versão 4 · 18/10/2026
 
 ## 1. Quem somos
 
@@ -30,20 +30,42 @@ apagados. Detalhes na **Política de Privacidade**.
 
 ## 5. Fotos
 
-- Envie apenas fotos do seu próprio rosto.
-- É proibido enviar fotos de menores de 18 anos, fotos íntimas ou fotos de outras pessoas.
+- Em cada perfil, envie apenas fotos do rosto da pessoa dona daquele perfil, que leu e autorizou o uso.
+- É proibido enviar fotos de menores de 18 anos, fotos íntimas ou fotos de quem não autorizou.
 
 ## 6. Assinatura
 
 - **A primeira análise é gratuita.** As análises seguintes exigem assinatura.
-- Planos: **mensal de R$ 19,90** ou **anual de R$ 129,90**, com **renovação automática** até o
-  cancelamento.
+- Planos individuais: **mensal de R$ 19,90** ou **anual de R$ 129,90**. Plano Família (até 4 perfis no
+  mesmo aparelho): **mensal de R$ 29,90** ou **anual de R$ 199,90**. Todos com **renovação automática**
+  até o cancelamento.
+- **Teste grátis:** os planos anuais podem ter **7 dias grátis**, uma vez por conta da loja. Nada é cobrado
+  durante o teste; se você não cancelar até o fim dele, a loja cobra o plano escolhido. O app avisa quando o
+  teste está para acabar.
 - A cobrança e o cancelamento são feitos pela loja em que você assinou (App Store ou Google Play).
   O cancelamento vale para o próximo período; o acesso continua até o fim do período pago.
 - **Direito de arrependimento:** você pode desistir em até 7 dias da contratação (art. 49 do CDC),
   pelo canal da loja ou pelo e-mail **myskincare.ia.sac@gmail.com**, com devolução do valor pago.
 - Mudanças de preço serão avisadas com antecedência mínima de **30 dias**, e as lojas pedem sua
   concordância quando a regra delas exigir.
+
+### Plano Família
+
+- Até **4 perfis no mesmo aparelho**, cada um com fotos, análises e rotina próprios. Só para maiores de
+  18 anos, e cada pessoa lê e autoriza o uso dos próprios dados no perfil dela.
+- Quem assina é responsável por só criar perfis para pessoas que concordaram em usar o app.
+- Se o plano for cancelado, os perfis continuam no aparelho, mas novas análises exigem assinatura.
+
+### Indique uma amiga
+
+- Cada aparelho tem um código de convite. Quem usa o código de outra pessoa ganha **1 mês grátis** de
+  assinatura; quem convidou ganha **1 mês grátis** quando a pessoa convidada passa a pagar uma
+  assinatura (o teste grátis e o mês ganho pelo convite não contam).
+- Cada aparelho pode usar **um único** convite, não vale usar o próprio código, e há limite de usos por
+  conexão de internet. Quem convida ganha no máximo **12 meses por ano**.
+- Os meses grátis não são convertidos em dinheiro. Fraude (como criar instalações falsas para ganhar
+  meses) leva ao cancelamento dos meses ganhos. Podemos mudar ou encerrar a promoção avisando no app;
+  meses já ganhos são mantidos.
 
 ## 7. Rotina, produtos e preços
 
