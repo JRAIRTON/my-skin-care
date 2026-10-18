@@ -195,3 +195,16 @@ Testadores com código de convite também podem criar perfis.
 amiga ganha 1 mês ao usar o código; quem convidou ganha 1 mês quando a amiga paga (máx. 12 por ano); um
 convite por aparelho; até 2 usos por internet a cada 30 dias. O painel de métricas conta "Enviaram convite"
 e "Usaram convite de amiga".
+
+## Logo novo no app (18/10/2026)
+
+Logo "myskin care" da Direção 04 nas cores da paleta creme/nude/café: no topo do app, na página `/baixar` e na
+imagem de evolução compartilhada (desenhada no aparelho); o símbolo "my" no visor na tela de boas-vindas.
+Ícones e telas de abertura novos (antes a abertura era o logo padrão do Capacitor): as fontes ficam em
+`mobile/assets/` (geradas por `node scripts/marca_app.mjs`, com o site rodando em localhost:8787) e viram os
+arquivos de Android e iPhone com:
+
+    cd mobile && npx @capacitor/assets generate --ios --android --iconBackgroundColor '#3B2A22' \
+      --iconBackgroundColorDark '#3B2A22' --splashBackgroundColor '#F7F2EC' --splashBackgroundColorDark '#17110E'
+
+O ícone nas fichas das lojas (512×512) é `app/icones/icone-512.png`. Os apps instalados mudam no próximo build do Codemagic.

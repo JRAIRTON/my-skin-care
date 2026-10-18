@@ -220,7 +220,9 @@ const ICONES = {
   ajustes: '<circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M2 12h3M19 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1"/>',
 };
 const ico = (k) => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICONES[k]}</svg>`;
-const LOGO = `<svg width="28" height="28" viewBox="0 0 30 30" aria-hidden="true"><polyline points="5,23 9,8 15,17 21,8 25,23" fill="none" stroke="var(--ink)" stroke-width="1.6" stroke-linejoin="round"/>${[[5, 23], [9, 8], [15, 17], [21, 8], [25, 23]].map(([x, y]) => `<circle cx="${x}" cy="${y}" r="2.3" fill="var(--gold)"/>`).join("")}</svg>`;
+// logo "myskin care" (itálico com serifa + negrito + leve; o ponto do i é o círculo de foco) e o símbolo "my" no visor
+const MARCA = `<span class="logo" aria-hidden="true"><i>my</i><b>sk<span class="i">ı</span>n</b><span class="care">care</span></span>`;
+const SIMBOLO = `<span class="simbolo" aria-hidden="true"><svg viewBox="0 0 100 100"><path d="M8 26V8h18M74 8h18v18M92 74v18H74M26 92H8V74"/></svg><i>my</i></span>`;
 
 function anel(v, tam = 128) {
   const r = tam / 2 - 9, c = 2 * Math.PI * r, f = v == null ? 0 : Math.max(0, Math.min(100, v)) / 100;
@@ -265,7 +267,7 @@ const TELAS = [["inicio", "Início"], ["evolucao", "Evolução"], ["analisar", "
 
 function render() {
   const pronto = S.perfil?.consentimento && (S.codigo || S.perfil.semCodigo);
-  $("#topo").innerHTML = `<div class="top-in"><span class="brand">${LOGO}<b>MY <span>Skin Care</span></b></span>
+  $("#topo").innerHTML = `<div class="top-in"><span class="brand" role="img" aria-label="MY Skin Care">${MARCA}</span>
     ${pronto ? `<button class="icon-btn" data-act="tela:ajustes" aria-label="Ajustes"${S.tela === "ajustes" ? ' aria-current="page"' : ""}>${ico("ajustes")}</button>` : ""}</div>`;
   $("#nav").hidden = !pronto;
   $("#nav").innerHTML = `<div class="nav-in">${TELAS.map(([k, l]) => `<button data-act="tela:${k}" class="${k === "analisar" ? "cta" : ""}"${S.tela === k && !S.detalhe ? ' aria-current="page"' : ""}>${k === "analisar" ? `<span class="ic">${ico(k)}</span>` : ico(k)}${l}</button>`).join("")}</div>`;
@@ -317,7 +319,7 @@ function vOnboarding() {
   const dots = `<div class="steps-dots" aria-hidden="true">${[0, 1, 2].map((i) => `<i class="${i === passo ? "on" : ""}"></i>`).join("")}</div>`;
   const familia = S.perfilAtivo !== "principal" ? aviso("gold", `<b>Novo perfil da família.</b> A pessoa que vai usar este perfil lê e autoriza abaixo, com os dados dela. <button class="btn sm ghost" data-act="perfil-usar:principal">Voltar ao perfil principal</button>`) : "";
   if (passo === 0) return `${familia}
-    <section class="card center" style="padding-block:28px">${LOGO.replace('width="28" height="28"', 'width="56" height="56"')}
+    <section class="card center" style="padding-block:28px">${SIMBOLO}
       <h1>Sua pele, acompanhada de perto</h1>
       <p class="lede">Conhecer sua pele é o primeiro passo para cuidar melhor dela ao longo do tempo e suavizar os efeitos naturais do envelhecimento. O MY Skin Care avalia 10 aspectos da sua pele e sugere uma rotina de cuidados personalizada, com produtos adequados às suas necessidades.</p>
       <p class="lede"><b>É fácil, simples e seguro.</b> Sua pele bem cuidada para viver o melhor de cada fase.</p></section>
@@ -870,7 +872,7 @@ async function geraCard() {
   c.fillStyle = g; c.fillRect(0, 0, W, H);
   c.textAlign = "center"; c.fillStyle = cor.ink;
   let y = S.card.formato === "stories" ? 210 : 120;
-  c.font = `600 64px ${serif}`; c.fillText("MY Skin Care", W / 2, y);
+  await desenhaMarca(c, W / 2, y, 60, cor);
   c.fillStyle = cor.gold; c.font = `600 30px ${sans}`; c.fillText(r.diasEntre >= 1 ? `MINHA EVOLUÇÃO EM ${r.diasEntre} ${r.diasEntre === 1 ? "DIA" : "DIAS"}` : "MINHA EVOLUÇÃO", W / 2, y += 70);
   // body blocks measured first, then drawn centred between the header and the footer
   const post = S.card.formato === "post", comFoto = S.card.foto && fotoUrl(r.base) && fotoUrl(r.a);
@@ -924,6 +926,25 @@ async function geraCard() {
   // the address in writing, since the image itself cannot hold a link
   c.fillStyle = cor.ink2; c.font = `500 26px ${sans}`; c.fillText(SITE.replace(/^www\./, ""), W / 2, by + bh + 44);
   return new Promise((ok) => cv.toBlob(ok, "image/png"));
+}
+// the logo on the share image: "my" italic serif + "skin" bold + "care" light, focus ring over the i
+async function desenhaMarca(c, cx, y, t, cor) {
+  const fMy = `italic 400 ${t * 1.16}px "Instrument Serif", Georgia, serif`, fSkin = `700 ${t}px "Manrope", system-ui, sans-serif`, fCare = `400 ${t}px "Manrope", system-ui, sans-serif`;
+  await Promise.all([fMy, fSkin, fCare].map((f) => document.fonts?.load(f).catch(() => null)));
+  const mede = (f, txt) => { c.font = f; return c.measureText(txt).width; };
+  const wMy = mede(fMy, "my"), wSk = mede(fSkin, "sk"), wI = mede(fSkin, "ı"), wN = mede(fSkin, "n"), wCare = mede(fCare, "care");
+  const gap1 = t * 0.03, gap2 = t * 0.2, total = wMy + gap1 + wSk + wI + wN + gap2 + wCare;
+  let x = cx - total / 2;
+  const alinha = c.textAlign; c.textAlign = "left";
+  c.fillStyle = cor.ink; c.font = fMy; c.fillText("my", x, y); x += wMy + gap1;
+  c.font = fSkin; c.fillText("skın", x, y);
+  const xi = x + wSk + wI / 2; x += wSk + wI + wN + gap2;
+  c.fillStyle = cor.ink2; c.font = fCare; c.fillText("care", x, y);
+  // focus ring: just above the dotless i
+  const r = t * 0.135, yi = y - t * 0.79;
+  c.strokeStyle = cor.gold; c.lineWidth = t * 0.05; c.beginPath(); c.arc(xi, yi, r, 0, Math.PI * 2); c.stroke();
+  c.fillStyle = cor.gold; c.beginPath(); c.arc(xi, yi, r * 0.32, 0, Math.PI * 2); c.fill();
+  c.textAlign = alinha;
 }
 async function atualizaCard() {
   const blob = await geraCard();

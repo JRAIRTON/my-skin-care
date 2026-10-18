@@ -45,7 +45,7 @@ html:is([data-visual="novo"],[data-visual="nude"]) .lede { font-size: 16px; line
 
 /* Topo transparente com a marca em serifa */
 html:is([data-visual="novo"],[data-visual="nude"]) .top { background: color-mix(in srgb, var(--bg) 70%, transparent); border-bottom: 0; backdrop-filter: blur(16px) saturate(1.2); }
-html:is([data-visual="novo"],[data-visual="nude"]) .brand b { font-size: 25px; font-weight: 600; letter-spacing: .04em; }
+html:is([data-visual="novo"],[data-visual="nude"]) .logo { font-size: 26px; }
 html:is([data-visual="novo"],[data-visual="nude"]) .icon-btn { border-radius: 50%; border: 0; background: var(--surface); box-shadow: var(--shadow); }
 html:is([data-visual="novo"],[data-visual="nude"]) .icon-btn[aria-current="page"] { background: var(--espresso); color: var(--cream); }
 
@@ -171,7 +171,6 @@ html[data-visual="nude"] .card:has(.hero) {
 html[data-visual="nude"] .card:has(.hero) .btn { background: rgba(255, 255, 255, .5); border-color: rgba(255, 255, 255, .75); color: #3A2C27; }
 html[data-visual="nude"] .card:has(.hero) .chip { background: rgba(255, 255, 255, .55); color: #6E4436; }
 html[data-visual="nude"] .card:has(.hero) .notice { background: rgba(255, 255, 255, .45); color: #3A2C27; }
-html[data-visual="nude"] .brand b span { color: var(--gold-ink); }
 html[data-visual="nude"] h3 { color: var(--gold-ink); }
 html[data-visual="nude"] .btn.primary { background: var(--espresso); border-color: var(--espresso); color: var(--cream); }
 html[data-visual="nude"] .nav button.cta span.ic { background: linear-gradient(145deg, #C98A72, #B06D55); color: #FFFFFF; box-shadow: 0 10px 22px -8px rgba(176, 109, 85, .65); }
