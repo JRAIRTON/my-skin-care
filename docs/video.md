@@ -1,14 +1,14 @@
 # Vídeo do app
 
 18/10/2026. `site/public/video/app.mp4` (45 s, 600×1298, H.264 + AAC) toca no celular do topo do site (regravado em 18/10/2026 com o logo novo do app), sem som
-e em loop. Por enquanto vai sem a faixa de áudio e sem o botão de som (decisão de 18/10/2026: a voz
-sintética soou artificial); voltam quando houver a voz humana. Gravado do app de verdade com os
+e em loop. Com a narração da voz do Google (pt-BR-Chirp3-HD-Leda, 18/10/2026); o botão "Ouvir o passo a passo"
+recomeça o vídeo com o som. Gravado do app de verdade com os
 dados fictícios da "Ana" (as mesmas das imagens do site). Existe também a versão vertical 1080×1920
 para Reels, Stories e TikTok, gerada a partir deste vídeo (enviada no chat; não fica no repositório).
 
 ## Narração
 
-Voz sintética feminina em português do Brasil (Kokoro, voz "pf_dora", licença Apache 2.0), uma fala por tela:
+Voz do Google Cloud Text-to-Speech (pt-BR-Chirp3-HD-Leda), gerada por `scripts/video/voz_google.py`; uma fala por tela:
 
 1. Início: "Conheça o MY Skin Care, o aplicativo que acompanha a sua pele de perto."
 2. Foto: "Primeiro, tire uma foto do rosto. O aplicativo mostra como fazer: luz boa e sem maquiagem."

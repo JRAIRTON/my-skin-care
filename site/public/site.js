@@ -34,3 +34,13 @@ if (caixa && DEPOIMENTOS.length) {
     <figcaption><b>${esc(d.nome)}</b>${d.detalhe ? `<span>${esc(d.detalhe)}</span>` : ""}</figcaption></figure>`).join("");
   document.getElementById("depoimentos").hidden = false;
 }
+
+// Botão de som: o navegador só toca vídeo automático sem som; ao tocar, recomeça do início com a narração
+const som = document.querySelector("[data-som]");
+if (demo && som) {
+  const texto = som.querySelector("span");
+  som.addEventListener("click", () => {
+    if (demo.muted) { demo.muted = false; demo.currentTime = 0; demo.play().catch(() => {}); texto.textContent = "Desligar o som"; }
+    else { demo.muted = true; texto.textContent = "Ouvir o passo a passo"; }
+  });
+}
