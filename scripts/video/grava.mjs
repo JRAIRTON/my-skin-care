@@ -74,16 +74,17 @@ await segmento("5-rotina", async () => { await toca('[data-act="tela:rotina"]');
 await segmento("6-produtos", async () => { await toca('[data-act="tela:produtos"]'); await segura(0.8); await rola(1100, 2.6); });
 await segmento("7-final", async () => {
   await toca('[data-act="tela:inicio"]');
-  await p.evaluate(() => {
+  await p.evaluate((SIMBOLO) => {
     const d = document.createElement("div");
     d.style.cssText = "position:fixed;inset:0;z-index:99998;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;background:var(--bg);opacity:0;transition:opacity .5s;text-align:center;padding:24px";
-    d.innerHTML = `<div style="transform:scale(2.2);margin-bottom:26px">${document.querySelector(".brand svg").outerHTML}</div>
-      <div style="font-family:var(--display);font-size:40px;font-weight:600;line-height:1.05">MY <span style="color:var(--gold-ink)">Skin Care</span></div>
+    // end card: the "my" viewfinder symbol and the "myskin care" logo, both taken from the app itself
+    d.innerHTML = `<div style="transform:scale(1.6);margin-bottom:26px">${SIMBOLO}</div>
+      <div>${document.querySelector(".brand").innerHTML.replace('class="logo"', 'class="logo" style="font-size:42px"')}</div>
       <div style="font-family:var(--display);font-size:26px;color:var(--ink-2)">Sua pele, acompanhada de perto.</div>
       <div style="margin-top:18px;background:var(--espresso);color:var(--cream);padding:14px 26px;border-radius:999px;font-weight:700;font-size:19px">Primeira análise grátis</div>
       <div style="font-size:19px;font-weight:600;color:var(--ink-2)">myskincareapp.com.br</div>`;
     document.body.append(d); requestAnimationFrame(() => (d.style.opacity = 1));
-  });
+  }, `<span class="simbolo"><svg viewBox="0 0 100 100"><path d="M8 26V8h18M74 8h18v18M92 74v18H74M26 92H8V74"/></svg><i>my</i></span>`);
   await grava(0.7);
 });
 fs.writeFileSync(process.argv[4], JSON.stringify({ inicios, total: f / 30 }));
