@@ -4,7 +4,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { criaApp } from "../src/index.js";
 import METODO from "../src/metodo.json" with { type: "json" };
-import { CATS, GRAUS, CLASSE_SERUM, recomenda, prioridades, tipoPele, skinScore, liberadoEm } from "../../app/recomenda.js";
+import { CATS, GRAUS, CLASSE_SERUM, recomenda, prioridades, tipoPele, skinScore, liberadoEm, liberaAtivo, entradaDosAtivos } from "../../app/recomenda.js";
 
 const ler = (p) => JSON.parse(readFileSync(new URL(p, import.meta.url), "utf8"));
 const CATALOGO = ler("../../app/catalogo.json");
@@ -128,4 +128,33 @@ test("site: o domínio sem www redireciona e as respostas levam os cabeçalhos d
   const g = await site.fetch(new Request("https://www.myskincareapp.com.br/google04d0a35e2af0efe8.html"), env);
   assert.equal(g.status, 200);
   assert.equal(await g.text(), "google-site-verification: google04d0a35e2af0efe8.html");
+});
+
+test("ativo que entra por uma nova análise passa por 2 semanas de adaptação", () => {
+  const perfil = { tipoPele: "normal" };
+  const a1 = { data: "2026-10-01", notas: notas({ manchas: 3 }) };            // vitamina C
+  const a2 = { data: "2026-11-01", notas: notas({ linhas: 3 }) };             // troca para retinoide
+  const a3 = { data: "2026-12-01", notas: notas({ manchas: 3, poros: 3 }) };  // vitamina C volta + niacinamida
+  const ativos = (a) => { const r = recomenda(perfil, a.notas, CATALOGO); return { r, ps: [...r.passos.manha, ...r.passos.noite].filter((p) => p.ativo) }; };
+
+  // só a 1ª análise: o calendário de sempre (dia 15)
+  let ent = entradaDosAtivos([a1], perfil, CATALOGO);
+  let { r, ps } = ativos(a1);
+  assert.equal(liberaAtivo(ps[0], r.passos, "2026-10-01", ent), "2026-10-15");
+
+  // a 2ª análise traz o retinoide: libera 14 dias depois dela, não na hora
+  ent = entradaDosAtivos([a2, a1], perfil, CATALOGO); // a ordem da lista não importa
+  ({ r, ps } = ativos(a2));
+  assert.equal(ps[0].id, "n-serum-retinoide");
+  assert.equal(ent["n-serum-retinoide"], "2026-11-01");
+  assert.equal(liberaAtivo(ps[0], r.passos, "2026-10-01", ent), "2026-11-15");
+
+  // a 3ª traz dois ativos novos juntos (a vitamina C volta depois de sair): o 1º em 2 semanas, o 2º em 4
+  ent = entradaDosAtivos([a1, a2, a3], perfil, CATALOGO);
+  ({ r, ps } = ativos(a3));
+  const porId = Object.fromEntries(ps.map((p) => [p.id, liberaAtivo(p, r.passos, "2026-10-01", ent)]));
+  assert.deepEqual(porId, { "m-serum-vitc": "2026-12-15", "n-serum-niacinamida": "2026-12-29" });
+
+  // sem data de entrada (dados antigos), vale o calendário
+  assert.equal(liberaAtivo(ps[1], r.passos, "2026-10-01", {}), "2026-10-29");
 });

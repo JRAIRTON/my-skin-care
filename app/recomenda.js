@@ -254,6 +254,33 @@ export function liberadoEm(inicioISO, ordem) {
   return d.toISOString().slice(0, 10);
 }
 
+// Data em que cada ativo entrou na rotina: a da análise em que ele apareceu sem estar na anterior (se
+// sair e voltar, conta a volta). Calculado das próprias análises, sem guardar nada a mais.
+export function entradaDosAtivos(analises, perfil, catalogo) {
+  const entradas = {};
+  let antes = new Set();
+  for (const a of [...analises].sort((x, y) => (x.data + (x.criadoEm || "")).localeCompare(y.data + (y.criadoEm || "")))) {
+    const r = recomenda(perfil, a.notas, catalogo);
+    const ids = new Set([...r.passos.manha, ...r.passos.noite].filter((p) => p.ativo).map((p) => p.id));
+    for (const id of ids) if (!antes.has(id)) entradas[id] = a.data;
+    antes = ids;
+  }
+  return entradas;
+}
+
+// Quando um ativo pode começar: o calendário da rotina (dia 15 o 1º, dia 29 o 2º) e, se ele entrou depois
+// por uma nova análise, 2 semanas de adaptação a partir da entrada (4, se outro ativo novo entrou junto antes).
+export function liberaAtivo(passo, passos, inicioRotina, entradas) {
+  const base = liberadoEm(inicioRotina, passo.ordem);
+  const entrada = entradas?.[passo.id];
+  if (!entrada) return base;
+  const juntos = [...passos.manha, ...passos.noite].filter((p) => p.ativo && p.ordem < passo.ordem && entradas[p.id] === entrada).length;
+  const d = new Date(entrada + "T12:00:00");
+  d.setDate(d.getDate() + 14 * (1 + juntos));
+  const adaptacao = d.toISOString().slice(0, 10);
+  return adaptacao > base ? adaptacao : base;
+}
+
 export function skinScore(notas) {
   const v = CATS.map(([k]) => notaDe(notas, k)).filter((n) => n !== null);
   return v.length ? Math.round(v.reduce((a, b) => a + b, 0) / v.length) : null;

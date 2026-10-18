@@ -50,6 +50,10 @@ análise grátis e quantos assinam; se a conversão for baixa, testar R$ 14,90.
   Code foi testado e retirado (decisão de 10/10/2026).
   Ao compartilhar ou salvar, o app também copia o link `/baixar` para colar no adesivo de link do Stories
   do Instagram, e há o botão "Copiar só o link do app".
+- Rotina depois da 1ª análise (18/10/2026): um ativo que entra por uma nova análise (ou volta depois de sair)
+  só começa 2 semanas depois dela (4 para o segundo, se entrarem juntos), além do calendário de sempre
+  (dia 15 e dia 29); regra em `app/recomenda.js` (`liberaAtivo`, `entradaDosAtivos`). Com a última análise
+  com 4 semanas ou mais, a tela de rotina mostra o lembrete "Sua pele pode ter mudado" com o botão de nova análise.
 - Métricas de uso (18/10/2026): o app conta, sem identificar ninguém, aberturas, aceite dos termos, 1ª análise,
   análise grátis, planos vistos, toque em assinar, assinatura, compartilhamento e cliques em lojas. Painel em
   https://app.myskincareapp.com.br/metricas, com o código de acesso (`APP_TOKEN`). Política na versão 4.

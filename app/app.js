@@ -1,7 +1,7 @@
 // MY Skin Care — app web instalável (PWA).
 // Os dados ficam só neste aparelho (IndexedDB). A foto vai ao servidor apenas para a análise
 // (POST /analise) e não é guardada lá. A rotina e os produtos saem de regras fixas (recomenda.js).
-import { CATS, GRAUS, OBJETIVOS, TIPOS_PELE, FOTOTIPOS, recomenda, liberadoEm, skinScore } from "./recomenda.js";
+import { CATS, GRAUS, OBJETIVOS, TIPOS_PELE, FOTOTIPOS, recomenda, liberaAtivo, entradaDosAtivos, skinScore } from "./recomenda.js";
 import { linksCompra, temAfiliado } from "./afiliados.js";
 
 const MODELO_VALIDADO = "claude-sonnet-5-5";
@@ -583,36 +583,38 @@ function sequencia() {
   return n;
 }
 const seloSeq = () => { const n = sequencia(); return n >= 2 ? `<span class="chip good">${n} dias seguidos ✓</span>` : ""; };
+// date each active may start: routine calendar plus 2 weeks of adaptation when a new analysis brings it in
+const libera = (p, r) => liberaAtivo(p, r.passos, S.rotinaInicio || hoje(), entradaDosAtivos(S.analises, S.perfil, S.catalogo));
 function passosDeHoje(r) {
   const emRec = !!recuperacao();
-  const inicio = S.rotinaInicio || hoje();
-  return [...r.passos.manha, ...r.passos.noite].filter((p) => !p.ativo || (!emRec && hoje() >= liberadoEm(inicio, p.ordem)));
+  return [...r.passos.manha, ...r.passos.noite].filter((p) => !p.ativo || (!emRec && hoje() >= libera(p, r)));
 }
 function vRotina() {
   const a = ultima();
   if (!a) return `<section class="card empty"><h2>Rotina ainda não definida</h2><p class="lede">Sua rotina é montada a partir da primeira análise.</p><button class="btn primary" data-act="tela:analisar">Nova análise</button></section>`;
   const r = rec(a), t = hoje(), feitos = new Set(S.checks[t] || []), emRec = recuperacao();
-  const ativos = passosDeHoje(r), inicio = S.rotinaInicio || t;
+  const ativos = passosDeHoje(r);
   const semana = [...Array(7)].map((_, i) => { const d = new Date(); d.setDate(d.getDate() - (6 - i)); const s = ymd(d); return { s, n: (S.checks[s] || []).filter((k) => ativos.some((p) => p.id === k)).length, l: "DSTQQSS"[d.getDay()] }; });
   const bloco = (titulo, lista) => `<section class="card"><h3>${titulo}</h3><ul class="steps">${lista.map((p) => {
-    const libera = p.ativo ? liberadoEm(inicio, p.ordem) : null;
-    const off = p.ativo && (emRec || t < libera);
+    const comeca = p.ativo ? libera(p, r) : null;
+    const off = p.ativo && (emRec || t < comeca);
     const on = feitos.has(p.id);
     return `<li class="step${on ? " done" : ""}${off ? " off" : ""}"><input type="checkbox" id="st-${p.id}" data-act="check:${p.id}"${on ? " checked" : ""}${off ? " disabled" : ""}>
       <label for="st-${p.id}"><span class="step-t">${esc(p.passo)}</span>${p.alternado ? ` <span class="chip">noite sim, noite não</span>` : ""}<br>
       <span class="small">${p.produto ? `${esc(p.produto.marca)} ${esc(p.produto.produto)}. ` : ""}${esc(p.como)}</span><br>
       <span class="small muted">${esc(p.porque)}${p.cuidado ? ` ${esc(p.cuidado)}` : ""}</span>
-      ${off ? `<br><span class="chip warn">${emRec ? "pausado na recuperação" : `começa em ${fmt(libera)}`}</span>` : ""}</label></li>`;
+      ${off ? `<br><span class="chip warn">${emRec ? "pausado na recuperação" : `começa em ${fmt(comeca)}`}</span>` : ""}</label></li>`;
   }).join("")}</ul></section>`;
   const n = ativos.filter((p) => feitos.has(p.id)).length;
   const agoraManha = new Date().getHours() < 15;
   return `
     <section class="card"><div class="row between"><div class="stack" style="gap:2px"><h2>Sua rotina</h2><p class="small muted">Pela análise de ${fmt(a.data)}. Pele ${esc(TIPOS_PELE[r.pele]?.toLowerCase() || r.pele)}${S.perfil.tipoPele === "nao_sei" ? " (estimada pela foto)" : ""}.</p></div><span class="chip gold num">${n} de ${ativos.length} hoje</span></div>${seloSeq()}
       <div class="week" aria-label="Últimos 7 dias">${semana.map((w) => `<span class="day"><i class="${w.n === 0 ? "" : w.n >= ativos.length ? "full" : "part"}" title="${fmt(w.s)}: ${w.n} de ${ativos.length}"></i>${w.l}</span>`).join("")}</div></section>
+    ${dias(a.data, t) >= INTERVALO_DIAS ? aviso("gold", `<b>Sua pele pode ter mudado.</b> A última análise foi há ${dias(a.data, t)} dias. Faça uma nova foto para atualizar a sua rotina e os produtos. <button class="btn sm primary" data-act="tela:analisar">Nova análise</button>`) : ""}
     ${aviso("", `<b>Como usar:</b> todo dia, marque os passos que você fez de manhã e à noite. A fileira acima mostra os últimos 7 dias (cheio: tudo feito; metade: parte feita). Fica guardado só neste aparelho, para você acompanhar a sua constância.`)}
     <p class="small" style="padding-inline:4px">Com base na avaliação da sua pele${S.perfil.tipoPele && S.perfil.tipoPele !== "nao_sei" ? ` e na sua indicação de pele ${esc(TIPOS_PELE[S.perfil.tipoPele]?.toLowerCase() || "")}` : ""}, sugerimos os produtos abaixo, numa rotina para a manhã e a noite.</p>
     ${emRec ? aviso("warn", `<b>Recuperação de ${esc(emRec.tipo.toLowerCase())}</b> até ${fmt(soma(emRec.data, emRec.dias))}. Só limpeza suave, hidratante e protetor; ativos pausados, a menos que o profissional oriente diferente. <button class="btn sm ghost" data-act="apagar-proc:${emRec.id}">Remover registro</button>`) : ""}
-    ${r.passos.manha.some((p) => p.ativo) || r.passos.noite.some((p) => p.ativo) ? aviso("gold", "<b>Os ativos entram na rotina aos poucos.</b> Nas duas primeiras semanas, só o básico: limpeza, hidratação e protetor solar. Depois entra o primeiro ativo e, duas semanas mais tarde, o segundo. Assim sua pele se adapta com conforto e fica mais fácil perceber o que funciona para você.") : ""}
+    ${r.passos.manha.some((p) => p.ativo) || r.passos.noite.some((p) => p.ativo) ? aviso("gold", "<b>Os ativos entram na rotina aos poucos.</b> Nas duas primeiras semanas, só o básico: limpeza, hidratação e protetor solar. Depois entra o primeiro ativo e, duas semanas mais tarde, o segundo. Assim sua pele se adapta com conforto e fica mais fácil perceber o que funciona para você. Quando uma nova análise troca um ativo, o novo também passa por duas semanas de adaptação.") : ""}
     ${agoraManha ? bloco("Agora: manhã", r.passos.manha) : bloco("Agora: noite", r.passos.noite)}
     <details class="card"><summary>${agoraManha ? "Ver a rotina da noite" : "Ver a rotina da manhã"}</summary>${agoraManha ? bloco("Noite", r.passos.noite) : bloco("Manhã", r.passos.manha)}</details>
     ${S.procForm ? `<section class="card"><h3>Procedimento estético</h3><div class="fields">
