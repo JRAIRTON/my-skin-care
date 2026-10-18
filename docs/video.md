@@ -10,7 +10,8 @@ para Reels, Stories e TikTok, gerada a partir deste vídeo (enviada no chat; nã
 
 Voz do Google Cloud Text-to-Speech (pt-BR-Chirp3-HD-Leda), gerada por `scripts/video/voz_google.py`; uma fala por tela:
 
-1. Início: "Conheça o MY Skin Care, o aplicativo que acompanha a sua pele de perto."
+1. Início: "Conheça o MY Skin Care, o aplicativo que acompanha a sua pele de perto." (no roteiro da voz:
+   "Mai Skin Kér", para a pronúncia sair certa; o endereço do site também vai escrito como se fala)
 2. Foto: "Primeiro, tire uma foto do rosto. O aplicativo mostra como fazer: luz boa e sem maquiagem."
 3. Resultado: "Em segundos, você recebe o seu Skin Score e uma nota para cada um dos dez aspectos da pele,
    com a explicação de cada uma."
