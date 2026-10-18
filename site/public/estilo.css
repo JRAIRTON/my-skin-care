@@ -292,5 +292,4 @@ img { display: block; max-width: 100%; height: auto; }
 /* Novidades (teste grátis, Plano Família, indique uma amiga): escondidas até ligar NOVIDADES em site.js */
 html:not(.novidades) [data-novidade], html.novidades [data-sem-novidade] { display: none !important; }
 .planos { grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); }
-html:not(.novidades) .planos { max-width: 760px; margin-inline: auto; }
 
