@@ -215,3 +215,42 @@ test("falha do RevenueCat vira 503, sem análise", async () => {
     assert.equal(c.chamadas.length, 0);
   } finally { console.error = err; }
 });
+
+// D1 sobre o SQLite do Node, para testar as consultas das métricas de verdade
+async function d1Sqlite() {
+  const { DatabaseSync } = await import("node:sqlite");
+  const db = new DatabaseSync(":memory:");
+  const prepare = (sql) => ({ args: [], bind(...a) { this.args = a; return this; },
+    async run() { db.prepare(sql).run(...this.args); return {}; },
+    async all() { return { results: db.prepare(sql).all(...this.args) }; },
+    async first() { return db.prepare(sql).get(...this.args) ?? null; } });
+  return { prepare, async batch(st) { for (const x of st) await x.run(); } };
+}
+
+test("métricas: /evento conta por dia, evento e plataforma, sem identificar ninguém", async () => {
+  const db = await d1Sqlite();
+  const env = { ...ENV, REGISTROS: db };
+  const app = criaApp({ cliente: {} });
+  const ev = (corpo) => app.fetch(new Request("https://s/evento", { method: "POST", headers: { "Content-Type": "text/plain", "CF-Connecting-IP": "1.2.3.4" }, body: corpo }), env);
+  for (const c of [{ nome: "abriu", plataforma: "web" }, { nome: "abriu", plataforma: "web" }, { nome: "assinou", plataforma: "android" }])
+    assert.equal((await ev(JSON.stringify(c))).status, 204);
+  // eventos fora da lista, plataforma inválida e lixo são ignorados, sem erro
+  for (const c of [JSON.stringify({ nome: "hack", plataforma: "web" }), JSON.stringify({ nome: "abriu", plataforma: "x" }), "{", ""])
+    assert.equal((await ev(c)).status, 204);
+
+  const leitura = (tok) => app.fetch(new Request("https://s/metricas.json", { headers: tok ? { Authorization: `Bearer ${tok}` } : {} }), env);
+  assert.equal((await leitura()).status, 401);
+  assert.equal((await leitura("errado")).status, 401);
+  const r = await leitura("segredo");
+  assert.equal(r.status, 200);
+  const d = await r.json();
+  const total = Object.fromEntries(d.total.map((x) => [`${x.nome}/${x.plataforma}`, x.n]));
+  assert.deepEqual(total, { "abriu/web": 2, "assinou/android": 1 });
+  assert.equal(d.diario.length, 2);
+  // a tabela de métricas não tem colunas de IP nem de usuário
+  assert.deepEqual(Object.keys(d.diario[0]).sort(), ["dia", "n", "nome", "plataforma"]);
+
+  const painel = await app.fetch(new Request("https://s/metricas"), env);
+  assert.equal(painel.status, 200);
+  assert.match(await painel.text(), /Métricas do MY Skin Care/);
+});

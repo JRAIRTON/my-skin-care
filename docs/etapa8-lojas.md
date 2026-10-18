@@ -50,6 +50,11 @@ análise grátis e quantos assinam; se a conversão for baixa, testar R$ 14,90.
   Code foi testado e retirado (decisão de 10/10/2026).
   Ao compartilhar ou salvar, o app também copia o link `/baixar` para colar no adesivo de link do Stories
   do Instagram, e há o botão "Copiar só o link do app".
+- Métricas de uso (18/10/2026): o app conta, sem identificar ninguém, aberturas, aceite dos termos, 1ª análise,
+  análise grátis, planos vistos, toque em assinar, assinatura, compartilhamento e cliques em lojas. Painel em
+  https://app.myskincareapp.com.br/metricas, com o código de acesso (`APP_TOKEN`). Política na versão 4.
+- Android sem cópia de segurança automática (18/10/2026): `allowBackup="false"`, para as fotos não irem ao
+  Google Drive sem a pessoa pedir.
 - Endereço do app no domínio próprio (17/10/2026): https://app.myskincareapp.com.br (rota em
   `server/wrangler.toml`), sem o nome da conta. O endereço workers.dev continua no ar por enquanto: os dados
   de cada pessoa ficam no navegador e são separados por endereço, e os apps de teste já instalados chamam

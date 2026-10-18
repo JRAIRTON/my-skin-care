@@ -107,6 +107,35 @@ export async function apagaAcessosAntigos(env, agora = new Date()) {
   await env.REGISTROS.prepare("UPDATE gratis SET ip = '' WHERE quando < ?1 AND ip <> ''").bind(doisDias).run();
 }
 
+// ---------- anonymous usage counts ----------
+// POST /evento {nome, plataforma}: adds 1 to the day's count of that event. Only the day, the event name
+// and the platform are kept: no IP, no install id, nothing from the profile. GET /metricas shows them.
+export const EVENTOS = new Set(["primeiro_acesso", "abriu", "consentiu", "primeira_analise", "analise_gratis", "analise",
+  "viu_planos", "iniciou_compra", "assinou", "compartilhou", "clicou_loja"]);
+const PLATAFORMAS = new Set(["web", "ios", "android"]);
+let metricasPronta = null;
+function garanteMetricas(db) {
+  metricasPronta ||= db.prepare("CREATE TABLE IF NOT EXISTS metricas (dia TEXT NOT NULL, nome TEXT NOT NULL, plataforma TEXT NOT NULL, n INTEGER NOT NULL, PRIMARY KEY (dia, nome, plataforma))")
+    .run().catch((e) => { metricasPronta = null; throw e; });
+  return metricasPronta;
+}
+export async function contaEvento(env, corpo, agora = new Date()) {
+  let d;
+  try { d = JSON.parse(corpo); } catch { return false; }
+  if (!d || !EVENTOS.has(d.nome) || !PLATAFORMAS.has(d.plataforma) || !env.REGISTROS) return false;
+  await garanteMetricas(env.REGISTROS);
+  await env.REGISTROS.prepare("INSERT INTO metricas (dia, nome, plataforma, n) VALUES (?1, ?2, ?3, 1) ON CONFLICT (dia, nome, plataforma) DO UPDATE SET n = n + 1")
+    .bind(agora.toISOString().slice(0, 10), d.nome, d.plataforma).run();
+  return true;
+}
+export async function leMetricas(env, dias = 30, agora = new Date()) {
+  await garanteMetricas(env.REGISTROS);
+  const desde = new Date(agora.getTime() - (dias - 1) * 864e5).toISOString().slice(0, 10);
+  const { results: diario } = await env.REGISTROS.prepare("SELECT dia, nome, plataforma, n FROM metricas WHERE dia >= ?1 ORDER BY dia DESC").bind(desde).all();
+  const { results: total } = await env.REGISTROS.prepare("SELECT nome, plataforma, SUM(n) AS n FROM metricas GROUP BY nome, plataforma").all();
+  return { desde, diario, total };
+}
+
 // ---------- who may analyse ----------
 // 1) invite code (APP_TOKEN): unlimited; 2) first analysis free per install (X-Usuario, an id the app
 // creates), at most GRATIS_POR_IP_DIA per IP per day; 3) active subscription checked in RevenueCat.
@@ -144,6 +173,42 @@ export async function assinaturaAtiva(env, usuario, agora = new Date(), busca = 
   return !ent.expires_date || new Date(ent.expires_date) > agora;
 }
 
+// GET /metricas: the owner's panel. The page has no data; it asks for the invite code and fetches /metricas.json.
+const PAINEL = `<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Métricas · MY Skin Care</title><style>
+body{margin:0;font:15px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;background:#F7F2EC;color:#2E211B}
+main{max-width:860px;margin:0 auto;padding:24px 16px 48px}h1{font-size:24px;margin:0 0 4px}h2{font-size:16px;margin:28px 0 8px}
+p{color:#5A4A40;margin:6px 0}form{display:flex;gap:8px;margin:16px 0}input{flex:1;padding:10px 12px;border:1px solid #E8DDD2;border-radius:10px;font:inherit}
+button{padding:10px 16px;border:0;border-radius:10px;background:#3B2A22;color:#F7EFE7;font:inherit;font-weight:600}
+.tbl{overflow-x:auto;background:#FFFDFB;border:1px solid #E8DDD2;border-radius:14px}table{border-collapse:collapse;width:100%;font-size:14px}
+th,td{padding:8px 10px;border-bottom:1px solid #F1E9E0;text-align:right;white-space:nowrap}th:first-child,td:first-child{text-align:left}
+th{color:#8A5F43;font-weight:600}.taxa{color:#8E7D71;font-size:12px}.erro{color:#A63A33}
+@media (prefers-color-scheme:dark){body{background:#17110E;color:#F3E9DF}p{color:#D2C2B5}.tbl{background:#211915;border-color:#34281F}
+th,td{border-color:#2B211C}th{color:#E2BBA0}input{background:#211915;color:#F3E9DF;border-color:#34281F}button{background:#D2A587;color:#1A120E}}
+</style></head><body><main><h1>Métricas do MY Skin Care</h1>
+<p>Contagens anônimas: só o dia, o evento e a plataforma. Ninguém é identificado.</p>
+<form id="f"><input id="c" type="password" placeholder="Código de convite (APP_TOKEN)" autocomplete="current-password" required><button>Ver</button></form>
+<div id="r"></div></main><script>
+const NOMES={primeiro_acesso:"Abriram o app pela 1ª vez",consentiu:"Aceitaram os termos",primeira_analise:"Fizeram a 1ª análise",analise_gratis:"Usaram a análise grátis",viu_planos:"Viram os planos",iniciou_compra:"Tocaram em assinar",assinou:"Assinaram",abriu:"Aberturas (1 por aparelho por dia)",analise:"Análises feitas",compartilhou:"Compartilharam a evolução",clicou_loja:"Cliques em lojas de produtos"};
+const FUNIL=["primeiro_acesso","consentiu","primeira_analise","viu_planos","iniciou_compra","assinou"];
+const USO=["abriu","analise","analise_gratis","compartilhou","clicou_loja"];
+const PL=["web","android","ios"],esc=s=>String(s).replace(/[&<>]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]));
+function tabela(cab,linhas){return '<div class="tbl"><table><thead><tr>'+cab.map(c=>'<th>'+c+'</th>').join("")+'</tr></thead><tbody>'+linhas.map(l=>'<tr>'+l.map(c=>'<td>'+c+'</td>').join("")+'</tr>').join("")+'</tbody></table></div>';}
+async function carrega(codigo){const r=await fetch("/metricas.json",{headers:{Authorization:"Bearer "+codigo},cache:"no-store"});
+if(!r.ok){document.getElementById("r").innerHTML='<p class="erro">'+(r.status===401?"Código inválido.":r.status===429?"Muitas tentativas. Espere 1 minuto.":"Erro "+r.status+".")+'</p>';return;}
+const d=await r.json(),tot={},dia={};
+for(const x of d.total){(tot[x.nome]||={})[x.plataforma]=x.n;}
+for(const x of d.diario){((dia[x.dia]||={})[x.nome]||=0);dia[x.dia][x.nome]+=x.n;}
+const soma=n=>PL.reduce((s,p)=>s+((tot[n]||{})[p]||0),0);
+let ant=null;const funil=FUNIL.map(n=>{const t=soma(n),tx=ant?'<span class="taxa">'+(ant?Math.round(100*t/ant):0)+'% da etapa anterior</span>':"";ant=t||ant;return[esc(NOMES[n]),...PL.map(p=>(tot[n]||{})[p]||0),'<b>'+t+'</b> '+tx];});
+const uso=USO.map(n=>[esc(NOMES[n]),...PL.map(p=>(tot[n]||{})[p]||0),'<b>'+soma(n)+'</b>']);
+const dias=Object.keys(dia).sort().reverse().map(k=>[k.split("-").reverse().join("/"),...["abriu","primeiro_acesso","analise","viu_planos","assinou","clicou_loja"].map(n=>dia[k][n]||0)]);
+document.getElementById("r").innerHTML='<h2>Funil (desde o início)</h2>'+tabela(["Etapa","Web","Android","iPhone","Total"],funil)
++'<h2>Uso (desde o início)</h2>'+tabela(["Evento","Web","Android","iPhone","Total"],uso)
++'<h2>Últimos 30 dias</h2>'+(dias.length?tabela(["Dia","Aberturas","Novos","Análises","Viram planos","Assinaram","Cliques lojas"],dias):"<p>Sem dados ainda.</p>");}
+document.getElementById("f").addEventListener("submit",e=>{e.preventDefault();carrega(document.getElementById("c").value.trim());});
+</script></body></html>`;
+
 export function criaApp({ cliente, busca } = {}) {
   const app = {
     async fetch(req, env, ctx) {
@@ -169,6 +234,26 @@ export function criaApp({ cliente, busca } = {}) {
       const { pathname } = new URL(req.url);
       if (req.method === "OPTIONS") return new Response(null, { status: 204, headers: cors });
       if (pathname === "/saude" && req.method === "GET") return json(200, { ok: true, modelo: METODO.modelo, registros: !!env.REGISTROS });
+      if (pathname === "/evento" && req.method === "POST") {
+        // text/plain body (a "simple" request, so the store app needs no CORS preflight); at most 200 bytes
+        const corpo = (await req.text()).slice(0, 200);
+        try { await contaEvento(env, corpo); } catch (e) { console.error("falha ao contar evento", e?.message); }
+        return new Response(null, { status: 204, headers: cors });
+      }
+      if (pathname === "/metricas" && req.method === "GET") return new Response(PAINEL, { headers: {
+        "Content-Type": "text/html; charset=utf-8", "Cache-Control": "no-store", "X-Robots-Tag": "noindex",
+        "Content-Security-Policy": "default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; connect-src 'self'; frame-ancestors 'none'" } });
+      if (pathname === "/metricas.json" && req.method === "GET") {
+        // same rate limit and invite code (APP_TOKEN) as the app: only the owner reads the numbers
+        if (env.LIMITE) {
+          const { success } = await env.LIMITE.limit({ key: req.headers.get("CF-Connecting-IP") || "sem-ip" });
+          if (!success) return json(429, { erro: "muitas tentativas seguidas; tente em 1 minuto" });
+        }
+        const a = req.headers.get("Authorization") || "";
+        if (!env.APP_TOKEN || !a.startsWith("Bearer ") || !(await mesmoToken(a.slice(7).trim(), env.APP_TOKEN.trim()))) return json(401, { erro: "código inválido" });
+        if (!env.REGISTROS) return json(503, { erro: "banco não ligado" });
+        return new Response(JSON.stringify(await leMetricas(env)), { headers: { "Content-Type": "application/json; charset=utf-8", "Cache-Control": "no-store" } });
+      }
       if (pathname !== "/analise" && pathname !== "/acesso") return json(404, { erro: "rota inexistente" });
       const metodo = pathname === "/acesso" ? "GET" : "POST";
       if (req.method !== metodo) return json(405, { erro: `use ${metodo}` });
@@ -228,5 +313,3 @@ export function criaApp({ cliente, busca } = {}) {
   };
   return app;
 }
-
-export default criaApp();

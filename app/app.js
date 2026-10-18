@@ -116,6 +116,16 @@ const ERROS = {
 // published server by its full address; the web version uses the same origin
 const NATIVO = !!window.Capacitor?.isNativePlatform?.();
 const SERVIDOR = NATIVO ? "https://app.myskincareapp.com.br/" : "";
+// ---------- métricas de uso ----------
+// Só contagens anônimas por dia: o nome do evento e a plataforma. Sem o identificador do aparelho e sem
+// nada do perfil. vez "uma" conta uma vez por aparelho (funil); "dia", uma vez por dia por aparelho.
+const PLATAFORMA = NATIVO ? window.Capacitor.getPlatform() : "web";
+function evento(nome, vez = "sempre") {
+  const k = "myskin-ev-" + nome, marca = vez === "uma" ? "1" : vez === "dia" ? hoje() : null;
+  if (marca) { if (lsGet(k) === marca) return; lsSet(k, marca); }
+  // text/plain keeps it a simple request (no CORS preflight from the store app); failures are ignored
+  try { fetch(SERVIDOR + "evento", { method: "POST", body: JSON.stringify({ nome, plataforma: PLATAFORMA }), headers: { "Content-Type": "text/plain" }, keepalive: true }).catch(() => {}); } catch {}
+}
 async function chama(caminho, opcoes = {}, codigo = S.codigo) {
   let r;
   try {
@@ -251,7 +261,7 @@ function render() {
   main.innerHTML = !pronto ? vOnboarding() : S.detalhe ? vDetalhe() : ({ inicio: vInicio, evolucao: vEvolucao, analisar: vAnalisar, rotina: vRotina, produtos: vProdutos, ajustes: vAjustes, assinar: vAssinar, compartilhar: vCompartilhar }[S.tela] || vInicio)();
   depois();
 }
-function vai(tela) { if (S.cam) fechaCamera(); if (tela === "compartilhar" && S.card.url) { URL.revokeObjectURL(S.card.url); S.card.url = null; S.card.blob = null; } S.tela = tela; S.detalhe = null; S.editando = false; S.procForm = false; render(); entra(); window.scrollTo(0, 0); }
+function vai(tela) { if (tela === "assinar") evento("viu_planos", "uma"); if (S.cam) fechaCamera(); if (tela === "compartilhar" && S.card.url) { URL.revokeObjectURL(S.card.url); S.card.url = null; S.card.blob = null; } S.tela = tela; S.detalhe = null; S.editando = false; S.procForm = false; render(); entra(); window.scrollTo(0, 0); }
 // short entrance animation of the new visual, only when the screen changes
 function entra() { const m = $("#main"); m.classList.remove("entra"); void m.offsetWidth; m.classList.add("entra"); setTimeout(() => m.classList.remove("entra"), 500); }
 
@@ -449,7 +459,8 @@ async function analisar() {
     if (!S.rotinaInicio) { S.rotinaInicio = a.data; await DB.set("rotinaInicio", a.data); }
     URL.revokeObjectURL(d.url); S.rascunho = null; S.ocupado = false;
     S.detalhe = a.id; render(); window.scrollTo(0, 0);
-    if (r.gratis) toast("Esta foi sua análise grátis. As próximas fazem parte da assinatura.");
+    evento("analise"); evento("primeira_analise", "uma");
+    if (r.gratis) { evento("analise_gratis", "uma"); toast("Esta foi sua análise grátis. As próximas fazem parte da assinatura."); }
   } catch (e) {
     S.ocupado = false; render(); toast(e.message);
     if (e.status === 401) vai("ajustes");
@@ -719,8 +730,10 @@ async function assinar(plano) {
   const loja = compras();
   if (!loja || S.ocupado) return;
   S.ocupado = true; render();
+  if (plano !== "restaurar") evento("iniciou_compra");
   try {
     const ativa = plano === "restaurar" ? await loja.restaurar(S.usuario) : await loja.comprar(plano, S.usuario);
+    if (ativa && plano !== "restaurar") evento("assinou");
     S.ocupado = false;
     if (ativa) { toast("Assinatura ativa. Boas análises!"); vai("analisar"); } else { render(); toast(plano === "restaurar" ? "Nenhuma assinatura encontrada nesta conta da loja." : "A compra não foi concluída."); }
   } catch (e) { S.ocupado = false; render(); toast(e?.message || "A compra não foi concluída."); }
@@ -841,6 +854,7 @@ async function copiaLink() {
 }
 async function enviaCard(salvar) {
   if (!S.card.blob) return;
+  evento("compartilhou");
   // copy first, while the tap still counts as the person's gesture (clipboard rule)
   const copiou = await copiaLink();
   if (copiou) toast("Link do app copiado. No Stories do Instagram, cole no adesivo de link.");
@@ -928,6 +942,7 @@ async function acao(act, el) {
       const p = lePerfil();
       await salvaPerfil({ ...p, consentimento: S.perfil._aceite || new Date().toISOString() });
       delete S.perfil._aceite; await DB.set("perfil", S.perfil);
+      evento("consentiu", "uma");
       S.onb = 2; return render();
     }
     case "codigo": return verificaCodigo();
@@ -993,6 +1008,7 @@ function depois() {
 }
 
 document.addEventListener("click", (e) => {
+  if (e.target.closest(".links a")) evento("clicou_loja");
   const el = e.target.closest("[data-act]");
   if (!el || el.disabled) return;
   if (el.type === "checkbox") return; // tratado no change
@@ -1025,5 +1041,6 @@ window.addEventListener("beforeinstallprompt", (e) => { e.preventDefault(); S.in
   }
   if (S.perfil?.consentimento && !S.codigo && !S.perfil.semCodigo) S.onb = 2;
   render();
+  evento("primeiro_acesso", "uma"); evento("abriu", "dia");
   if ("serviceWorker" in navigator && !NATIVO) navigator.serviceWorker.register("sw.js").catch(() => {});
 })();

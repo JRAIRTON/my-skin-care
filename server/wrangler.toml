@@ -1,5 +1,5 @@
 name = "my-skin-care"  # igual ao nome do Worker na Cloudflare
-main = "src/index.js"
+main = "src/worker.js"
 compatibility_date = "2026-09-01"
 
 # o app web (pasta ../app) é servido pelo mesmo endereço; o que não é arquivo do app cai no Worker

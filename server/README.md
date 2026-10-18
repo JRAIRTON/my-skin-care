@@ -13,6 +13,8 @@ um só endereço para o app e a análise. É o mesmo pedido e o mesmo schema val
 | `GET /saude` | Responde `{"ok": true, "modelo": "claude-sonnet-5-5"}` |
 | `GET /acesso` | Confere o código de acesso (`Authorization: Bearer <APP_TOKEN>`): `200` ou `401` |
 | `POST /analise` | Analisa uma foto |
+| `POST /evento` | Soma 1 à contagem anônima do dia de um evento do app (`{"nome", "plataforma"}`); sem IP nem identificador |
+| `GET /metricas` | Painel com o funil e o uso; pede o código de acesso (`APP_TOKEN`) |
 
 `POST /analise` pede:
 
