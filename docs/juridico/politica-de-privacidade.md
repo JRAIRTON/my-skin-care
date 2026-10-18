@@ -1,6 +1,6 @@
 # Política de Privacidade — MY Skin Care
 
-Versão 5 · 18/10/2026
+Versão 6 · 18/10/2026
 
 ## 1. Quem é o responsável pelos seus dados
 
@@ -21,7 +21,7 @@ Encarregado de dados: **Airton Carvalho Junior**, **myskincare.ia.sac@gmail.com*
 |---|---|---|
 | Fotos do rosto | No seu celular. Na análise, passam pelo nosso servidor e pela Anthropic | **Sim** |
 | Avaliações da pele (notas, grau por categoria, idade aparente) | No seu celular | **Sim** (saúde) |
-| Perfil: nome ou apelido, idade, tipo de pele, fototipo, objetivos | No seu celular | Não |
+| Perfil: nome ou apelido, tipo de pele, fototipo, objetivos e, se você informar em Ajustes, a idade (só para comparar com a idade aparente da pele) | No seu celular | Não |
 | Gestação ou amamentação, se você marcar | No seu celular | **Sim** (saúde) |
 | Rotina marcada e procedimentos estéticos registrados | No seu celular | **Sim** (saúde) |
 | Identificador aleatório do aparelho, criado pelo app (não é nome, e-mail nem número do aparelho) | No celular e no nosso servidor, para saber se a análise grátis já foi usada; enviado ao serviço de gestão de assinaturas | Não |

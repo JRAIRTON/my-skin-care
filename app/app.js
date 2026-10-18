@@ -286,11 +286,13 @@ function vai(tela) {
 function entra() { const m = $("#main"); m.classList.remove("entra"); void m.offsetWidth; m.classList.add("entra"); setTimeout(() => m.classList.remove("entra"), 500); }
 
 // ----- primeira vez
-function formPerfil(p = {}) {
+// age is optional and only in Settings: the apparent age comes from the photo alone; the real age only adds a comparison
+function formPerfil(p = {}, { idade = false } = {}) {
   const obj = new Set(p.objetivos || []);
   return `<div class="fields" id="f-perfil">
     <label class="f">Como quer ser chamada?<input type="text" name="nome" value="${esc(p.nome || "")}" autocomplete="given-name" maxlength="40"></label>
-    <label class="f">Idade<input type="number" name="idade" inputmode="numeric" min="16" max="100" value="${esc(p.idade || "")}"></label>
+    ${idade ? `<label class="f">Idade (opcional)<input type="number" name="idade" inputmode="numeric" min="18" max="100" value="${esc(p.idade || "")}">
+      <span class="small muted">Só para comparar com a idade aparente da pele, que o app estima pela foto.</span></label>` : ""}
     <label class="f">Tipo de pele<select name="tipoPele">${Object.entries(TIPOS_PELE).map(([k, l]) => `<option value="${k}"${(p.tipoPele || "nao_sei") === k ? " selected" : ""}>${l}</option>`).join("")}</select></label>
     <label class="f">Fototipo (como a pele reage ao sol)<select name="fototipo">${FOTOTIPOS.map((l, i) => `<option value="${i}"${Number(p.fototipo || 0) === i ? " selected" : ""}>${l}</option>`).join("")}</select></label>
     <div class="f stack"><span class="small" style="font-weight:600;color:var(--ink-2)">O que mais quer melhorar? (opcional)</span>
@@ -301,7 +303,7 @@ function formPerfil(p = {}) {
 function lePerfil() {
   const f = $("#f-perfil"); const v = (n) => f.querySelector(`[name="${n}"]`);
   return {
-    nome: v("nome").value.trim(), idade: Number(v("idade").value) || null, tipoPele: v("tipoPele").value,
+    nome: v("nome").value.trim(), idade: v("idade") ? Number(v("idade").value) || null : S.perfil?.idade ?? null, tipoPele: v("tipoPele").value,
     fototipo: Number(v("fototipo").value) || 0, gestante: v("gestante").checked,
     objetivos: [...f.querySelectorAll('[name="objetivos"]:checked')].map((i) => i.value),
   };
@@ -749,8 +751,8 @@ function vAjustes() {
   const n = S.analises.length;
   return `
     <section class="card"><div class="row between"><h2>Seu perfil</h2>${S.editando ? "" : `<button class="btn sm" data-act="editar">Editar</button>`}</div>
-      ${S.editando ? `${formPerfil(S.perfil)}<div class="btns"><button class="btn primary" data-act="salva-perfil">Salvar</button><button class="btn" data-act="editar">Cancelar</button></div>` : `
-      <div class="stack small"><span><b>Nome:</b> ${esc(S.perfil.nome || "—")}</span><span><b>Idade:</b> ${esc(S.perfil.idade || "—")}</span>
+      ${S.editando ? `${formPerfil(S.perfil, { idade: true })}<div class="btns"><button class="btn primary" data-act="salva-perfil">Salvar</button><button class="btn" data-act="editar">Cancelar</button></div>` : `
+      <div class="stack small"><span><b>Nome:</b> ${esc(S.perfil.nome || "—")}</span><span><b>Idade:</b> ${S.perfil.idade ? esc(S.perfil.idade) : `<span class="muted">não informada (opcional)</span>`}</span>
       <span><b>Tipo de pele:</b> ${esc(TIPOS_PELE[S.perfil.tipoPele] || "—")}</span><span><b>Fototipo:</b> ${esc(FOTOTIPOS[S.perfil.fototipo || 0])}</span>
       <span><b>Objetivos:</b> ${esc((S.perfil.objetivos || []).join(", ") || "—")}</span>${S.perfil.gestante ? `<span><b>Gestação ou amamentação:</b> sim</span>` : ""}</div>`}</section>
     <section class="card"><h3>Aparência</h3>
