@@ -75,6 +75,11 @@ análise grátis e quantos assinam; se a conversão for baixa, testar R$ 14,90.
 - Links de afiliados (17/10/2026): botões de compra prontos para os códigos da Amazon, do Mercado
   Livre e de farmácias pela Awin, com aviso de parceria automático; Termos e Política na versão 3.
   Falta o cadastro nos programas (`docs/afiliados.md`).
+- Google Play (19/10/2026): conta pessoal criada e app "MY Skin Care: Análise de Pele" criado no Play Console;
+  classificação de conteúdo, segurança dos dados e ID de publicidade ("não usa"; o manifesto do Android
+  remove a permissão AD_ID) preenchidos. Textos e imagens da página da loja em `docs/loja/google-play/`
+  (`textos.md`; imagens por `node scripts/loja_play.mjs`); roteiro do teste fechado, mensagens às
+  testadoras e respostas do pedido de produção em `docs/loja/google-play/teste-fechado.md`.
 - Fotos dos produtos: ficam de fora por enquanto (decisão de 09/10/2026); os cards usam o desenho da
   categoria. Copiar ou linkar as fotos dos sites das marcas tem risco autoral. Se voltar ao tema: fotos
   próprias dos produtos ou autorização das marcas (kit de imprensa).
