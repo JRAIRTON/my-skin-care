@@ -9,7 +9,7 @@ o público e para as lojas.
 |---|---|
 | Responsável legal e desenvolvedor nas lojas | **Airton Carvalho Junior, pessoa física (CPF)**, Foz do Iguaçu (PR), para a fase de testes nas lojas (decisão de 07/10/2026). O CNPJ existente fica de fora porque só tem atividades de comércio varejista |
 | Atendimento e encarregado de dados (LGPD) | Airton Carvalho Junior · myskincare.ia.sac@gmail.com |
-| Endereço | Só cidade e estado nos documentos públicos; o endereço completo vai apenas nos cadastros das lojas |
+| Endereço | Fora dos documentos públicos (decisão de 19/10/2026: termos e política dizem "app da marca Air by IA, mantido por Airton Carvalho Junior", sem a cidade); o endereço completo vai apenas nos cadastros das lojas |
 | Imposto | Receita das lojas (vem do exterior) declarada no carnê-leão, pela tabela do IR da pessoa física |
 | Preço | R$ 19,90 por mês ou R$ 129,90 por ano, renovação automática; **primeira análise grátis**, sem período de teste |
 | Cobrança | Pela loja (obrigatório para assinatura digital), com RevenueCat para unificar iPhone e Android e o servidor conferir a assinatura |

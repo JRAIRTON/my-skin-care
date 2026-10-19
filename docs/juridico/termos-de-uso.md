@@ -1,10 +1,10 @@
 # Termos de Uso — MY Skin Care
 
-Versão 4 · 18/10/2026
+Versão 5 · 19/10/2026
 
 ## 1. Quem somos
 
-O MY Skin Care é oferecido por **Airton Carvalho Junior**, pessoa física, de **Foz do Iguaçu (PR)**
+O MY Skin Care é um app da marca **Air by IA**, mantido por **Airton Carvalho Junior** (pessoa física)
 ("nós"). Contato: **myskincare.ia.sac@gmail.com**.
 
 ## 2. O que é o serviço

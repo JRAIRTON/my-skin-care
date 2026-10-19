@@ -1,10 +1,11 @@
 # Política de Privacidade — MY Skin Care
 
-Versão 6 · 18/10/2026
+Versão 7 · 19/10/2026
 
 ## 1. Quem é o responsável pelos seus dados
 
-**Airton Carvalho Junior**, pessoa física, de Foz do Iguaçu (PR), é o controlador dos seus dados.
+O MY Skin Care é um app da marca **Air by IA**, mantido por **Airton Carvalho Junior** (pessoa física),
+que é o controlador dos seus dados.
 Encarregado de dados: **Airton Carvalho Junior**, **myskincare.ia.sac@gmail.com**.
 
 ## 2. Resumo

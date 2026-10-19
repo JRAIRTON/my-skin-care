@@ -1,6 +1,6 @@
 # Termo de consentimento para tratamento de dados sensíveis — MY Skin Care
 
-Versão 2 · 07/10/2026 · Base: LGPD, art. 11, I (consentimento específico e destacado).
+Versão 3 · 19/10/2026 · Base: LGPD, art. 11, I (consentimento específico e destacado).
 O texto exibido no app (`app/app.js`, primeira tela) é o resumo deste termo e deve continuar
 equivalente a ele.
 
@@ -32,7 +32,7 @@ Não usamos esses dados para outras finalidades, não os vendemos e não os usam
   pela **Anthropic**, empresa de inteligência artificial nos **EUA**. Nosso servidor não guarda a
   foto. A Anthropic não a usa para treinar modelos e pode guardá-la por prazo limitado, apenas para
   segurança, conforme a política dela.
-- Controlador dos dados: **Airton Carvalho Junior** (pessoa física), Foz do Iguaçu (PR).
+- Controlador dos dados: **Airton Carvalho Junior** (pessoa física), da marca Air by IA.
 - A transferência para fora do Brasil segue as garantias da LGPD (art. 33).
 
 ## Seus direitos
