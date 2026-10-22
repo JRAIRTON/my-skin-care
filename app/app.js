@@ -826,7 +826,7 @@ function vAssinar() {
       <ul class="beneficios small"><li>Nova análise todo mês, com comparação automática</li><li>Gráfico da evolução e antes e depois</li><li>Rotina e produtos atualizados a cada análise</li></ul>
       ${NOVIDADES ? "<h3>Individual</h3>" : ""}<div class="stack">${grupo("Individual")}</div>
       ${NOVIDADES ? `<h3>Família</h3><p class="small muted">Até ${MAX_PERFIS} pessoas neste celular, cada uma com o próprio perfil, análises e rotina. Só para maiores de 18 anos.</p><div class="stack">${grupo("Família")}</div>` : ""}
-      ${loja ? `<button class="btn sm" data-act="assinar:restaurar">Já assinei: restaurar compra</button>` : aviso("info", `A assinatura é feita pelo app MY Skin Care da App Store ou do Google Play${algumTeste ? `, com ${TESTE_DIAS} dias grátis nos planos anuais` : ""}. Se você recebeu um código de convite, use em Ajustes.`)}
+      ${loja ? `<button class="btn sm" data-act="assinar:restaurar">Já assinei: restaurar compra</button>` : window.MySkinEmBreve ? aviso("info", "A assinatura pelo Google Play e pela App Store chega em breve. Se você recebeu um código de convite, use em Ajustes.") : aviso("info", `A assinatura é feita pelo app MY Skin Care da App Store ou do Google Play${algumTeste ? `, com ${TESTE_DIAS} dias grátis nos planos anuais` : ""}. Se você recebeu um código de convite, use em Ajustes.`)}
       <p class="small muted">${algumTeste ? `No teste grátis, nada é cobrado nos primeiros ${TESTE_DIAS} dias. Se não cancelar até o fim do teste, a loja cobra o plano escolhido. ` : ""}Renovação automática até o cancelamento, que é feito na loja. Veja os <a href="termos.html">Termos de Uso</a> e a <a href="privacidade.html">Política de Privacidade</a>.</p></section>`;
 }
 async function assinar(plano) {

@@ -9,6 +9,9 @@ if (C?.isNativePlatform?.()) {
     ios: "test_WSHWCaaapdEFdDdzEOBEUSskDrE",
     android: "test_WSHWCaaapdEFdDdzEOBEUSskDrE",
   };
+  // while the key is still a test_ key, the store build shows no purchase at all ("em breve"): store review
+  // requires Google Play / App Store billing, and the test key opens the RevenueCat Test Store instead
+  if (CHAVES[C.getPlatform()]?.startsWith("test_")) window.MySkinEmBreve = true;
   const DIREITO = "myskincare_pro";      // analyses (every plan); the server checks the same one
   const FAMILIA = "myskincare_familia";  // up to 4 profiles on the phone (family plans)
   // plan in the app -> package in the RevenueCat "current" offering (docs/etapa8-lojas.md)
@@ -29,7 +32,7 @@ if (C?.isNativePlatform?.()) {
     const { current } = await Purchases.getOfferings();
     return current?.availablePackages?.find((p) => p.identifier === PACOTES[plano]) || null;
   };
-  window.MySkinCompras = {
+  if (!window.MySkinEmBreve) window.MySkinCompras = {
     // which plans have a free trial for this person (the store only gives it once)
     async ofertas(usuario) {
       await configura(usuario);
