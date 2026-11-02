@@ -10,6 +10,7 @@ Protótipo para avaliar a viabilidade do MY Skin AI com a família (spec v3.0, 2
   resultados, antes e depois, ingredientes, depoimentos, kits com preço, FAQ e sacola que fecha o pedido pelo WhatsApp.
   Preços, kits, WhatsApp, redes e razão social ficam no objeto `LOJA` no início do script. Resultados do teste,
   fotos de antes e depois e depoimentos também entram ali e só devem receber dados reais; vazios, aparecem como espaço reservado.
+- `docs/loja-produto.md` — melhorias do produto e da oferta (alegações, fórmula, fragrância, kits, provas) e o que falta para publicar a loja.
 - `prototipo/seed/` — dados fictícios ("Ana (exemplo)") usados para demonstração.
 - `docs/avaliacao.md` — avaliação de viabilidade e melhorias sugeridas.
 - `docs/caracteristicas.md` — o que o protótipo avalia, como e com quais limites.

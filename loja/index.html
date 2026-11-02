@@ -5,6 +5,11 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>MY Rosé Sculpt Cream</title>
 <meta name="description" content="MY Rosé Sculpt Cream: tratamento corporal firmador com cafeína, centella asiática, niacinamida e ácido hialurônico. Pele mais firme, lisa e uniforme.">
+<meta property="og:type" content="product">
+<meta property="og:title" content="MY Rosé Sculpt Cream">
+<meta property="og:description" content="Tratamento corporal firmador com cafeína, centella asiática, niacinamida e ácido hialurônico.">
+<meta property="og:locale" content="pt_BR">
+<meta name="theme-color" content="#C9707A">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600&family=Montserrat:wght@400;500;600;700&display=swap">
@@ -67,10 +72,10 @@ p { margin: 0; }
 header.top { position: sticky; top: 0; z-index: 30; background: color-mix(in srgb, var(--bg) 92%, transparent); backdrop-filter: blur(10px); border-bottom: 1px solid var(--line); }
 header.top .wrap { display: flex; align-items: center; justify-content: space-between; gap: 18px; height: 72px; }
 .logo { font-family: var(--display); font-size: 40px; color: var(--rose); text-decoration: none; letter-spacing: .02em; line-height: 1; }
-nav.menu { display: none; gap: 20px; white-space: nowrap; font-size: 12px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; }
+nav.menu { display: none; gap: 16px; white-space: nowrap; font-size: 11.5px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; }
 nav.menu a { text-decoration: none; color: var(--ink-2); }
 nav.menu a:hover, nav.menu a.on { color: var(--rose); }
-@media (min-width: 1100px) { nav.menu { display: flex; } }
+@media (min-width: 1240px) { nav.menu { display: flex; } }
 .top-actions { display: flex; align-items: center; gap: 14px; }
 .cart-btn { background: none; border: 0; color: var(--ink); display: flex; align-items: center; gap: 6px; font-weight: 600; font-size: 13px; }
 .top-actions .btn { display: none; padding: 11px 18px; }
@@ -134,6 +139,7 @@ section.block { padding-block: 56px; }
 .stars { color: var(--gold); letter-spacing: 3px; font-size: 18px; text-align: center; }
 .reviews { display: grid; gap: 14px; grid-template-columns: repeat(auto-fit, minmax(min(100%, 200px), 1fr)); }
 .review { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 18px; display: grid; gap: 10px; align-content: start; box-shadow: 0 4px 14px rgba(150, 80, 90, .05); }
+.review[hidden] { display: none; }
 .review .who { display: flex; align-items: center; gap: 10px; font-size: 12px; font-weight: 600; }
 .avatar { width: 42px; height: 42px; border-radius: 50%; background: linear-gradient(135deg, var(--blush-2), var(--rose)); display: grid; place-items: center; color: #fff; font-family: var(--display); font-size: 17px; flex: none; overflow: hidden; }
 .avatar img { width: 100%; height: 100%; object-fit: cover; }
@@ -191,6 +197,55 @@ footer a:hover { color: var(--rose); }
 .pay { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
 .pay span { border: 1px solid var(--line); border-radius: 4px; padding: 3px 8px; font-size: 10.5px; font-weight: 700; background: var(--surface); }
 .copy { text-align: center; font-size: 11.5px; color: var(--muted); margin-top: 28px; padding-top: 16px; border-top: 1px solid var(--line); }
+
+/* acessibilidade */
+.skip { position: absolute; left: -9999px; top: 8px; z-index: 100; background: var(--ink); color: var(--bg); padding: 10px 16px; border-radius: 4px; }
+.skip:focus { left: 8px; }
+:focus-visible { outline: 2px solid var(--rose); outline-offset: 2px; }
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } * { transition: none !important; } }
+
+/* menu no celular */
+.menu-btn { display: inline-flex; background: none; border: 0; color: var(--ink); padding: 6px; }
+@media (min-width: 1240px) { .menu-btn { display: none; } }
+nav.mobile { display: none; border-top: 1px solid var(--line); background: var(--bg); }
+nav.mobile.open { display: grid; }
+nav.mobile a { padding: 14px 16px; border-bottom: 1px solid var(--line); text-decoration: none; font-size: 13px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-2); }
+@media (min-width: 1240px) { nav.mobile, nav.mobile.open { display: none; } }
+
+.stage img.photo { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; }
+
+/* ritual */
+.ritual { background: var(--blush); }
+.ritual .wrap { display: grid; gap: 32px; }
+@media (min-width: 900px) { .ritual .wrap { grid-template-columns: 1fr 1fr; align-items: start; } }
+.steps { list-style: none; padding: 0; margin: 0; display: grid; gap: 16px; counter-reset: s; }
+.steps li { display: grid; grid-template-columns: 44px 1fr; gap: 14px; align-items: start; }
+.steps li::before { counter-increment: s; content: counter(s); width: 44px; height: 44px; border-radius: 50%; background: var(--gold); color: var(--on-accent); display: grid; place-items: center; font-family: var(--display); font-size: 18px; }
+.steps b { display: block; font-size: 14px; }
+.steps p { color: var(--ink-2); font-size: 14px; }
+.weeks { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 22px; display: grid; gap: 14px; }
+.weeks h3 { color: var(--rose-deep); }
+.week { display: grid; grid-template-columns: 132px 1fr; gap: 12px; font-size: 14px; color: var(--ink-2); padding-top: 12px; border-top: 1px solid var(--line); }
+.week b { color: var(--ink); font-size: 12px; letter-spacing: .06em; text-transform: uppercase; }
+.weeks small { font-size: 11.5px; color: var(--muted); }
+
+/* detalhes do produto */
+.specs { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(min(100%, 200px), 1fr)); margin-bottom: 18px; }
+.spec { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 16px; }
+.spec span { display: block; font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); font-weight: 600; }
+.spec b { font-size: 15px; }
+.details-list { display: grid; gap: 10px; max-width: 820px; margin-inline: auto; }
+
+/* ofertas: extras */
+.offer .dur { font-size: 11.5px; font-weight: 700; color: var(--gold-ink); letter-spacing: .06em; text-transform: uppercase; }
+.offer .extras { list-style: none; padding: 0; margin: 4px 0 0; font-size: 12.5px; color: var(--ink-2); display: grid; gap: 2px; }
+.offer .extras li::before { content: "✓ "; color: var(--rose); font-weight: 700; }
+
+/* consentimento de cookies */
+.consent { position: fixed; left: 16px; right: 16px; bottom: 16px; z-index: 80; max-width: 560px; margin-inline: auto; background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow); padding: 16px 18px; display: none; gap: 12px; font-size: 13px; color: var(--ink-2); }
+.consent.show { display: grid; }
+.consent div { display: flex; gap: 10px; justify-content: flex-end; flex-wrap: wrap; }
+.consent .btn { padding: 10px 16px; }
 
 /* sacola */
 .overlay { position: fixed; inset: 0; background: rgba(40, 15, 20, .45); z-index: 50; opacity: 0; pointer-events: none; transition: opacity .2s; }
@@ -251,6 +306,8 @@ aside.cart.open { transform: none; }
   </symbol>
 </svg>
 
+<a class="skip" href="#produto">Pular para o conteúdo</a>
+
 <div class="strip"><div class="wrap">
   <span><svg class="ic" viewBox="0 0 24 24"><path d="M3 7h11v9H3zM14 10h4l3 3v3h-7"/><circle cx="7" cy="18" r="1.6"/><circle cx="17" cy="18" r="1.6"/></svg><span id="stripFrete"></span></span>
   <span><svg class="ic" viewBox="0 0 24 24"><rect x="5" y="10" width="14" height="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>Compra segura</span>
@@ -266,6 +323,7 @@ aside.cart.open { transform: none; }
       <a href="#produto">O produto</a>
       <a href="#beneficios">Benefícios</a>
       <a href="#ingredientes">Ingredientes</a>
+      <a href="#como-usar">Como usar</a>
       <a href="#resultados">Resultados</a>
       <a href="#depoimentos">Depoimentos</a>
       <a href="#perguntas">Perguntas</a>
@@ -275,8 +333,20 @@ aside.cart.open { transform: none; }
         <svg class="ic" viewBox="0 0 24 24"><path d="M6 7h12l-1 13H7L6 7z"/><path d="M9 7a3 3 0 0 1 6 0"/></svg>(<span id="cartCount">0</span>)
       </button>
       <a class="btn btn-gold" href="#comprar">Comprar agora</a>
+      <button class="menu-btn" id="menuBtn" aria-label="Abrir menu" aria-expanded="false" aria-controls="mobileNav">
+        <svg class="ic" viewBox="0 0 24 24" style="width:24px;height:24px"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+      </button>
     </div>
   </div>
+  <nav class="mobile" id="mobileNav" aria-label="Seções">
+    <a href="#produto">O produto</a>
+    <a href="#ingredientes">Ingredientes</a>
+    <a href="#como-usar">Como usar</a>
+    <a href="#resultados">Resultados</a>
+    <a href="#depoimentos">Depoimentos</a>
+    <a href="#comprar">Comprar</a>
+    <a href="#perguntas">Perguntas</a>
+  </nav>
 </header>
 
 <main>
@@ -299,9 +369,9 @@ aside.cart.open { transform: none; }
           <span><svg class="ic" viewBox="0 0 24 24"><path d="M12 3l2.6 5.5 6 .8-4.4 4.1 1.1 6L12 16.6 6.7 19.4l1.1-6L3.4 9.3l6-.8z"/></svg>Satisfação garantida</span>
         </div>
       </div>
-      <div class="stage" aria-hidden="true">
+      <div class="stage" id="stage" aria-hidden="true">
         <div class="cream"></div>
-        <svg class="jar" viewBox="0 0 300 330"><use href="#jar"/></svg>
+        <svg class="jar" id="heroJar" viewBox="0 0 300 330"><use href="#jar"/></svg>
         <svg class="seal s1" viewBox="0 0 120 120">
           <circle cx="60" cy="60" r="54" fill="none" stroke="currentColor" stroke-width="1.5"/><circle cx="60" cy="60" r="38" fill="none" stroke="currentColor" stroke-width="1"/>
           <path id="arc1" d="M14 60a46 46 0 0 1 92 0" fill="none"/><text font-family="Cinzel, serif" font-size="8.6" fill="currentColor" letter-spacing=".6"><textPath href="#arc1" startOffset="50%" text-anchor="middle">DERMATOLOGICAMENTE</textPath></text>
@@ -371,7 +441,29 @@ aside.cart.open { transform: none; }
     </div>
   </section>
 
-  <div class="wrap"><hr class="divider"></div>
+  <section class="block ritual" id="como-usar">
+    <div class="wrap">
+      <div>
+        <div class="sec-head" style="text-align:left;margin-bottom:24px">
+          <h2>Seu ritual em 2 minutos</h2>
+          <p>A massagem é metade do resultado. A constância é a outra metade.</p>
+        </div>
+        <ol class="steps">
+          <li><div><b>Depois do banho</b><p>Aplique com a pele limpa e levemente úmida, quando ela absorve melhor.</p></div></li>
+          <li><div><b>Massageie de baixo para cima</b><p>Movimentos circulares e firmes em coxas, bumbum, quadril, abdômen e braços, por 1 a 2 minutos.</p></div></li>
+          <li><div><b>Duas vezes ao dia</b><p>Manhã e noite. Um pote de 200 g rende cerca de 4 semanas nesse ritmo.</p></div></li>
+        </ol>
+      </div>
+      <div class="weeks">
+        <h3>O que esperar</h3>
+        <div class="week"><b>1ª aplicação</b><span>Pele hidratada, macia e com toque aveludado.</span></div>
+        <div class="week"><b>Semanas 1 a 3</b><span>Textura mais lisa e pele com aspecto mais uniforme.</span></div>
+        <div class="week"><b>Semanas 4 a 8</b><span>Aparência mais firme e celulite visivelmente suavizada.</span></div>
+        <div class="week"><b>Depois</b><span>Mantenha o ritual para preservar o resultado.</span></div>
+        <small>Produto cosmético. Os resultados variam de pessoa para pessoa e são melhores com hidratação, alimentação equilibrada e atividade física.</small>
+      </div>
+    </div>
+  </section>
 
   <section class="wrap block" id="depoimentos">
     <div class="sec-head">
@@ -379,6 +471,16 @@ aside.cart.open { transform: none; }
       <div class="stars" aria-hidden="true">★★★★★</div>
     </div>
     <div class="reviews" id="reviews"></div>
+    <div class="center" id="moreReviewsWrap" hidden><button class="btn btn-line" id="moreReviews">Ver mais depoimentos</button></div>
+  </section>
+
+  <section class="wrap block" id="detalhes" style="padding-top:8px">
+    <div class="sec-head"><h2>Detalhes do produto</h2></div>
+    <div class="specs" id="specs"></div>
+    <div class="details-list">
+      <details><summary>Composição completa (INCI)</summary><p id="inci"></p></details>
+      <details><summary>Precauções</summary><p>Uso externo. Evite contato com os olhos e mucosas. Não aplique sobre pele lesionada ou irritada. Faça um teste numa pequena área por 24 horas antes do primeiro uso. Em caso de irritação, suspenda o uso. Gestantes e lactantes: consulte seu médico antes de usar. Mantenha fora do alcance de crianças.</p></details>
+    </div>
   </section>
 
   <section class="wrap block" id="comprar" style="padding-top:24px">
@@ -399,7 +501,6 @@ aside.cart.open { transform: none; }
   <section class="wrap block" id="perguntas">
     <div class="sec-head"><h2>Perguntas frequentes</h2></div>
     <div class="faq">
-      <details><summary>Como devo usar?</summary><p>Aplique 2 vezes ao dia, de preferência após o banho, com a pele levemente úmida. Massageie de baixo para cima, em movimentos circulares, por 1 a 2 minutos em bumbum, coxas, quadril, abdômen e braços.</p></details>
       <details><summary>Em quanto tempo vejo resultado?</summary><p>A hidratação e o toque aveludado são imediatos. A melhora na firmeza e na aparência da celulite costuma aparecer entre 4 e 8 semanas de uso contínuo.</p></details>
       <details><summary>O creme elimina a celulite?</summary><p>Não. Nenhum cosmético elimina a celulite. O MY Rosé Sculpt Cream melhora a aparência da celulite e a firmeza da pele. Para um resultado maior, associe hidratação, alimentação equilibrada e atividade física.</p></details>
       <details><summary>Quantos potes eu preciso?</summary><p>Um pote de 200 g rende cerca de 4 semanas de uso 2× ao dia. Para o protocolo completo de 8 semanas, recomendamos o kit com 2 unidades.</p></details>
@@ -430,7 +531,7 @@ aside.cart.open { transform: none; }
       <div class="logo" style="margin-bottom:10px">MY</div>
       <p>MY Rosé Sculpt Cream é mais que um creme. É o seu ritual diário de autocuidado, confiança e transformação.</p>
     </div>
-    <div><h4>Institucional</h4><ul><li><a href="#produto">Sobre a MY</a></li><li><a href="#">Política de privacidade</a></li><li><a href="#perguntas">Trocas e devoluções</a></li><li><a href="#">Termos de uso</a></li></ul></div>
+    <div><h4>Institucional</h4><ul><li><a href="#produto">Sobre a MY</a></li><li><a id="lnkPriv" href="#">Política de privacidade</a></li><li><a href="#perguntas">Trocas e devoluções</a></li><li><a id="lnkTermos" href="#">Termos de uso</a></li></ul></div>
     <div><h4>Ajuda</h4><ul><li><a href="#perguntas">Perguntas frequentes</a></li><li><a href="#comprar">Como comprar</a></li><li><a href="#comprar">Formas de pagamento</a></li><li><a id="footerWhats" href="#">Atendimento pelo WhatsApp</a></li></ul></div>
     <div>
       <h4>Siga-nos</h4>
@@ -445,6 +546,11 @@ aside.cart.open { transform: none; }
   </div>
   <p class="copy" id="legal"></p>
 </footer>
+
+<div class="consent" id="consent" role="dialog" aria-label="Cookies">
+  <p>Usamos cookies para medir visitas e melhorar nossos anúncios. Você pode aceitar ou recusar; a loja funciona igual.</p>
+  <div><button class="btn btn-line" id="consentNo">Recusar</button><button class="btn btn-rose" id="consentYes">Aceitar</button></div>
+</div>
 
 <div class="buybar" id="buybar">
   <div class="p"><span id="buybarPrice"></span><small id="buybarInst"></small></div>
@@ -473,12 +579,27 @@ const LOJA = {
   freteGratisAcima: 299,
   parcelas: 6,                        // parcelas sem juros
   descontoPix: 0.05,                  // 0 para não oferecer desconto no Pix
-  razaoSocial: "MY Cosméticos · CNPJ 00.000.000/0001-00",
+  // Dados obrigatórios para venda online (Decreto 7.962/2013): razão social, CNPJ, endereço e contato.
+  empresa: { razaoSocial: "MY Cosméticos LTDA", cnpj: "00.000.000/0001-00", endereco: "", email: "", telefone: "" },
+  links: { privacidade: "", termos: "" },   // URLs das páginas; vazias, o link fica oculto
   redes: { instagram: "", facebook: "", tiktok: "" },
+  // IDs de anúncios e medição. Só carregam depois que a visitante aceita os cookies (LGPD).
+  rastreamento: { metaPixel: "", ga4: "" },
+
+  produto: {
+    foto: "",                               // ex.: "img/pote.png" (fundo transparente); vazio usa o desenho do pote
+    tamanho: "200 g",
+    rendimento: "Cerca de 4 semanas, 2× ao dia",
+    textura: "Creme leve, de absorção rápida",
+    fragrancia: "",                         // ex.: "Rosas, baunilha e almíscar"
+    inci: ""                                // lista de ingredientes do rótulo, na ordem do INCI
+  },
+
+  // link: link de pagamento do kit (Mercado Pago, PagSeguro, Shopify...). Com link, "Comprar agora" vai direto ao pagamento.
   kits: [
-    { id: "kit1", nome: "1 unidade", qtd: 1, preco: 197, tag: "Tratamento inicial", botao: "soft" },
-    { id: "kit2", nome: "2 unidades", qtd: 2, preco: 347, tag: "Tratamento completo<br>Melhor custo-benefício", destaque: "Mais escolhido" },
-    { id: "kit3", nome: "3 unidades", qtd: 3, preco: 497, tag: "Protocolo intensivo<br>Resultados potencializados", destaque: "Melhor resultado" }
+    { id: "kit1", nome: "1 unidade", qtd: 1, preco: 197, tag: "Tratamento inicial", semanas: 4, botao: "soft", extras: [], link: "" },
+    { id: "kit2", nome: "2 unidades", qtd: 2, preco: 347, tag: "Tratamento completo<br>Melhor custo-benefício", semanas: 8, destaque: "Mais escolhido", extras: [], link: "" },
+    { id: "kit3", nome: "3 unidades", qtd: 3, preco: 497, tag: "Protocolo intensivo<br>Resultados potencializados", semanas: 12, destaque: "Melhor resultado", extras: [], link: "" }
   ],
 
   // Use apenas dados reais. Enquanto a lista estiver vazia, o site mostra um espaço reservado.
@@ -521,27 +642,49 @@ function renderReviews() {
     $("reviews").innerHTML = `<div style="grid-column:1/-1;max-width:560px;margin-inline:auto">${todo("Depoimentos", "Adicione em <code>depoimentos</code> as avaliações reais das clientes (com autorização). Até lá, esta seção fica reservada.")}</div>`;
     return;
   }
-  $("reviews").innerHTML = LOJA.depoimentos.map(d => `
-    <div class="review">
+  $("reviews").innerHTML = LOJA.depoimentos.map((d, i) => `
+    <div class="review"${i >= 5 ? " hidden" : ""}>
       <div class="who"><span class="avatar">${d.foto ? `<img src="${esc(d.foto)}" alt="">` : esc(d.nome[0])}</span>${esc(d.nome)}${d.idade ? ` – ${esc(d.idade)} anos` : ""}</div>
       <div class="s">${"★".repeat(d.nota || 5)}</div>
       <q>${esc(d.texto)}</q>
     </div>`).join("");
+  $("moreReviewsWrap").hidden = LOJA.depoimentos.length <= 5;
+}
+$("moreReviews").onclick = () => {
+  document.querySelectorAll(".review[hidden]").forEach(r => r.hidden = false);
+  $("moreReviewsWrap").hidden = true;
+};
+
+function renderProduct() {
+  const p = LOJA.produto;
+  $("specs").innerHTML = [["Tamanho", p.tamanho], ["Rendimento", p.rendimento], ["Textura", p.textura], ["Fragrância", p.fragrancia]]
+    .filter(([, v]) => v).map(([k, v]) => `<div class="spec"><span>${k}</span><b>${esc(v)}</b></div>`).join("");
+  $("inci").innerHTML = p.inci ? esc(p.inci) : todo("Composição", "Preencha <code>produto.inci</code> com a lista de ingredientes do rótulo.");
+  if (p.foto) {
+    $("heroJar").remove();
+    $("stage").insertAdjacentHTML("beforeend", `<img class="photo" src="${esc(p.foto)}" alt="Pote do ${esc(LOJA.nome)}">`);
+  }
 }
 
 function renderOffers() {
   $("offers").innerHTML = LOJA.kits.map(k => {
     const economia = unit ? unit.preco * k.qtd - k.preco : 0;
     const btn = k.botao === "soft" ? "btn-soft" : "btn-rose";
+    const extras = [...(k.preco >= LOJA.freteGratisAcima ? ["Frete grátis"] : []), ...(k.extras || [])];
+    const comprar = k.link
+      ? `<a class="btn ${btn} btn-block" href="${esc(k.link)}" target="_blank" rel="noopener" data-buy="${k.id}">Comprar agora</a>`
+      : `<button class="btn ${btn} btn-block" data-add="${k.id}">Comprar agora</button>`;
     return `<div class="offer ${k.destaque ? "hl" : ""}">
       ${k.destaque ? `<span class="flag">${k.destaque}</span>` : ""}
       <h3>${k.nome}</h3>
       <div class="tag">${k.tag}</div>
       <div class="jars" aria-hidden="true">${Array.from({ length: k.qtd }, () => `<svg viewBox="0 0 300 330"><use href="#jar"/></svg>`).join("")}</div>
+      ${k.semanas ? `<div class="dur">${k.semanas} semanas de ritual</div>` : ""}
       <div class="price">${brl(k.preco)}</div>
       <div class="inst">ou ${LOJA.parcelas}× de ${brl(k.preco / LOJA.parcelas)} sem juros</div>
       ${LOJA.descontoPix ? `<div class="pix">${brl(k.preco * (1 - LOJA.descontoPix))} no Pix</div>` : ""}
-      <button class="btn ${btn} btn-block" data-add="${k.id}">Comprar agora</button>
+      ${extras.length ? `<ul class="extras">${extras.map(e => `<li>${esc(e)}</li>`).join("")}</ul>` : ""}
+      ${comprar}
       <div class="save">${economia > 0 ? `Economize ${brl(economia)}` : ""}</div>
     </div>`;
   }).join("");
@@ -580,10 +723,11 @@ function toggleCart(open) {
 }
 
 document.addEventListener("click", e => {
-  const el = e.target.closest("[data-add],[data-inc],[data-dec],[data-rm],[data-close]");
+  const el = e.target.closest("[data-add],[data-buy],[data-inc],[data-dec],[data-rm],[data-close]");
   if (!el) return;
   const d = el.dataset;
-  if (d.add) { cart[d.add] = (cart[d.add] || 0) + 1; toggleCart(true); }
+  if (d.buy) { track("InitiateCheckout", kit(d.buy).preco); return; }
+  if (d.add) { cart[d.add] = (cart[d.add] || 0) + 1; toggleCart(true); track("AddToCart", kit(d.add).preco); }
   if (d.inc) cart[d.inc]++;
   if (d.dec) cart[d.dec] = Math.max(0, cart[d.dec] - 1);
   if (d.rm) delete cart[d.rm];
@@ -610,6 +754,7 @@ $("checkout").onclick = () => {
     `Total: ${brl(total)}` + (LOJA.descontoPix ? ` (${brl(total * (1 - LOJA.descontoPix))} no Pix)` : ""),
     cep ? `CEP: ${cep}` : ""
   ].filter(Boolean).join("\n");
+  track("InitiateCheckout", total);
   window.open(`https://wa.me/${LOJA.whatsapp}?text=${encodeURIComponent(msg)}`, "_blank", "noopener");
 };
 
@@ -623,7 +768,70 @@ $("footerWhats").target = "_blank";
 [["lnkInsta", "instagram"], ["lnkFace", "facebook"], ["lnkTiktok", "tiktok"]].forEach(([id, rede]) => {
   if (LOJA.redes[rede]) { $(id).href = LOJA.redes[rede]; $(id).target = "_blank"; } else $(id).style.display = "none";
 });
-$("legal").textContent = `© ${new Date().getFullYear()} ${LOJA.razaoSocial}. Todos os direitos reservados. Produto cosmético, uso externo.`;
+[["lnkPriv", "privacidade"], ["lnkTermos", "termos"]].forEach(([id, pg]) => {
+  if (LOJA.links[pg]) $(id).href = LOJA.links[pg]; else $(id).parentElement.style.display = "none";
+});
+const E = LOJA.empresa;
+$("legal").textContent = [`© ${new Date().getFullYear()} ${E.razaoSocial}`, E.cnpj && `CNPJ ${E.cnpj}`, E.endereco, E.email, E.telefone]
+  .filter(Boolean).join(" · ") + ". Produto cosmético, uso externo.";
+
+// menu no celular
+$("menuBtn").onclick = () => {
+  const open = $("mobileNav").classList.toggle("open");
+  $("menuBtn").setAttribute("aria-expanded", String(open));
+};
+$("mobileNav").addEventListener("click", e => {
+  if (e.target.closest("a")) { $("mobileNav").classList.remove("open"); $("menuBtn").setAttribute("aria-expanded", "false"); }
+});
+
+// dados estruturados para o Google (produto e preços; sem notas inventadas)
+const ld = document.createElement("script");
+ld.type = "application/ld+json";
+ld.textContent = JSON.stringify({
+  "@context": "https://schema.org", "@type": "Product", name: LOJA.nome, brand: { "@type": "Brand", name: "MY" },
+  description: document.querySelector('meta[name="description"]').content,
+  offers: { "@type": "AggregateOffer", priceCurrency: "BRL", lowPrice: Math.min(...LOJA.kits.map(k => k.preco)), highPrice: Math.max(...LOJA.kits.map(k => k.preco)), offerCount: LOJA.kits.length }
+});
+document.head.appendChild(ld);
+
+// medição de anúncios: só depois do consentimento (LGPD)
+let consentido = false;
+function track(evento, valor) {
+  if (!consentido) return;
+  const v = { value: valor, currency: "BRL" };
+  if (window.fbq) fbq("track", evento, v);
+  if (window.gtag) gtag("event", { AddToCart: "add_to_cart", InitiateCheckout: "begin_checkout" }[evento] || evento, v);
+}
+function loadScript(src) { const s = document.createElement("script"); s.async = true; s.src = src; document.head.appendChild(s); }
+function ativaRastreamento() {
+  consentido = true;
+  const { metaPixel, ga4 } = LOJA.rastreamento;
+  if (metaPixel) {
+    const f = window.fbq = function () { f.callMethod ? f.callMethod.apply(f, arguments) : f.queue.push(arguments); };
+    f.push = f; f.loaded = true; f.version = "2.0"; f.queue = [];
+    loadScript("https://connect.facebook.net/en_US/fbevents.js");
+    fbq("init", metaPixel); fbq("track", "PageView");
+  }
+  if (ga4) {
+    window.dataLayer = window.dataLayer || [];
+    window.gtag = function () { dataLayer.push(arguments); };
+    loadScript(`https://www.googletagmanager.com/gtag/js?id=${encodeURIComponent(ga4)}`);
+    gtag("js", new Date()); gtag("config", ga4);
+  }
+}
+if (LOJA.rastreamento.metaPixel || LOJA.rastreamento.ga4) {
+  let escolha = null;
+  try { escolha = localStorage.getItem("my-consent"); } catch (e) {}
+  if (escolha === "sim") ativaRastreamento();
+  else if (escolha !== "nao") $("consent").classList.add("show");
+  const decide = sim => {
+    try { localStorage.setItem("my-consent", sim ? "sim" : "nao"); } catch (e) {}
+    $("consent").classList.remove("show");
+    if (sim) ativaRastreamento();
+  };
+  $("consentYes").onclick = () => decide(true);
+  $("consentNo").onclick = () => decide(false);
+}
 if (unit) {
   $("buybarPrice").textContent = "a partir de " + brl(unit.preco);
   $("buybarInst").textContent = `ou ${LOJA.parcelas}× de ${brl(unit.preco / LOJA.parcelas)} sem juros`;
@@ -642,9 +850,9 @@ const links = [...document.querySelectorAll("nav.menu a")];
 const spy = new IntersectionObserver(entries => {
   entries.forEach(en => { if (en.isIntersecting) links.forEach(a => a.classList.toggle("on", a.getAttribute("href") === "#" + en.target.id)); });
 }, { rootMargin: "-45% 0px -50% 0px" });
-["inicio", "resultados", "ingredientes", "depoimentos", "comprar", "perguntas"].forEach(id => spy.observe($(id)));
+["inicio", "resultados", "ingredientes", "como-usar", "depoimentos", "comprar", "perguntas"].forEach(id => spy.observe($(id)));
 
-renderStats(); renderBeforeAfter(); renderReviews(); renderOffers(); renderCart();
+renderStats(); renderBeforeAfter(); renderReviews(); renderProduct(); renderOffers(); renderCart();
 </script>
 </body>
 </html>
