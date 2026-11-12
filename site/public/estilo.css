@@ -291,5 +291,6 @@ img { display: block; max-width: 100%; height: auto; }
 
 /* Novidades (teste grátis, Plano Família, indique uma amiga): escondidas até ligar NOVIDADES em site.js */
 html:not(.novidades) [data-novidade], html.novidades [data-sem-novidade] { display: none !important; }
+html:not(.teste-gratis) [data-teste], html.teste-gratis [data-sem-teste] { display: none !important; }
 .planos { grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); }
 

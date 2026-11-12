@@ -7,6 +7,9 @@ import { DEPOIMENTOS } from "./depoimentos.js";
 // família ao JSON-LD do index.html.
 const NOVIDADES = false;
 if (NOVIDADES) document.documentElement.classList.add("novidades");
+// 7 dias grátis do plano anual, ligado sozinho (sem a Família e o "indique"); igual a TESTE_GRATIS em app/app.js
+const TESTE_GRATIS = true;
+if (TESTE_GRATIS) document.documentElement.classList.add("teste-gratis");
 
 for (const a of document.querySelectorAll("[data-loja]")) {
   const url = LOJAS[a.dataset.loja];

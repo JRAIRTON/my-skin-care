@@ -85,6 +85,8 @@ const MAX_PERFIS = 4;
 // lojas e no RevenueCat (docs/etapa8-lojas.md). Para ligar tudo: true (e o mesmo em site/public/site.js).
 // Testadores com código de convite já veem os perfis da família.
 const NOVIDADES = false;
+// 7-day free trial on the annual plan, on its own: shows without the family plan and "Indique uma amiga"
+const TESTE_GRATIS = true;
 // key of a per-profile item: the main profile keeps the original keys (older installs keep working)
 const K = (nome, id = S.perfilAtivo) => (id === "principal" ? nome : `p:${id}:${nome}`);
 const doPerfil = (a, id = S.perfilAtivo) => (a.perfil || "principal") === id;
@@ -812,7 +814,7 @@ function vAssinar() {
   const loja = compras(), a = ultima();
   const foco = a ? rec(a).prioridades.slice(0, 2).map((p) => p.objetivo.toLowerCase()) : [];
   // in the store app the trial shows only when the store offers it to this person (it is given once)
-  const teste = (p) => (!NOVIDADES ? 0 : loja ? S.ofertas?.[p.id]?.testeDias || 0 : p.id.endsWith("anual") ? TESTE_DIAS : 0);
+  const teste = (p) => (!TESTE_GRATIS ? 0 : loja ? S.ofertas?.[p.id]?.testeDias || 0 : p.id.endsWith("anual") ? TESTE_DIAS : 0);
   const preco = (p) => S.ofertas?.[p.id]?.preco || p.preco;
   const botao = (p) => { const t = teste(p); return `<button class="btn plano${p.id === "anual" ? " primary" : ""} block" data-act="assinar:${p.id}"${loja && !S.ocupado ? "" : " disabled"}>
     ${t ? `<span class="selo">${t} dias grátis</span>` : p.selo ? `<span class="selo">${p.selo}</span>` : ""}<b>${p.nome} · ${esc(preco(p))}</b>
@@ -826,7 +828,7 @@ function vAssinar() {
       <ul class="beneficios small"><li>Nova análise todo mês, com comparação automática</li><li>Gráfico da evolução e antes e depois</li><li>Rotina e produtos atualizados a cada análise</li></ul>
       ${NOVIDADES ? "<h3>Individual</h3>" : ""}<div class="stack">${grupo("Individual")}</div>
       ${NOVIDADES ? `<h3>Família</h3><p class="small muted">Até ${MAX_PERFIS} pessoas neste celular, cada uma com o próprio perfil, análises e rotina. Só para maiores de 18 anos.</p><div class="stack">${grupo("Família")}</div>` : ""}
-      ${loja ? `<button class="btn sm" data-act="assinar:restaurar">Já assinei: restaurar compra</button>` : window.MySkinEmBreve ? aviso("info", "A assinatura pelo Google Play e pela App Store chega em breve. Se você recebeu um código de convite, use em Ajustes.") : aviso("info", `A assinatura é feita pelo app MY Skin Care da App Store ou do Google Play${algumTeste ? `, com ${TESTE_DIAS} dias grátis nos planos anuais` : ""}. Se você recebeu um código de convite, use em Ajustes.`)}
+      ${loja ? `<button class="btn sm" data-act="assinar:restaurar">Já assinei: restaurar compra</button>` : window.MySkinEmBreve ? aviso("info", "A assinatura pelo Google Play e pela App Store chega em breve. Se você recebeu um código de convite, use em Ajustes.") : aviso("info", `A assinatura é feita pelo app MY Skin Care da App Store ou do Google Play${algumTeste ? `, com ${TESTE_DIAS} dias grátis ${NOVIDADES ? "nos planos anuais" : "no plano anual"}` : ""}. Se você recebeu um código de convite, use em Ajustes.`)}
       <p class="small muted">${algumTeste ? `No teste grátis, nada é cobrado nos primeiros ${TESTE_DIAS} dias. Se não cancelar até o fim do teste, a loja cobra o plano escolhido. ` : ""}Renovação automática até o cancelamento, que é feito na loja. Veja os <a href="termos.html">Termos de Uso</a> e a <a href="privacidade.html">Política de Privacidade</a>.</p></section>`;
 }
 async function assinar(plano) {

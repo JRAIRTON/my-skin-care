@@ -3,10 +3,10 @@
 const C = window.Capacitor;
 if (C?.isNativePlatform?.()) {
   const Purchases = C.registerPlugin("Purchases");
-  // RevenueCat public SDK keys (they ship inside the app; not secrets). The test key works with the
-  // RevenueCat Test Store; swap in the appl_ and goog_ keys once the stores are linked in RevenueCat.
+  // RevenueCat public SDK keys (they ship inside the app; not secrets). iOS uses the App Store key; Android
+  // still has the Test Store key (store build shows "em breve") until Google Play is linked: swap in goog_.
   const CHAVES = {
-    ios: "test_WSHWCaaapdEFdDdzEOBEUSskDrE",
+    ios: "appl_vyInsrpFsIFGpGKlsimOoihyqxD",
     android: "test_WSHWCaaapdEFdDdzEOBEUSskDrE",
   };
   // while the key is still a test_ key, the store build shows no purchase at all ("em breve"): store review

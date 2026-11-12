@@ -153,7 +153,9 @@ Apple Developer e Google Play aprovadas):
    Android tem de ser enviada à mão no Play Console (o AAB fica nos artefatos do build).
 4. Rodar os workflows `android` e `ios`.
 5. No RevenueCat, ligar as lojas (Project settings → Apps) e trocar as chaves `test_` de
-   `app/nativo.js` pelas chaves públicas `appl_` e `goog_`.
+   `app/nativo.js` pelas chaves públicas `appl_` e `goog_`. **iOS feito em 12/11/2026** (chave `appl_` no
+   app). Android ainda com a chave `test_`: enquanto for de teste, o app das lojas mostra os planos com
+   "Assinatura disponível em breve", sem botão de compra (exigência da revisão do Google, 22/10/2026).
 
 O id `br.com.myskin.app` não pode ser trocado depois do primeiro envio às lojas.
 
@@ -165,6 +167,13 @@ O app e o servidor já estão prontos; falta configurar nas lojas e no RevenueCa
 no app nem no site. Para ligar: `NOVIDADES = true` em `app/app.js` e em `site/public/site.js`, e devolver os
 planos da família ao JSON-LD de `site/public/index.html`. Testadores com código de convite já veem os perfis
 da família no app.
+
+**Teste grátis ligado sozinho (decisão de 12/11/2026):** `TESTE_GRATIS = true` em `app/app.js` e em
+`site/public/site.js` mostra os 7 dias grátis do plano anual (selo no plano, aviso antes da cobrança, nota e
+pergunta "Tem teste grátis?" no site), sem ligar a Família nem o "Indique uma amiga", que continuam em
+`NOVIDADES = false`. No site, os elementos do teste usam `data-teste` / `data-sem-teste`. No app das lojas,
+o selo só aparece quando a loja oferece o teste àquela pessoa (oferta do `myskincare_anual` configurada no
+App Store Connect e no Play Console).
 
 **Produtos nas lojas** (Google Play Console → app → Monetizar com o Google Play → Produtos → Assinaturas;
 App Store Connect → app → Assinaturas, no mesmo grupo de assinaturas):
