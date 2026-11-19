@@ -20,7 +20,9 @@ for (const a of document.querySelectorAll("[data-loja]")) {
     a.setAttribute("aria-disabled", "true");
   }
 }
-if (LOJAS.ios && LOJAS.android) document.querySelector("[data-lojas-aviso]")?.remove();
+const avisoLojas = document.querySelector("[data-lojas-aviso]");
+const faltam = [!LOJAS.ios && "App Store", !LOJAS.android && "Google Play"].filter(Boolean);
+if (avisoLojas) faltam.length ? (avisoLojas.textContent = `${faltam.join(" e ")} em breve.`) : avisoLojas.remove();
 
 // Vídeo do app no topo: toca sozinho, sem som e em loop. Quem pediu menos movimento no aparelho vê só a imagem.
 const demo = document.querySelector("[data-demo]");

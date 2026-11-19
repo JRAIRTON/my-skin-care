@@ -1,7 +1,7 @@
 // Página /baixar: leva cada aparelho à loja certa. Enquanto os endereços das lojas estiverem vazios,
 // mostra o botão para abrir o app pelo navegador. Ao publicar nas lojas, basta preencher LOJAS.
 const LOJAS = {
-  ios: "",      // ex.: https://apps.apple.com/br/app/my-skin/id0000000000
+  ios: "https://apps.apple.com/br/app/my-skin-care-an%C3%A1lise-de-pele/id6833243480",
   android: "",  // ex.: https://play.google.com/store/apps/details?id=br.com.myskin.app
 };
 const ua = navigator.userAgent;

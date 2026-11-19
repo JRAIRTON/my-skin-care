@@ -154,7 +154,9 @@ Apple Developer e Google Play aprovadas):
 4. Rodar os workflows `android` e `ios`.
 5. No RevenueCat, ligar as lojas (Project settings → Apps) e trocar as chaves `test_` de
    `app/nativo.js` pelas chaves públicas `appl_` e `goog_`. **iOS feito em 12/11/2026** (chave `appl_` no
-   app). Android ainda com a chave `test_`: enquanto for de teste, o app das lojas mostra os planos com
+   app). **App Store: aprovado e publicado em 19/11/2026**,
+   https://apps.apple.com/br/app/my-skin-care-an%C3%A1lise-de-pele/id6833243480 (em `site/public/lojas.js` e
+   `app/baixar.js`; a página `/baixar` já manda o iPhone para lá). Android ainda com a chave `test_`: enquanto for de teste, o app das lojas mostra os planos com
    "Assinatura disponível em breve", sem botão de compra (exigência da revisão do Google, 22/10/2026).
 
 O id `br.com.myskin.app` não pode ser trocado depois do primeiro envio às lojas.
