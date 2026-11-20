@@ -4,7 +4,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { uvDoDia, nivelUV, uvCeuAberto } from "../../app/uv.js";
 import { classifica, avaliaRotulo } from "../../app/rotulo.js";
-import { coresDoTom } from "../../app/tom.js";
+import { coresDoTom, subtomDasRespostas, subtomFinal } from "../../app/tom.js";
 
 test("UV de céu aberto: alto no verão e baixo no inverno do Sul, zero à noite", () => {
   const verao = uvDoDia("2026-12-21", -25.54, -54.58), inverno = uvDoDia("2026-06-21", -25.54, -54.58);
@@ -66,4 +66,33 @@ test("tom: cores por subtom, nada quando não deu para avaliar", () => {
   assert.match(coresDoTom({ avaliavel: true, tom: "escuro", subtom: "frio" }).corretivo, /pêssego ou alaranjado/);
   assert.equal(coresDoTom({ avaliavel: false }), null);
   assert.equal(coresDoTom(null), null);
+});
+
+test("tom: as 3 perguntas apontam o subtom; uma resposta só não basta", () => {
+  assert.deepEqual(subtomDasRespostas({ veias: "azul", joias: "prata", sol: "queima" }), { subtom: "frio", forca: 3 });
+  assert.equal(subtomDasRespostas({ veias: "verde", joias: "ouro", sol: "nao_sei" }).subtom, "quente");
+  assert.equal(subtomDasRespostas({ veias: "ambas", joias: "ambas", sol: "os_dois" }).subtom, "neutro");
+  assert.equal(subtomDasRespostas({ veias: "azul", joias: "nao_sei", sol: "nao_sei" }), null);
+  assert.equal(subtomDasRespostas(null), null);
+});
+
+test("tom: foto e respostas combinadas, escolha da pessoa vence", () => {
+  const foto = { avaliavel: true, tom: "medio", subtom: "quente", confianca: "alta" };
+  const quente = { veias: "verde", joias: "ouro", sol: "bronzeia" }, frio = { veias: "azul", joias: "prata", sol: "queima" };
+  // concordam: confiança alta
+  assert.deepEqual(subtomFinal(foto, { respostas: quente }), { tom: "medio", subtom: "quente", alternativa: null, confianca: "alta", fonte: "foto+respostas" });
+  // discordam e as respostas são firmes: vale a resposta, a foto vira alternativa
+  const d = subtomFinal(foto, { respostas: frio });
+  assert.equal(d.subtom, "frio"); assert.equal(d.alternativa, "quente"); assert.equal(d.confianca, "media");
+  // oliva na foto combina com respostas neutras
+  assert.equal(subtomFinal({ ...foto, subtom: "oliva" }, { respostas: { veias: "ambas", joias: "ambas", sol: "os_dois" } }).alternativa, null);
+  // foto ruim: só as respostas; nada: null
+  assert.equal(subtomFinal({ ...foto, confianca: "baixa" }, { respostas: frio }).fonte, "respostas");
+  assert.equal(subtomFinal({ avaliavel: false }, {}), null);
+  // só a foto: confiança cai um nível
+  assert.equal(subtomFinal(foto, {}).confianca, "media");
+  // escolhida pela pessoa
+  assert.equal(subtomFinal(foto, { respostas: frio, escolhido: "neutro" }).subtom, "neutro");
+  assert.equal(subtomFinal(null, { escolhido: "oliva" }).fonte, "voce");
+  assert.match(coresDoTom({ tom: null, subtom: "oliva" }).base, /oliva/);
 });

@@ -5,7 +5,7 @@ import { CATS, GRAUS, OBJETIVOS, TIPOS_PELE, FOTOTIPOS, recomenda, liberaAtivo, 
 import { linksCompra, temAfiliado } from "./afiliados.js";
 import { uvDoDia, nivelUV, conselhoUV } from "./uv.js";
 import { avaliaRotulo } from "./rotulo.js";
-import { NOMES_TOM, NOMES_SUBTOM, coresDoTom } from "./tom.js";
+import { NOMES_TOM, NOMES_SUBTOM, PERGUNTAS, coresDoTom, subtomFinal } from "./tom.js";
 
 const MODELO_VALIDADO = "claude-sonnet-5-5";
 const INTERVALO_DIAS = 28;      // próxima foto sugerida
@@ -84,7 +84,7 @@ const S = {
   perfis: [], perfilAtivo: "principal", familia: false, fimTeste: null, ofertas: null, convite: null,
   // reminders and UV (this phone, not per profile), label reader, skin tone (opt-in per profile)
   lembretes: { ativo: false, manha: "08:00", noite: "21:00", uv: true, perguntado: false }, cidade: null, cidades: null,
-  rotulo: null, precoRotulos: null, tomOk: false,
+  rotulo: null, precoRotulos: null, tomOk: false, tomForm: false, tomEscolher: false,
 };
 const MAX_PERFIS = 4;
 // Teste grátis, Plano Família e "indique uma amiga" ficam escondidos até os produtos estarem configurados nas
@@ -564,15 +564,37 @@ function vRotulo() {
 }
 
 // ----- tom e subtom (no resultado da análise)
+// The photo's undertone is checked against 3 questions (tom.js); the person can also pick it by hand.
+// Answers and choice are kept in the profile, so they apply to every analysis of this person.
+const FONTE_TOM = { voce: "Escolhido por você", "foto+respostas": "Pela foto e pelas suas respostas", foto: "Só pela foto", respostas: "Pelas suas respostas" };
+function formTom() {
+  const r = S.perfil?.tomRespostas || {};
+  return `<div class="stack">${PERGUNTAS.map((q) => `<fieldset class="pergunta"><legend>${esc(q.t)}</legend>
+    ${q.op.map(([v, l]) => `<label class="tg"><input type="radio" name="q-${q.k}" value="${v}"${r[q.k] === v ? " checked" : ""}> ${esc(l)}</label>`).join("")}</fieldset>`).join("")}
+    <div class="btns"><button class="btn primary" data-act="tom-salvar">Salvar respostas</button><button class="btn ghost" data-act="tom-form">Cancelar</button></div></div>`;
+}
 function blocoTom(a) {
   if (a.tom === undefined || !tomDisponivel()) return "";
-  const cores = a.tom && a.tom.confianca !== "baixa" && a.nivelQualidade !== "bad" ? coresDoTom(a.tom) : null;
-  if (!cores) return `<section class="card"><h3>🎨 Seu tom de pele</h3><p class="small">Não deu para avaliar o tom com segurança nesta foto: a cor da luz muda muito o resultado. Na próxima, use luz natural de janela, sem maquiagem e sem filtro.</p></section>`;
-  const conf = { alta: ["good", "Confiança alta"], media: ["gold", "Confiança média"] }[a.tom.confianca];
+  const p = S.perfil || {}, foto = a.nivelQualidade === "bad" ? null : a.tom;
+  const f = subtomFinal(foto, { respostas: p.tomRespostas, escolhido: p.tomEscolhido });
+  const cores = f && coresDoTom(f), alt = f?.alternativa && coresDoTom({ tom: f.tom, subtom: f.alternativa });
+  const conf = f && { alta: ["good", "Confiança alta"], media: ["gold", "Confiança média"], baixa: ["warn", "Confiança baixa"] }[f.confianca];
+  const semRespostas = !p.tomRespostas && !p.tomEscolhido;
+  const corpo = !f
+    ? `<p class="small">Não deu para avaliar o tom com segurança nesta foto: a cor da luz muda muito o resultado. Responda às 3 perguntas abaixo para ver as cores que combinam com você, e na próxima foto use luz natural de janela, sem maquiagem e sem filtro.</p>`
+    : `<p>${f.tom ? `Tom <b>${esc(NOMES_TOM[f.tom])}</b> · ` : ""}subtom <b>${esc(NOMES_SUBTOM[f.subtom])}</b></p>
+      <p class="small muted">${FONTE_TOM[f.fonte]}.</p>
+      ${f.alternativa ? aviso("gold", `A foto indicou um subtom e as suas respostas, outro: o seu pode ser <b>${esc(NOMES_SUBTOM[f.subtom])}</b> ou <b>${esc(NOMES_SUBTOM[f.alternativa])}</b>. Teste uma base de cada fundo no maxilar, com luz natural, e fique com a que "some" na pele.`) : ""}
+      <ul class="pontos"><li class="good"><span class="ico">✓</span>${esc(cores.base)}</li>${alt ? `<li><span class="ico">?</span>Ou, se for ${esc(NOMES_SUBTOM[f.alternativa])}: ${esc(alt.base.toLowerCase())}</li>` : ""}
+        <li class="good"><span class="ico">✓</span>${esc(cores.corretivo)}</li><li class="good"><span class="ico">✓</span>${esc(cores.batom)}</li>${alt ? "" : `<li class="warn"><span class="ico">!</span>${esc(cores.evite)}</li>`}</ul>`;
+  const perguntar = S.tomForm ? formTom()
+    : semRespostas ? `<div class="box"><span><b>Confirme com 3 perguntas rápidas</b></span><span class="small">A cor da foto muda com a luz. Três perguntas sobre a sua pele deixam o resultado mais certo.</span><button class="btn sm primary" data-act="tom-form" style="justify-self:start">Responder</button></div>` : "";
+  const escolher = S.tomEscolher
+    ? `<div class="stack"><span class="small"><b>Qual é o seu subtom?</b></span><div class="seg" role="group" aria-label="Subtom">${Object.entries(NOMES_SUBTOM).map(([k, l]) => `<button data-act="tom-escolher:${k}" aria-pressed="${p.tomEscolhido === k}">${esc(l.split(" ")[0])}</button>`).join("")}</div>
+       ${p.tomEscolhido ? `<button class="btn sm ghost" data-act="tom-escolher:auto" style="justify-self:start">Usar o resultado da análise</button>` : ""}</div>` : "";
+  const acoes = S.tomForm || S.tomEscolher ? "" : `<div class="btns">${semRespostas ? "" : `<button class="btn sm ghost" data-act="tom-form">Responder as perguntas de novo</button>`}<button class="btn sm ghost" data-act="tom-escolher-abrir">${p.tomEscolhido ? "Trocar o subtom escolhido" : "Não é esse? Escolher meu subtom"}</button></div>`;
   return `<section class="card"><div class="row between"><h3>🎨 Seu tom de pele</h3>${conf ? `<span class="chip ${conf[0]}">${conf[1]}</span>` : ""}</div>
-    <p>Tom <b>${esc(NOMES_TOM[a.tom.tom])}</b> · subtom <b>${esc(NOMES_SUBTOM[a.tom.subtom])}</b></p>
-    <ul class="pontos"><li class="good"><span class="ico">✓</span>${esc(cores.base)}</li><li class="good"><span class="ico">✓</span>${esc(cores.corretivo)}</li>
-      <li class="good"><span class="ico">✓</span>${esc(cores.batom)}</li><li class="warn"><span class="ico">!</span>${esc(cores.evite)}</li></ul>
+    ${corpo}${perguntar}${escolher}${acoes}
     <p class="small muted">O tom na foto muda com a luz. Antes de comprar a base, teste no maxilar com luz natural.${TOM_PUBLICO ? "" : " Recurso em teste."}</p></section>`;
 }
 
@@ -1407,6 +1429,14 @@ async function acao(act, el) {
     case "cidade-remover": S.cidade = null; await DB.set("cidade", null); await agendaAvisos(); return render();
     case "rotulo-ler": return $("#in-rotulo").click();
     case "rotulo-comprar": return compraRotulos();
+    case "tom-form": S.tomForm = !S.tomForm; S.tomEscolher = false; return render();
+    case "tom-salvar": {
+      const r = Object.fromEntries(PERGUNTAS.map((q) => [q.k, document.querySelector(`input[name="q-${q.k}"]:checked`)?.value || "nao_sei"]));
+      if (PERGUNTAS.filter((q) => r[q.k] !== "nao_sei").length < 2) return toast("Responda pelo menos duas perguntas.");
+      await salvaPerfil({ tomRespostas: r }); S.tomForm = false; toast("Respostas salvas."); return render();
+    }
+    case "tom-escolher-abrir": S.tomEscolher = !S.tomEscolher; S.tomForm = false; return render();
+    case "tom-escolher": await salvaPerfil({ tomEscolhido: v === "auto" ? null : v }); S.tomEscolher = false; toast(v === "auto" ? "Voltamos ao resultado da análise." : "Subtom salvo."); return render();
     case "tom-ok": S.tomOk = !S.tomOk; await DB.set(K("tomOk"), S.tomOk); toast(S.tomOk ? "O tom de pele entra nas próximas análises." : "Tom de pele desligado."); return render();
   }
 }

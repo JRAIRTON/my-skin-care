@@ -338,3 +338,5 @@ ul.pontos li.warn .ico { background: var(--warn); }
 ul.pontos li.bad .ico { background: var(--bad); }
 .rotulo-foto { width: 84px; height: 84px; object-fit: cover; border-radius: 14px; flex: none; }
 .card.center .rotulo-foto { width: 140px; height: 140px; margin: 0 auto 8px; }
+fieldset.pergunta { border: 0; margin: 0; padding: 0; display: grid; gap: 2px; }
+fieldset.pergunta legend { font-weight: 600; font-size: 14.5px; margin-bottom: 4px; padding: 0; }
