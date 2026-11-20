@@ -235,7 +235,7 @@ configuração abaixo. Custo de manutenção: só o leitor de rótulos e o tom u
 | Lembretes da rotina | Notificações locais (`@capacitor/local-notifications`), agendadas no celular para 7 dias, com os passos reais do dia; não aparecem se a rotina já foi marcada. Horários em Ajustes (padrão 8h e 21h). Só no app das lojas | Zero |
 | Alerta e cartão de UV | Calculado **no celular** (`app/uv.js`): UV de céu aberto pela posição do sol na cidade escolhida (lista do IBGE em `app/cidades.json`, licença MIT). Sem servidor, sem serviço de clima e sem enviar a cidade. Notificação nos dias de UV 8 ou mais | Zero |
 | Leitor de rótulos | `POST /rotulo`: a IA só transcreve produto e ingredientes; a avaliação é feita no celular por regras fixas (`app/rotulo.js`, de `docs/ingredientes-v1.md`). Só assinantes: **5 leituras por semana**; depois, **pacote de 10 leituras extras** (compra avulsa, não vence). Código de convite: sem cota | ~R$ 0,09 por leitura |
-| Tom e subtom | `X-Tom: 1` na análise faz uma 2ª chamada separada (o pedido validado do método não muda). O subtom da foto é **conferido com 3 perguntas** (veias do pulso, joias prateadas ou douradas, queima ou bronzeia; `app/tom.js`): se batem, confiança alta; se não, o app mostra as duas opções e como testar. A pessoa também pode escolher o subtom à mão. Opcional, ativado por perfil em Ajustes (consentimento específico). **Por enquanto só para quem usa código de convite** (`TOM_PUBLICO = false`) | ~R$ 0,03 por análise com tom; as perguntas não usam IA |
+| Tom e subtom | `X-Tom: 1` na análise faz uma 2ª chamada separada (o pedido validado do método não muda). O subtom da foto é **conferido com 3 perguntas** (veias do pulso, joias prateadas ou douradas, queima ou bronzeia; `app/tom.js`): se batem, confiança alta; se não, o app mostra as duas opções e como testar. A pessoa também pode escolher o subtom à mão. Opcional, ativado por perfil em Ajustes (consentimento específico). **Liberado para todos em 20/11/2026** (`TOM_PUBLICO = true`), antes do teste com vários tons de pele | ~R$ 0,03 por análise com tom; as perguntas não usam IA |
 
 **Lojas e RevenueCat (pacote de leituras extras):**
 
@@ -252,11 +252,11 @@ configuração abaixo. Custo de manutenção: só o leitor de rótulos e o tom u
 leituras usa o identificador aleatório já declarado. Na App Store, incluir em "Histórico de compras" a
 compra avulsa (já declarado). Política de Privacidade versão 8, Termos versão 6, consentimento versão 4.
 
-**Antes de ligar o tom para todos (`TOM_PUBLICO = true` em `app/app.js`):** reunir fotos de pelo menos 3
+**Teste do tom com vários tons de pele (pendente; o recurso já está aberto a todos desde 20/11/2026):** reunir fotos de pelo menos 3
 pessoas de cada fototipo (I-II, III, IV, V, VI), com luz natural e sem maquiagem, e o tom e subtom de cada
 uma (informado por ela ou por uma maquiadora), e rodar `node scripts/tom_validacao.mjs` (instruções no
 arquivo). Critério: subtom certo em 70% ou mais e tom certo ou vizinho em 85% ou mais, em cada fototipo.
-Até lá, testadoras com código de convite usam e dão retorno.
+Se o teste ficar fora do critério, voltar `TOM_PUBLICO` para `false` (só testadoras) até ajustar.
 
 **Android:** o app não pede a permissão de alarmes exatos (restrita no Google Play); os lembretes podem
 atrasar alguns minutos. Ícone da notificação em `res/drawable/ic_stat_myskin.xml`.

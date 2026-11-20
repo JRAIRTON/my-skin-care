@@ -93,9 +93,10 @@ const MAX_PERFIS = 4;
 const NOVIDADES = false;
 // 7-day free trial on the annual plan, on its own: shows without the family plan and "Indique uma amiga"
 const TESTE_GRATIS = true;
-// Skin tone and undertone for makeup: in test with invite-code testers until the check with several skin
-// tones (docs/etapa8-lojas.md); true shows it to everyone. Each profile still turns it on in Ajustes.
-const TOM_PUBLICO = false;
+// Skin tone and undertone for makeup: true shows it to everyone (decision of 20/11/2026, before the check
+// with several skin tones in docs/etapa8-lojas.md); false limits it to invite-code testers. Each profile
+// still turns it on in Ajustes.
+const TOM_PUBLICO = true;
 const tomDisponivel = () => TOM_PUBLICO || !!S.codigo;
 const tomAtivo = () => tomDisponivel() && S.tomOk;
 // key of a per-profile item: the main profile keeps the original keys (older installs keep working)
