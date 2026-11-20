@@ -410,14 +410,15 @@ export function criaApp({ cliente, busca } = {}) {
         if (gratis) await marcaGratis(env, gratis, ip, agora).catch((e) => console.error("falha ao marcar grátis", e?.message));
         return json(200, { ...r, gratis: !!gratis });
       } catch (e) {
-        console.error("falha na IA", e?.status, e?.message); // shows in the Worker's logs
-        // detalhe: the API's own message, so the owner can tell a bad key or empty credit from an outage
-        const detalhe = String(e?.message || "").slice(0, 300);
+        // the details (status, the API's message, a fingerprint of the key) go only to the Worker's logs, never to
+        // the app: the public app shows a plain message, and the owner reads the cause in Observability → Logs
+        const ruim = e instanceof Anthropic.AuthenticationError || e instanceof Anthropic.PermissionDeniedError;
+        console.error("falha na IA", e?.status, String(e?.message || "").slice(0, 300), ruim ? JSON.stringify(impressao(env.ANTHROPIC_API_KEY)) : "");
         if (e instanceof Anthropic.RateLimitError) return json(503, { erro: "IA sobrecarregada; tente de novo" });
-        if (e instanceof Anthropic.AuthenticationError || e instanceof Anthropic.PermissionDeniedError)
-          return json(502, { erro: "chave da Anthropic recusada", causa: "chave", detalhe, chave: impressao(env.ANTHROPIC_API_KEY) });
-        if (e instanceof Anthropic.BadRequestError) return json(400, { erro: "a IA recusou o pedido", causa: "pedido", detalhe });
-        if (e instanceof Anthropic.APIError) return json(502, { erro: `falha na IA (${e.status ?? "conexão"})`, causa: "ia", detalhe });
+        // bad key, no credit or any other API failure: the service is down, not the person's photo
+        if (ruim || /credit|billing|balance/i.test(String(e?.message))) return json(502, { erro: "análise indisponível", causa: "indisponivel" });
+        if (e instanceof Anthropic.BadRequestError) return json(400, { erro: "a IA recusou o pedido", causa: "pedido" });
+        if (e instanceof Anthropic.APIError) return json(502, { erro: "falha na IA", causa: "ia" });
         return json(500, { erro: "falha interna" });
       }
     },

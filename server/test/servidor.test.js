@@ -68,24 +68,27 @@ test("CORS só para origens permitidas", async () => {
   assert.equal(nao.headers.get("Access-Control-Allow-Origin"), null);
 });
 
-test("erros da API viram causa e detalhe para o app", async () => {
+test("erros da API viram causa para o app, sem detalhes técnicos nem a chave", async () => {
   const { default: Anthropic } = await import("@anthropic-ai/sdk");
   const falha = (err) => ({ beta: { messages: { create: async () => { throw err; } } } });
   const h = new Headers();
   const casos = [
-    [new Anthropic.AuthenticationError(401, { error: { message: "invalid x-api-key" } }, "invalid x-api-key", h), 502, "chave"],
-    [new Anthropic.BadRequestError(400, { error: { message: "credit balance is too low" } }, "credit balance is too low", h), 400, "pedido"],
+    [new Anthropic.AuthenticationError(401, { error: { message: "invalid x-api-key" } }, "invalid x-api-key", h), 502, "indisponivel"],
+    [new Anthropic.BadRequestError(400, { error: { message: "credit balance is too low" } }, "credit balance is too low", h), 502, "indisponivel"],
+    [new Anthropic.BadRequestError(400, { error: { message: "image too large" } }, "image too large", h), 400, "pedido"],
     [new Anthropic.InternalServerError(529, {}, "Overloaded", h), 502, "ia"],
   ];
-  const err = console.error; console.error = () => {};
+  const err = console.error, logs = []; console.error = (...a) => logs.push(a.join(" "));
   try {
     for (const [e, status, causa] of casos) {
       const r = await criaApp({ cliente: falha(e) }).fetch(pede("x"), ENV);
       assert.equal(r.status, status);
-      const j = await r.json();
+      const texto = await r.text(), j = JSON.parse(texto);
       assert.equal(j.causa, causa);
-      assert.ok(j.detalhe.length > 0);
+      assert.equal(j.detalhe, undefined); assert.equal(j.chave, undefined);
+      assert.ok(!texto.includes(ENV.ANTHROPIC_API_KEY.slice(0, 8)));
     }
+    assert.ok(logs.some((l) => l.includes("invalid x-api-key")), "o motivo fica no log do Worker");
   } finally { console.error = err; }
 });
 
