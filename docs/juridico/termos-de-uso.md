@@ -1,6 +1,6 @@
 # Termos de Uso — MY Skin Care
 
-Versão 5 · 19/10/2026
+Versão 6 · 20/11/2026
 
 ## 1. Quem somos
 
@@ -66,6 +66,25 @@ apagados. Detalhes na **Política de Privacidade**.
 - Os meses grátis não são convertidos em dinheiro. Fraude (como criar instalações falsas para ganhar
   meses) leva ao cancelamento dos meses ganhos. Podemos mudar ou encerrar a promoção avisando no app;
   meses já ganhos são mantidos.
+
+### Leitor de rótulos
+
+- Faz parte da assinatura: **5 leituras por semana** (em qualquer período de 7 dias). Só contam as leituras
+  em que a lista de ingredientes foi lida; uma foto ilegível não gasta leitura.
+- Para ler mais, você pode comprar na loja um **pacote de 10 leituras extras** (compra avulsa, sem
+  renovação). As leituras extras não vencem e são usadas depois das 5 da semana. Exigem assinatura ativa
+  para serem usadas.
+- A leitura é automática e pode errar: confira sempre na embalagem. A avaliação ("combina", "com cuidados",
+  "não recomendado") segue regras cosméticas fixas, não é orientação médica e não substitui o dermatologista.
+
+### Lembretes, UV e tom de pele
+
+- Os **lembretes** da rotina e o **alerta de UV** são notificações criadas no seu celular, com a sua
+  permissão; você muda os horários ou desliga em Ajustes.
+- O **índice UV** é uma estimativa para céu aberto, calculada pela posição do sol na sua cidade. Com nuvens,
+  o UV real é menor. Serve como lembrete de proteção, não como previsão do tempo.
+- O **tom e o subtom** (opcional, em Ajustes) sugerem famílias de cor de maquiagem. A cor na foto muda com a
+  luz: teste os produtos antes de comprar.
 
 ## 7. Rotina, produtos e preços
 

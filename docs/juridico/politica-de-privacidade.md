@@ -1,6 +1,6 @@
 # Política de Privacidade — MY Skin Care
 
-Versão 7 · 19/10/2026
+Versão 8 · 20/11/2026
 
 ## 1. Quem é o responsável pelos seus dados
 
@@ -30,6 +30,10 @@ Encarregado de dados: **Airton Carvalho Junior**, **myskincare.ia.sac@gmail.com*
 | Registros de acesso ao servidor: data, hora e IP | No nosso servidor | Não |
 | Perfis da família (Plano Família): os mesmos dados acima, de cada pessoa, cada uma no seu perfil | No seu celular | **Sim** (fotos e saúde) |
 | Indique uma amiga: o código de convite, os identificadores aleatórios dos aparelhos de quem convidou e de quem usou o convite, a data e o IP do uso | No nosso servidor; o identificador vai ao serviço de gestão de assinaturas para dar o mês grátis | Não |
+| Tom e subtom da pele, **só se você ativar** em Ajustes (para sugerir cores de maquiagem). Por ser uma característica da aparência, pode ser tratado como dado sensível | Calculado a partir da foto, junto da análise (servidor e Anthropic, sem guardar); o resultado fica só no seu celular | **Sim** |
+| Foto do rótulo de um produto (leitor de rótulos) e a lista de ingredientes lida | A foto passa pelo nosso servidor e pela Anthropic só para a leitura e não é guardada; a avaliação é feita no seu celular, com o seu perfil e a sua rotina, que não saem do aparelho | Não |
+| Contagem de leituras de rótulo: o identificador aleatório do aparelho e a data de cada leitura (para o limite de 5 por semana e o saldo de pacotes extras) | No nosso servidor | Não |
+| Cidade escolhida para o índice UV e horários dos lembretes | Só no seu celular. O UV é calculado no próprio aparelho, pela posição do sol; a cidade não é enviada a ninguém | Não |
 | Contagem anônima de uso: quantas vezes por dia o app foi aberto, quantas análises foram feitas, quantas pessoas viram os planos ou assinaram, por plataforma. Não guarda IP, identificador nem nada do perfil, e não identifica ninguém | No nosso servidor | Não |
 
 Antes do envio, o app reduz a foto e envia só a imagem, sem os dados de localização e do aparelho
@@ -44,6 +48,9 @@ que a câmera grava no arquivo.
 | Guardar registros de acesso por 6 meses | Obrigação legal (Marco Civil da Internet, art. 15) |
 | Liberar a primeira análise grátis uma vez por aparelho | Execução de contrato (art. 7º, V) |
 | Dar os meses grátis do "indique uma amiga" e evitar abuso (um convite por aparelho, limite por internet) | Execução de contrato (art. 7º, V) e legítimo interesse (art. 7º, IX), só com dados não sensíveis |
+| Avaliar o tom e o subtom da pele para sugerir cores de maquiagem (opcional) | **Consentimento específico**, dado ao ativar o recurso em Ajustes (art. 11, I); você pode desligar quando quiser |
+| Ler o rótulo de um produto e controlar o limite semanal e os pacotes extras | Execução de contrato (art. 7º, V) |
+| Lembretes da rotina e alerta de UV (notificações criadas no próprio celular) | Execução de contrato (art. 7º, V); só com a sua permissão de notificações |
 | Contar o uso do app de forma anônima, para melhorar o serviço | Os números não identificam ninguém (art. 12); por transparência, legítimo interesse (art. 7º, IX) |
 | Segurança e prevenção a abusos (limite de análises por minuto e de análises grátis por internet por dia) | Legítimo interesse (art. 7º, IX), só com dados não sensíveis |
 
@@ -54,7 +61,7 @@ Só com fornecedores que processam os dados em nosso nome, para prestar o servi�
 | Fornecedor | Para quê | Onde |
 |---|---|---|
 | Cloudflare | Hospeda o app e o servidor que encaminha a foto para análise | Rede global, incluindo os EUA |
-| Anthropic | Inteligência artificial que avalia a foto | EUA |
+| Anthropic | Inteligência artificial que avalia a foto (e, se você usar, lê o rótulo e avalia o tom da pele) | EUA |
 | Apple (App Store) e Google (Google Play) | Cobrança da assinatura | EUA |
 | RevenueCat | Confere se a assinatura está ativa | EUA |
 
@@ -77,6 +84,9 @@ contratuais dos fornecedores ou outro mecanismo previsto em lei.
 | Fotos, avaliações, perfil e rotina | No seu celular, até você apagar em Ajustes ou desinstalar o app. Nós não temos cópia |
 | Foto enviada para análise | Nosso servidor não guarda. A Anthropic pode guardar por prazo limitado, conforme o item 5 |
 | Registros de acesso | 6 meses |
+| Foto do rótulo | Nosso servidor não guarda. A Anthropic pode guardar por prazo limitado, conforme o item 5 |
+| Contagem de leituras de rótulo | As leituras da cota semanal são apagadas em 8 dias; as pagas com pacote extra ficam enquanto o serviço existir, porque formam o saldo comprado (só o identificador do aparelho e a data) |
+| Tom e subtom, cidade e lembretes | No seu celular, até você desligar o recurso, apagar em Ajustes ou desinstalar o app |
 | Contagem anônima de uso | Enquanto o serviço existir; não identifica ninguém |
 | Indique uma amiga | Código e identificadores enquanto o serviço existir; o IP é apagado em 31 dias |
 | Identificador do aparelho que usou a análise grátis | Enquanto o serviço existir; o IP ligado a ele é apagado em 2 dias |

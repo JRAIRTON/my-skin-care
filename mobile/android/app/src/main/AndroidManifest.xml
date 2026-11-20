@@ -37,4 +37,7 @@
     <uses-permission android:name="android.permission.CAMERA" />
     <!-- No ads: keeps any library from adding the advertising ID (Play Console declares "no advertising ID") -->
     <uses-permission android:name="com.google.android.gms.permission.AD_ID" tools:node="remove" />
+    <!-- Routine and UV reminders do not need to fire to the minute: no exact alarms (a restricted permission on
+         Google Play); the local notifications plugin falls back to inexact alarms -->
+    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" tools:node="remove" />
 </manifest>

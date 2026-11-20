@@ -323,3 +323,95 @@ test("indique uma amiga: sem chave do RevenueCat não dá mês grátis, e falha 
   const rc = rcFalso();
   assert.equal((await post(criaApp({ cliente: {}, busca: rc.busca }), { ...ENV, REGISTROS: db, REVENUECAT_API_KEY: "sk" }, "aparelho-bia-0000002", codigo)).status, 200);
 });
+
+// ---------- leitor de rótulos ----------
+const rotuloOk = (legivel = true) => falso(resp({ legivel, produto: "Marca Sérum X", ingredientes: legivel ? ["Aqua", "Niacinamide", "Salicylic Acid"] : [] }));
+const pedeRotulo = (headers = {}) => new Request("https://s/rotulo", {
+  method: "POST", body: new Uint8Array([1]), headers: { "Content-Type": "image/jpeg", "X-Usuario": "aparelho-rotulo-0001", ...headers } });
+const rcSub = (ativa, pacotes = 0) => async () => new Response(JSON.stringify({ subscriber: {
+  entitlements: ativa ? { myskincare_pro: { expires_date: new Date(Date.now() + 864e5).toISOString() } } : {},
+  non_subscriptions: pacotes ? { myskincare_rotulos10: Array.from({ length: pacotes }, (_, i) => ({ id: `c${i}` })) } : {},
+} }), { status: 200 });
+
+test("rótulo: transcreve com o modelo validado e só para quem assina", async () => {
+  const db = await d1Sqlite(); const env = { ...ENV, REGISTROS: db, REVENUECAT_API_KEY: "sk_rc" };
+  const c = rotuloOk();
+  const r = await criaApp({ cliente: c, busca: rcSub(true) }).fetch(pedeRotulo(), env);
+  assert.equal(r.status, 200);
+  const j = await r.json();
+  assert.deepEqual(j.ingredientes, ["Aqua", "Niacinamide", "Salicylic Acid"]);
+  assert.equal(j.produto, "Marca Sérum X");
+  assert.equal(j.restam, 4); assert.equal(j.extras, 0);
+  assert.equal(c.chamadas[0].model, METODO.modelo);
+  assert.equal(c.chamadas[0].output_config.format.schema.required.includes("ingredientes"), true);
+  // sem assinatura: 402, sem chamar a IA (a análise grátis não vale para o leitor)
+  const c2 = rotuloOk();
+  const sem = await criaApp({ cliente: c2, busca: rcSub(false) }).fetch(pedeRotulo({ "X-Usuario": "aparelho-rotulo-0002" }), env);
+  assert.equal(sem.status, 402);
+  assert.equal(c2.chamadas.length, 0);
+});
+
+test("rótulo: 5 por semana; depois, pacote extra; rótulo ilegível não gasta leitura", async () => {
+  const db = await d1Sqlite(); const env = { ...ENV, REGISTROS: db, REVENUECAT_API_KEY: "sk_rc" };
+  const app = criaApp({ cliente: rotuloOk(), busca: rcSub(true) });
+  for (let i = 0; i < 5; i++) assert.equal((await app.fetch(pedeRotulo(), env)).status, 200);
+  // ilegível depois do limite também é recusado antes da IA; antes do limite, não conta
+  const cheio = await app.fetch(pedeRotulo(), env);
+  assert.equal(cheio.status, 429);
+  const j = await cheio.json();
+  assert.equal(j.causa, "limite_rotulos");
+  assert.equal(j.pacote, "myskincare_rotulos10");
+  assert.ok(new Date(j.liberaEm) > new Date());
+  // com 1 pacote comprado: 10 leituras extras
+  const comPacote = criaApp({ cliente: rotuloOk(), busca: rcSub(true, 1) });
+  const e1 = await (await comPacote.fetch(pedeRotulo(), env)).json();
+  assert.equal(e1.extras, 9);
+  const ilegivel = await (await criaApp({ cliente: rotuloOk(false), busca: rcSub(true, 1) }).fetch(pedeRotulo(), env)).json();
+  assert.equal(ilegivel.legivel, false);
+  assert.equal(ilegivel.extras, 9, "ilegível não gasta o extra");
+  const e2 = await (await comPacote.fetch(pedeRotulo(), env)).json();
+  assert.equal(e2.extras, 8);
+  // outro aparelho tem a própria cota
+  const outro = await (await app.fetch(pedeRotulo({ "X-Usuario": "aparelho-rotulo-0009" }), env)).json();
+  assert.equal(outro.restam, 4);
+});
+
+test("rótulo: código de convite não tem cota; limpeza apaga leituras semanais antigas e guarda as extras", async () => {
+  const { apagaRotulosAntigos } = await import("../src/index.js");
+  const db = await d1Sqlite(); const env = { ...ENV, REGISTROS: db, REVENUECAT_API_KEY: "sk_rc" };
+  const app = criaApp({ cliente: rotuloOk(), busca: async () => { throw new Error("não deve consultar o RevenueCat"); } });
+  for (let i = 0; i < 7; i++) assert.equal((await app.fetch(pedeRotulo({ Authorization: "Bearer segredo" }), env)).status, 200);
+  const velho = new Date(Date.now() - 10 * 864e5).toISOString();
+  await apagaRotulosAntigos(env); // creates the table (the invite code never touches the quota)
+  await db.prepare("INSERT INTO rotulos (usuario, quando, extra) VALUES (?1, ?2, 0)").bind("a", velho).run();
+  await db.prepare("INSERT INTO rotulos (usuario, quando, extra) VALUES (?1, ?2, 1)").bind("a", velho).run();
+  await apagaRotulosAntigos(env);
+  const sobra = await db.prepare("SELECT extra FROM rotulos").all();
+  assert.deepEqual(sobra.results.map((x) => x.extra), [1]);
+});
+
+test("tom e subtom: só com X-Tom: 1, em chamada separada; falha no tom não derruba a análise", async () => {
+  const chamadas = [];
+  const cliente = { beta: { messages: { create: async (p) => {
+    chamadas.push(p);
+    if (p.output_config.format.schema.required.includes("subtom")) return resp({ avaliavel: true, tom: "medio", subtom: "quente", confianca: "alta" });
+    return resp({ notas: notasOk, confianca: "alta", idade_aparente: 40 });
+  } } } };
+  const sem = await (await criaApp({ cliente }).fetch(pede(new Uint8Array([1])), ENV)).json();
+  assert.equal(sem.tom, undefined);
+  assert.equal(chamadas.length, 1);
+  assert.equal(chamadas[0].messages[0].content[1].text, METODO.prompt, "o pedido validado não muda");
+  const com = await (await criaApp({ cliente }).fetch(pede(new Uint8Array([1]), { "X-Tom": "1" }), ENV)).json();
+  assert.deepEqual(com.tom, { avaliavel: true, tom: "medio", subtom: "quente", confianca: "alta" });
+  assert.equal(com.skin_score, 80);
+  const quebra = { beta: { messages: { create: async (p) => {
+    if (p.output_config.format.schema.required.includes("subtom")) throw new Error("falhou");
+    return resp({ notas: notasOk, confianca: "alta", idade_aparente: 40 });
+  } } } };
+  const err = console.error; console.error = () => {};
+  try {
+    const r = await criaApp({ cliente: quebra }).fetch(pede(new Uint8Array([1]), { "X-Tom": "1" }), ENV);
+    assert.equal(r.status, 200);
+    assert.equal((await r.json()).tom, null);
+  } finally { console.error = err; }
+});

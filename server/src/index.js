@@ -1,6 +1,8 @@
 // MY Skin AI — servidor de análise (Cloudflare Worker).
 // POST /analise com a foto no corpo devolve as notas do Método MY Skin v1, pelo mesmo pedido e schema
 // validados na etapa 5 (src/metodo.json é gerado por scripts/etapa5_validacao.py --exportar-metodo).
+// Também: POST /rotulo (leitura da lista de ingredientes) e, com X-Tom: 1, o tom e o subtom da pele junto
+// da análise. O índice UV é calculado no próprio app (app/uv.js), sem servidor.
 import Anthropic from "@anthropic-ai/sdk";
 import METODO from "./metodo.json" with { type: "json" };
 
@@ -109,13 +111,22 @@ export async function apagaAcessosAntigos(env, agora = new Date()) {
   await garanteIndicacao(env.REGISTROS);
   const trintaUm = new Date(agora.getTime() - 31 * 864e5).toISOString();
   await env.REGISTROS.prepare("UPDATE indicacoes SET ip = '' WHERE quando < ?1 AND ip <> ''").bind(trintaUm).run();
+  await apagaRotulosAntigos(env, agora);
+}
+// weekly label readings only serve the 7-day quota: drop them after 8 days. Readings paid with a pack
+// stay, because they are the balance of what was bought (install id and date only)
+export async function apagaRotulosAntigos(env, agora = new Date()) {
+  await garanteRotulos(env.REGISTROS);
+  const oitoDias = new Date(agora.getTime() - 8 * 864e5).toISOString();
+  await env.REGISTROS.prepare("DELETE FROM rotulos WHERE extra = 0 AND quando < ?1").bind(oitoDias).run();
 }
 
 // ---------- anonymous usage counts ----------
 // POST /evento {nome, plataforma}: adds 1 to the day's count of that event. Only the day, the event name
 // and the platform are kept: no IP, no install id, nothing from the profile. GET /metricas shows them.
 export const EVENTOS = new Set(["primeiro_acesso", "abriu", "consentiu", "primeira_analise", "analise_gratis", "analise",
-  "viu_planos", "iniciou_compra", "assinou", "compartilhou", "clicou_loja", "convidou", "usou_convite"]);
+  "viu_planos", "iniciou_compra", "assinou", "compartilhou", "clicou_loja", "convidou", "usou_convite",
+  "leu_rotulo", "comprou_rotulos", "ativou_lembretes"]);
 const PLATAFORMAS = new Set(["web", "ios", "android"]);
 let metricasPronta = null;
 function garanteMetricas(db) {
@@ -193,9 +204,9 @@ th,td{border-color:#2B211C}th{color:#E2BBA0}input{background:#211915;color:#F3E9
 <p>Contagens anônimas: só o dia, o evento e a plataforma. Ninguém é identificado.</p>
 <form id="f"><input id="c" type="password" placeholder="Código de convite (APP_TOKEN)" autocomplete="current-password" required><button>Ver</button></form>
 <div id="r"></div></main><script>
-const NOMES={primeiro_acesso:"Abriram o app pela 1ª vez",consentiu:"Aceitaram os termos",primeira_analise:"Fizeram a 1ª análise",analise_gratis:"Usaram a análise grátis",viu_planos:"Viram os planos",iniciou_compra:"Tocaram em assinar",assinou:"Assinaram ou começaram o teste grátis",convidou:"Enviaram convite",usou_convite:"Usaram convite de amiga",abriu:"Aberturas (1 por aparelho por dia)",analise:"Análises feitas",compartilhou:"Compartilharam a evolução",clicou_loja:"Cliques em lojas de produtos"};
+const NOMES={primeiro_acesso:"Abriram o app pela 1ª vez",consentiu:"Aceitaram os termos",primeira_analise:"Fizeram a 1ª análise",analise_gratis:"Usaram a análise grátis",viu_planos:"Viram os planos",iniciou_compra:"Tocaram em assinar",assinou:"Assinaram ou começaram o teste grátis",convidou:"Enviaram convite",usou_convite:"Usaram convite de amiga",abriu:"Aberturas (1 por aparelho por dia)",analise:"Análises feitas",compartilhou:"Compartilharam a evolução",clicou_loja:"Cliques em lojas de produtos",leu_rotulo:"Rótulos lidos",comprou_rotulos:"Pacotes de leituras comprados",ativou_lembretes:"Ativaram os lembretes"};
 const FUNIL=["primeiro_acesso","consentiu","primeira_analise","viu_planos","iniciou_compra","assinou"];
-const USO=["abriu","analise","analise_gratis","compartilhou","clicou_loja","convidou","usou_convite"];
+const USO=["abriu","analise","analise_gratis","ativou_lembretes","leu_rotulo","comprou_rotulos","compartilhou","clicou_loja","convidou","usou_convite"];
 const PL=["web","android","ios"],esc=s=>String(s).replace(/[&<>]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]));
 function tabela(cab,linhas){return '<div class="tbl"><table><thead><tr>'+cab.map(c=>'<th>'+c+'</th>').join("")+'</tr></thead><tbody>'+linhas.map(l=>'<tr>'+l.map(c=>'<td>'+c+'</td>').join("")+'</tr>').join("")+'</tbody></table></div>';}
 async function carrega(codigo){const r=await fetch("/metricas.json",{headers:{Authorization:"Bearer "+codigo},cache:"no-store"});
@@ -299,6 +310,100 @@ export async function usaConvite(env, usuario, codigo, ip, agora = new Date(), b
   return [200, { ok: true, meses: 1 }];
 }
 
+// ---------- label reader ----------
+// POST /rotulo with a photo of the ingredient list: the AI only transcribes what is printed (product name
+// and ingredients). Whether it suits the person is decided in the app by fixed rules (app/rotulo.js), with
+// the profile and routine that never leave the phone. Subscribers and invite codes only.
+// ROTULOS_POR_SEMANA readings per install in any 7 days (only readable labels count); after that, extra
+// readings come from packs bought in the store (consumable ROTULOS_PACOTE, ROTULOS_POR_PACOTE each),
+// which RevenueCat lists under the subscriber's non_subscriptions.
+export const ROTULOS_POR_SEMANA = 5;
+export const ROTULOS_PACOTE = "myskincare_rotulos10";
+export const ROTULOS_POR_PACOTE = 10;
+const PROMPT_ROTULO = `Esta é a foto da embalagem de um cosmético. Transcreva só o que está impresso:
+- produto: marca e nome do produto, se aparecerem (senão, texto vazio);
+- ingredientes: a lista de ingredientes (composição/INCI), na ordem impressa, um item por ingrediente, com a grafia da embalagem. Não invente, não complete e não traduza ingredientes que não estejam legíveis.
+- legivel: false se a lista de ingredientes não aparece ou não dá para ler a maior parte dela.`;
+const SCHEMA_ROTULO = {
+  type: "object", additionalProperties: false, required: ["legivel", "produto", "ingredientes"],
+  properties: { legivel: { type: "boolean" }, produto: { type: "string" }, ingredientes: { type: "array", items: { type: "string" } } },
+};
+export async function leRotulo(client, imagem, tipo) {
+  const resp = await client.beta.messages.create({
+    model: METODO.modelo, max_tokens: 4000, betas: ["server-side-fallback-2026-07-01"], fallbacks: "default",
+    messages: [{ role: "user", content: [
+      { type: "image", source: { type: "base64", media_type: tipo, data: base64(imagem) } },
+      { type: "text", text: PROMPT_ROTULO },
+    ] }],
+    output_config: { format: { type: "json_schema", schema: SCHEMA_ROTULO } },
+  });
+  if (resp.stop_reason === "refusal") return { legivel: false, produto: "", ingredientes: [] };
+  const d = JSON.parse(resp.content.find((b) => b.type === "text")?.text || "{}");
+  const ingredientes = (Array.isArray(d.ingredientes) ? d.ingredientes : [])
+    .map((x) => String(x).trim().slice(0, 80)).filter(Boolean).slice(0, 80);
+  return { legivel: !!d.legivel && ingredientes.length > 0, produto: String(d.produto || "").trim().slice(0, 120), ingredientes };
+}
+const rotulosPronta = new WeakMap();
+function garanteRotulos(db) {
+  if (!rotulosPronta.has(db)) rotulosPronta.set(db, db.batch([
+    db.prepare("CREATE TABLE IF NOT EXISTS rotulos (usuario TEXT NOT NULL, quando TEXT NOT NULL, extra INTEGER NOT NULL DEFAULT 0)"),
+    db.prepare("CREATE INDEX IF NOT EXISTS rotulos_usuario ON rotulos (usuario, quando)"),
+  ]).catch((e) => { rotulosPronta.delete(db); throw e; }));
+  return rotulosPronta.get(db);
+}
+// readings in the last 7 days (weekly quota), extra readings ever used, and when the oldest weekly one frees up
+async function usoRotulos(env, usuario, agora) {
+  if (!env.REGISTROS) return { semana: 0, extrasUsados: 0, liberaEm: null };
+  await garanteRotulos(env.REGISTROS);
+  const desde = new Date(agora.getTime() - 7 * 864e5).toISOString();
+  const s = await env.REGISTROS.prepare("SELECT COUNT(*) AS n, MIN(quando) AS primeira FROM rotulos WHERE usuario = ?1 AND extra = 0 AND quando >= ?2").bind(usuario, desde).first();
+  const x = await env.REGISTROS.prepare("SELECT COUNT(*) AS n FROM rotulos WHERE usuario = ?1 AND extra = 1").bind(usuario).first();
+  const liberaEm = s?.primeira ? new Date(new Date(s.primeira).getTime() + 7 * 864e5).toISOString() : null;
+  return { semana: s?.n ?? 0, extrasUsados: x?.n ?? 0, liberaEm };
+}
+// the subscriber record in RevenueCat: active subscription and extra readings bought
+export async function assinante(env, usuario, agora = new Date(), busca = fetch) {
+  if (!env.REVENUECAT_API_KEY) return { ativa: false, pacotes: 0 };
+  const r = await busca(rcBase(usuario), { headers: { Authorization: `Bearer ${env.REVENUECAT_API_KEY.trim()}`, Accept: "application/json" } });
+  if (!r.ok) throw new Error(`RevenueCat ${r.status}`);
+  const sub = (await r.json())?.subscriber || {};
+  const ent = sub.entitlements?.[env.ENTITLEMENT || "myskincare_pro"];
+  const ativa = !!ent && (!ent.expires_date || new Date(ent.expires_date) > agora);
+  const compras = sub.non_subscriptions?.[ROTULOS_PACOTE] || [];
+  return { ativa, pacotes: compras.length };
+}
+
+// ---------- skin tone and undertone ----------
+// Separate call, only when the app asks (X-Tom: 1, after the person opts in), so the validated scoring
+// prompt of the Método MY Skin v1 stays untouched. It suggests makeup color families, nothing more.
+export const TONS = ["muito_claro", "claro", "medio", "moreno", "escuro", "muito_escuro"];
+export const SUBTONS = ["frio", "neutro", "quente", "oliva"];
+const PROMPT_TOM = `Avalie o tom e o subtom da pele do rosto nesta foto, para sugerir famílias de cor de maquiagem (base, corretivo, batom).
+- tom: a profundidade da cor da pele (muito_claro, claro, medio, moreno, escuro, muito_escuro), olhando bochechas e testa, não áreas com sombra ou reflexo.
+- subtom: frio (fundo rosado/avermelhado), neutro, quente (fundo dourado/amarelado/pêssego) ou oliva (fundo esverdeado/acinzentado).
+- Desconte a cor da luz: luz amarelada, azulada ou colorida, filtro, maquiagem pesada ou sombra forte reduzem a confiança.
+- confianca: alta só com luz natural neutra e pele sem maquiagem; baixa quando a cor da luz ou da imagem pode estar distorcida.
+- avaliavel: false se o rosto não aparece bem o suficiente.`;
+const SCHEMA_TOM = {
+  type: "object", additionalProperties: false, required: ["avaliavel", "tom", "subtom", "confianca"],
+  properties: { avaliavel: { type: "boolean" }, tom: { type: "string", enum: TONS }, subtom: { type: "string", enum: SUBTONS },
+    confianca: { type: "string", enum: ["alta", "media", "baixa"] } },
+};
+export async function analisaTom(client, imagem, tipo) {
+  const resp = await client.beta.messages.create({
+    model: METODO.modelo, max_tokens: 1000, betas: ["server-side-fallback-2026-07-01"], fallbacks: "default",
+    messages: [{ role: "user", content: [
+      { type: "image", source: { type: "base64", media_type: tipo, data: base64(imagem) } },
+      { type: "text", text: PROMPT_TOM },
+    ] }],
+    output_config: { format: { type: "json_schema", schema: SCHEMA_TOM } },
+  });
+  if (resp.stop_reason === "refusal") return null;
+  const d = JSON.parse(resp.content.find((b) => b.type === "text")?.text || "{}");
+  if (!d.avaliavel || !TONS.includes(d.tom) || !SUBTONS.includes(d.subtom)) return { avaliavel: false };
+  return { avaliavel: true, tom: d.tom, subtom: d.subtom, confianca: ["alta", "media", "baixa"].includes(d.confianca) ? d.confianca : "baixa" };
+}
+
 export function criaApp({ cliente, busca } = {}) {
   const app = {
     async fetch(req, env, ctx) {
@@ -315,7 +420,7 @@ export function criaApp({ cliente, busca } = {}) {
       const origem = req.headers.get("Origin");
       const permitidas = (env.ORIGENS_PERMITIDAS || "").split(",").map((s) => s.trim()).filter(Boolean);
       const cors = origem && permitidas.includes(origem)
-        ? { "Access-Control-Allow-Origin": origem, "Access-Control-Allow-Headers": "Authorization, Content-Type, X-Usuario",
+        ? { "Access-Control-Allow-Origin": origem, "Access-Control-Allow-Headers": "Authorization, Content-Type, X-Usuario, X-Tom",
             "Access-Control-Allow-Methods": "GET, POST, OPTIONS", Vary: "Origin" }
         : {};
       const json = (status, corpo) => new Response(JSON.stringify(corpo), {
@@ -365,7 +470,7 @@ export function criaApp({ cliente, busca } = {}) {
           return json(503, { erro: "não foi possível usar o convite agora; tente de novo" });
         }
       }
-      if (pathname !== "/analise" && pathname !== "/acesso") return json(404, { erro: "rota inexistente" });
+      if (pathname !== "/analise" && pathname !== "/acesso" && pathname !== "/rotulo") return json(404, { erro: "rota inexistente" });
       const metodo = pathname === "/acesso" ? "GET" : "POST";
       if (req.method !== metodo) return json(405, { erro: `use ${metodo}` });
 
@@ -378,17 +483,30 @@ export function criaApp({ cliente, busca } = {}) {
       }
       const auth = req.headers.get("Authorization") || "";
       const ip = req.headers.get("CF-Connecting-IP") || "sem-ip";
+      const usuario = (req.headers.get("X-Usuario") || "").trim();
       const agora = new Date();
       let gratis = null; // set when this analysis uses the free one, marked only if it succeeds
+      let codigo = false;
+      let rotulo = null; // reading allowed for this subscriber: { extra, restam, extras } after this one
       if (auth.startsWith("Bearer ")) {
         if (!(await mesmoToken(auth.slice(7).trim(), env.APP_TOKEN.trim()))) return json(401, { erro: "token inválido" });
         // GET /acesso only checks the access code typed in the app
         if (pathname === "/acesso") return json(200, { ok: true });
+        codigo = true;
       } else {
-        const usuario = (req.headers.get("X-Usuario") || "").trim();
         if (pathname === "/acesso" || !ID_USUARIO.test(usuario)) return json(401, { erro: "token inválido" });
         try {
-          if (await podeGratis(env, usuario, ip, agora)) gratis = usuario;
+          if (pathname === "/rotulo") {
+            // the free first analysis does not cover the label reader
+            const sub = await assinante(env, usuario, agora, busca);
+            if (!sub.ativa) return json(402, { erro: "assinatura necessária", causa: "assinatura" });
+            const uso = await usoRotulos(env, usuario, agora);
+            const extras = Math.max(0, sub.pacotes * ROTULOS_POR_PACOTE - uso.extrasUsados);
+            if (uso.semana < ROTULOS_POR_SEMANA) rotulo = { extra: 0, restam: ROTULOS_POR_SEMANA - uso.semana - 1, extras };
+            else if (extras > 0) rotulo = { extra: 1, restam: 0, extras: extras - 1 };
+            else return json(429, { erro: `limite de ${ROTULOS_POR_SEMANA} leituras de rótulo por semana`, causa: "limite_rotulos",
+              liberaEm: uso.liberaEm, pacote: ROTULOS_PACOTE, porPacote: ROTULOS_POR_PACOTE });
+          } else if (await podeGratis(env, usuario, ip, agora)) gratis = usuario;
           else if (!(await assinaturaAtiva(env, usuario, agora, busca)))
             return json(402, { erro: "assinatura necessária", causa: "assinatura" });
         } catch (e) {
@@ -396,7 +514,6 @@ export function criaApp({ cliente, busca } = {}) {
           return json(503, { erro: "não foi possível conferir a assinatura; tente de novo" });
         }
       }
-
       const tipo = (req.headers.get("Content-Type") || "").split(";")[0].trim().toLowerCase();
       if (!TIPOS.has(tipo)) return json(415, { erro: "envie a foto como image/jpeg, image/png ou image/webp" });
       const imagem = await req.arrayBuffer();
@@ -405,10 +522,25 @@ export function criaApp({ cliente, busca } = {}) {
 
       const client = cliente || new Anthropic({ apiKey: env.ANTHROPIC_API_KEY.trim(), maxRetries: 2 /* spaces or a line break pasted with the secret */ });
       try {
-        const r = await analisa(client, imagem, tipo);
+        if (pathname === "/rotulo") {
+          const r = await leRotulo(client, imagem, tipo);
+          // only a readable label uses up a reading; the invite code (testers, store review) has no quota
+          if (rotulo && r.legivel && env.REGISTROS) {
+            await env.REGISTROS.prepare("INSERT INTO rotulos (usuario, quando, extra) VALUES (?1, ?2, ?3)").bind(usuario, agora.toISOString(), rotulo.extra).run()
+              .catch((e) => console.error("falha ao contar rótulo", e?.message));
+          }
+          const saldo = rotulo ? (r.legivel ? { restam: rotulo.restam, extras: rotulo.extras } : { restam: rotulo.restam + (rotulo.extra ? 0 : 1), extras: rotulo.extras + rotulo.extra }) : {};
+          return json(200, { ...r, ...saldo });
+        }
+        // tone and undertone only when the app asks (the person opted in); a failure there does not fail the analysis
+        const querTom = req.headers.get("X-Tom") === "1";
+        const [r, tom] = await Promise.all([
+          analisa(client, imagem, tipo),
+          querTom ? analisaTom(client, imagem, tipo).catch((e) => { console.error("falha no tom", e?.status, e?.message); return null; }) : null,
+        ]);
         if (r.recusa) return json(422, { erro: "a IA não analisou esta foto" });
         if (gratis) await marcaGratis(env, gratis, ip, agora).catch((e) => console.error("falha ao marcar grátis", e?.message));
-        return json(200, { ...r, gratis: !!gratis });
+        return json(200, { ...r, gratis: !!gratis, ...(querTom ? { tom } : {}) });
       } catch (e) {
         // the details (status, the API's message, a fingerprint of the key) go only to the Worker's logs, never to
         // the app: the public app shows a plain message, and the owner reads the cause in Observability → Logs

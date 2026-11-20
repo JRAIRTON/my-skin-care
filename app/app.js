@@ -3,6 +3,9 @@
 // (POST /analise) e não é guardada lá. A rotina e os produtos saem de regras fixas (recomenda.js).
 import { CATS, GRAUS, OBJETIVOS, TIPOS_PELE, FOTOTIPOS, recomenda, liberaAtivo, entradaDosAtivos, skinScore } from "./recomenda.js";
 import { linksCompra, temAfiliado } from "./afiliados.js";
+import { uvDoDia, nivelUV, conselhoUV } from "./uv.js";
+import { avaliaRotulo } from "./rotulo.js";
+import { NOMES_TOM, NOMES_SUBTOM, coresDoTom } from "./tom.js";
 
 const MODELO_VALIDADO = "claude-sonnet-5-5";
 const INTERVALO_DIAS = 28;      // próxima foto sugerida
@@ -79,6 +82,9 @@ const S = {
   editando: false, procForm: false, instalar: null, catFiltro: "Todos",
   // family: profiles on this phone; each one has its own data under K() keys and analyses tagged with perfil
   perfis: [], perfilAtivo: "principal", familia: false, fimTeste: null, ofertas: null, convite: null,
+  // reminders and UV (this phone, not per profile), label reader, skin tone (opt-in per profile)
+  lembretes: { ativo: false, manha: "08:00", noite: "21:00", uv: true, perguntado: false }, cidade: null, cidades: null,
+  rotulo: null, precoRotulos: null, tomOk: false,
 };
 const MAX_PERFIS = 4;
 // Teste grátis, Plano Família e "indique uma amiga" ficam escondidos até os produtos estarem configurados nas
@@ -87,6 +93,11 @@ const MAX_PERFIS = 4;
 const NOVIDADES = false;
 // 7-day free trial on the annual plan, on its own: shows without the family plan and "Indique uma amiga"
 const TESTE_GRATIS = true;
+// Skin tone and undertone for makeup: in test with invite-code testers until the check with several skin
+// tones (docs/etapa8-lojas.md); true shows it to everyone. Each profile still turns it on in Ajustes.
+const TOM_PUBLICO = false;
+const tomDisponivel = () => TOM_PUBLICO || !!S.codigo;
+const tomAtivo = () => tomDisponivel() && S.tomOk;
 // key of a per-profile item: the main profile keeps the original keys (older installs keep working)
 const K = (nome, id = S.perfilAtivo) => (id === "principal" ? nome : `p:${id}:${nome}`);
 const doPerfil = (a, id = S.perfilAtivo) => (a.perfil || "principal") === id;
@@ -98,8 +109,9 @@ const anterior = (a) => { const l = ordenadas(); const i = l.findIndex((x) => x.
 const recuperacao = (data = hoje()) => S.eventos.find((e) => data >= e.data && data <= soma(e.data, e.dias)) || null;
 
 async function carrega() {
-  const [perfis, ativo, fimTeste] = await Promise.all([DB.get("perfis"), DB.get("perfilAtivo"), DB.get("fimTeste")]);
-  S.perfis = perfis || []; S.fimTeste = fimTeste || null;
+  const [perfis, ativo, fimTeste, lembretes, cidade] = await Promise.all([DB.get("perfis"), DB.get("perfilAtivo"), DB.get("fimTeste"), DB.get("lembretes"), DB.get("cidade")]);
+  S.perfis = perfis || []; S.fimTeste = fimTeste || null; S.cidade = cidade || null;
+  if (lembretes) S.lembretes = { ...S.lembretes, ...lembretes };
   S.perfilAtivo = ativo && S.perfis.some((x) => x.id === ativo) ? ativo : "principal";
   const [cat, perfil, codigo, analises, checks, eventos, inicio, usuario, tenho] = await Promise.all([
     S.catalogo.length ? S.catalogo : fetch("catalogo.json").then((r) => r.json()), DB.get(K("perfil")), DB.get("codigo"), DB.todas(),
@@ -108,6 +120,7 @@ async function carrega() {
   Object.assign(S, { catalogo: cat, perfil: perfil || null, codigo: codigo || null, analises: (analises || []).filter((a) => doPerfil(a)), checks: checks || {}, eventos: eventos || [], rotinaInicio: inicio || null, usuario: usuario || null, tenho: tenho || [] });
   // random id of this install: the server uses it for the free first analysis and the subscription
   if (!S.usuario) { S.usuario = crypto.randomUUID(); await DB.set("usuario", S.usuario); }
+  S.tomOk = !!(await DB.get(K("tomOk")));
 }
 
 // ---------- aparência ----------
@@ -156,7 +169,7 @@ async function chama(caminho, opcoes = {}, codigo = S.codigo) {
     if (corpo.causa === "indisponivel" || corpo.causa === "chave") msg = "As análises estão indisponíveis no momento. Já estamos resolvendo; tente de novo mais tarde.";
     else if (corpo.causa === "pedido") msg = "A IA não conseguiu analisar esta foto. Tente outra, de frente e com boa luz.";
     if (!msg) msg = corpo.erro;
-    const e = new Error(msg || `Erro ${r.status} no servidor.`); e.status = r.status; throw e;
+    const e = new Error(msg || `Erro ${r.status} no servidor.`); e.status = r.status; e.corpo = corpo; throw e;
   }
   return r.json();
 }
@@ -273,7 +286,7 @@ function render() {
   $("#nav").innerHTML = `<div class="nav-in">${TELAS.map(([k, l]) => `<button data-act="tela:${k}" class="${k === "analisar" ? "cta" : ""}"${S.tela === k && !S.detalhe ? ' aria-current="page"' : ""}>${k === "analisar" ? `<span class="ic">${ico(k)}</span>` : ico(k)}${l}</button>`).join("")}</div>`;
   const main = $("#main");
   main.classList.toggle("solo", !pronto);
-  main.innerHTML = !pronto ? vOnboarding() : S.detalhe ? vDetalhe() : ({ inicio: vInicio, evolucao: vEvolucao, analisar: vAnalisar, rotina: vRotina, produtos: vProdutos, ajustes: vAjustes, assinar: vAssinar, compartilhar: vCompartilhar }[S.tela] || vInicio)();
+  main.innerHTML = !pronto ? vOnboarding() : S.detalhe ? vDetalhe() : ({ inicio: vInicio, evolucao: vEvolucao, analisar: vAnalisar, rotina: vRotina, produtos: vProdutos, ajustes: vAjustes, assinar: vAssinar, compartilhar: vCompartilhar, rotulo: vRotulo }[S.tela] || vInicio)();
   depois();
 }
 function vai(tela) {
@@ -313,7 +326,7 @@ const TEXTO_PRIVACIDADE = `
     <li><b>O primeiro passo</b> é enviar uma foto do seu rosto, num lugar bem iluminado e com o rosto em foco. Para acompanhar de perto, repita uma vez por mês e veja a evolução.</li>
     <li><b>Como funciona?</b> A foto passa por uma avaliação cosmética feita por inteligência artificial. A partir dela, o app sugere uma rotina de cuidados personalizada, com produtos escolhidos numa seleção de opções vendidas no Brasil, de marcas reconhecidas. Não é diagnóstico médico e não substitui o dermatologista.</li>
     <li><b>O que você precisa saber?</b> O app indica produtos, mas não vende nada${temAfiliado() ? ". Alguns links de compra são de lojas parceiras, que pagam comissão ao app sem custo para você; isso não muda a escolha dos produtos" : " e não recebe comissão"}. Sua foto não fica guardada no nosso servidor e não é usada para treinar a IA. Ela passa pela Anthropic, empresa da inteligência artificial usada pelo MY Skin Care, que pode guardá-la por prazo limitado, só para segurança.</li>
-    <li><b>Seus dados</b> ficam só neste aparelho, sem conta nem cópia na nuvem. Você pode exportar ou apagar tudo a qualquer momento, em Ajustes.</li>
+    <li><b>Seus dados</b> ficam só neste aparelho, sem conta nem cópia na nuvem: análises, rotina, a cidade do UV, os lembretes e, se você ativar, o tom de pele. Fotos de rótulos vão ao servidor só para a leitura. Você pode exportar ou apagar tudo a qualquer momento, em Ajustes.</li>
     <li><b>Contato:</b> MY Skin Care · <a href="mailto:myskincare.ia.sac@gmail.com">myskincare.ia.sac@gmail.com</a>. Leia os <a href="termos.html">Termos de Uso</a> e a <a href="privacidade.html">Política de Privacidade</a>.</li>
   </ul>`;
 function vOnboarding() {
@@ -378,8 +391,10 @@ function vInicio() {
     ${avisoTeste()}${avisoConvite()}
     ${lembreteSerum(r)}
     ${recuperacao() ? aviso("warn", `<b>Pele em recuperação</b> até ${fmt(soma(recuperacao().data, recuperacao().dias))}: a rotina está só com o básico.`) : ""}
+    ${perguntaLembretes()}
     <section class="card"><div class="row between"><h3>Rotina de hoje</h3><span class="chip gold num">${feitos} de ${passos.length}</span></div>${seloSeq()}
       <button class="btn block" data-act="tela:rotina">${feitos >= passos.length ? "Tudo feito hoje ✓" : "Marcar os passos"}</button></section>
+    ${cartaoUV()}
     ${r.prioridades.length ? `<section class="card"><h3>Seu foco agora</h3><div class="checks">${r.prioridades.slice(0, 3).map((p) => `<span class="chip gold">${esc(p.objetivo)}</span>`).join("")}</div>
       <p class="small muted">Sugerimos combinar os aspectos com menor pontuação${S.perfil.objetivos?.length ? " com as suas prioridades de cuidado" : ""}.</p></section>` : ""}
     ${ant ? `<section class="card"><h3>Sua evolução</h3><p class="small">Mostre seu progresso: uma imagem com sua nota, o que melhorou e sua constância, sem foto (a não ser que você queira).</p>
@@ -401,6 +416,164 @@ function dicaInstalar() {
   return `<section class="card flat"><h3>Instale na tela inicial</h3>
     <p class="small">Abre como app e protege seus dados: ${ios ? "no iPhone, o Safari pode apagar dados de sites não usados por 7 dias, mas não de apps instalados." : "o navegador não apaga os dados de apps instalados."}</p>
     <div class="row">${corpo}<button class="btn sm ghost" data-act="instalar-ok">Já instalei</button></div></section>`;
+}
+
+// ----- lembretes da rotina e UV
+// Local notifications scheduled on the phone for the next 7 days (store app only). Rescheduled when the app
+// opens, a step is marked, a new analysis arrives or a setting changes, so the texts follow the routine.
+const lista = (xs) => (xs.length > 1 ? `${xs.slice(0, -1).join(", ")} e ${xs.at(-1)}` : xs[0] || "");
+const temAvisos = () => NATIVO && !!window.MySkinAvisos;
+const horaCurta = (h) => h.replace(/^0/, "").replace(":00", "h").replace(":", "h"); // "08:00" → "8h", "21:30" → "21h30"
+function montaAvisos() {
+  const l = S.lembretes, a = ultima(), r = a ? rec(a) : null, agora = new Date(), out = [];
+  let id = 7000;
+  for (let d = 0; d < 7; d++) {
+    const dia = soma(hoje(), d), [y, m, dd] = dia.split("-").map(Number);
+    if (l.ativo && r) for (const per of ["manha", "noite"]) {
+      const [hh, mm] = l[per].split(":").map(Number), quando = new Date(y, m - 1, dd, hh, mm);
+      if (quando <= agora) continue;
+      const passos = r.passos[per].filter((p) => !p.ativo || (!recuperacao(dia) && dia >= libera(p, r)));
+      if (!passos.length || (d === 0 && passos.every((p) => (S.checks[dia] || []).includes(p.id)))) continue;
+      const nomes = passos.map((p) => p.passo.toLowerCase().replace("vitamina c", "vitamina C"));
+      const alterna = passos.some((p) => p.alternado);
+      out.push({ id: id++, titulo: per === "manha" ? "Rotina da manhã ☀️" : "Rotina da noite 🌙", quando, extra: { tela: "rotina" },
+        texto: per === "manha" ? `${S.perfil?.nome ? `Bom dia, ${S.perfil.nome}! ` : ""}Hoje de manhã: ${lista(nomes)}. Leva poucos minutos.`
+          : `Hora da rotina da noite: ${lista(nomes)}.${alterna ? " Ativo de noites alternadas: confira se hoje é a vez dele." : ""}` });
+    }
+    if (l.uv && S.cidade) {
+      const u = uvDoDia(dia, S.cidade.lat, S.cidade.lon), quando = u.alto && new Date(y, m - 1, dd, u.alto[0], 0);
+      if (quando && quando > agora) out.push({ id: id++, titulo: `UV ${u.max} hoje em ${S.cidade.nome}`, quando, extra: { tela: "inicio" },
+        texto: `Sol forte das ${u.alto[0]}h às ${u.alto[1]}h. Reaplique o protetor solar e evite o sol direto nesse horário.` });
+    }
+  }
+  return out;
+}
+async function agendaAvisos() {
+  if (!temAvisos()) return;
+  try {
+    const quer = S.lembretes.ativo || (S.lembretes.uv && S.cidade);
+    if (quer && !(await window.MySkinAvisos.permitido())) return;
+    await window.MySkinAvisos.agenda(quer ? montaAvisos() : []);
+  } catch (e) { console.error("lembretes", e); }
+}
+async function salvaLembretes(mudou) {
+  S.lembretes = { ...S.lembretes, ...mudou, perguntado: true };
+  await DB.set("lembretes", S.lembretes);
+  if ((S.lembretes.ativo || (S.lembretes.uv && S.cidade)) && temAvisos() && !(await window.MySkinAvisos.permitido(true))) {
+    toast("Para receber os lembretes, permita as notificações do MY Skin Care nos ajustes do celular.");
+  }
+  await agendaAvisos(); render();
+}
+// home, store app: offer the reminders once, after the first analysis
+function perguntaLembretes() {
+  if (!temAvisos() || S.lembretes.perguntado || S.lembretes.ativo) return "";
+  return `<section class="card"><h3>Quer um lembrete da sua rotina?</h3>
+    <p class="small">Às ${horaCurta(S.lembretes.manha)} e às ${horaCurta(S.lembretes.noite)}, com os passos do dia. Se você já marcou tudo, o lembrete não aparece. Dá para mudar os horários em Ajustes.</p>
+    <div class="btns"><button class="btn primary" data-act="lembretes-ativar">Ativar lembretes</button><button class="btn ghost" data-act="lembretes-nao">Agora não</button></div></section>`;
+}
+// home: today's UV for the chosen city, computed on the phone (clear-sky estimate)
+function cartaoUV() {
+  if (!S.cidade) return `<section class="card flat"><div class="row between"><h3>☀️ UV do dia</h3><button class="btn sm" data-act="tela:ajustes">Escolher cidade</button></div>
+    <p class="small muted">Escolha a sua cidade para ver o índice UV de hoje e saber quando reaplicar o protetor.</p></section>`;
+  const u = uvDoDia(hoje(), S.cidade.lat, S.cidade.lon), nv = nivelUV(u.max);
+  return `<section class="card"><div class="row between"><h3>☀️ UV hoje em ${esc(S.cidade.nome)}</h3><span class="chip ${nv.cor} num">${u.max} · ${nv.nivel}</span></div>
+    <p class="small">${u.alto ? `Mais forte das <b>${u.alto[0]}h às ${u.alto[1]}h</b>. ` : ""}${conselhoUV(u.max)}</p>
+    <p class="small muted">Estimativa para céu aberto, pela posição do sol. Com nuvens, o UV fica menor.</p></section>`;
+}
+async function buscaCidade(texto) {
+  const caixa = $("#cidades-res"); if (!caixa) return;
+  const q = texto.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().trim();
+  if (q.length < 2) { caixa.innerHTML = ""; return; }
+  if (!S.cidades) {
+    try { S.cidades = (await (await fetch("cidades.json")).json()).cidades.map((c) => [...c, c[0].normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase()]); }
+    catch { caixa.innerHTML = `<p class="small muted">Não foi possível carregar a lista de cidades.</p>`; return; }
+  }
+  const achou = S.cidades.filter((c) => c[4].startsWith(q)).concat(S.cidades.filter((c) => !c[4].startsWith(q) && c[4].includes(q))).slice(0, 8);
+  caixa.innerHTML = achou.length ? `<div class="list">${achou.map((c) => `<button class="item" data-act="cidade:${S.cidades.indexOf(c)}"><span class="item-b"><span class="item-t">${esc(c[0])}</span><span class="small muted">${c[1]}</span></span></button>`).join("")}</div>`
+    : `<p class="small muted">Nenhuma cidade encontrada.</p>`;
+}
+
+// ----- leitor de rótulos
+async function leRotulo(file) {
+  if (!file) return;
+  let foto;
+  try { foto = await preparaFoto(file); } catch { return toast("Não foi possível abrir esta imagem. Fotos HEIC: envie como JPG."); }
+  if (S.rotulo?.url) URL.revokeObjectURL(S.rotulo.url);
+  S.rotulo = { estado: "lendo", url: foto.url }; S.detalhe = null; vai("rotulo");
+  try {
+    const r = await chama("rotulo", { method: "POST", headers: { "Content-Type": "image/jpeg" }, body: foto.blob });
+    const a = ultima(), rc = a ? rec(a) : null, emRec = recuperacao();
+    const av = r.legivel ? avaliaRotulo(r.ingredientes, {
+      perfil: S.perfil, rotina: rc ? rc.produtos.seruns.map((x) => x.classe) : [],
+      prioridades: rc ? rc.prioridades.map((x) => x.objetivo) : S.perfil?.objetivos || [],
+      sensivel: rc ? rc.sensivel : S.perfil?.tipoPele === "sensivel", recuperacao: emRec ? soma(emRec.data, emRec.dias) : null,
+    }) : null;
+    S.rotulo = { estado: "ok", url: foto.url, ...r, av };
+    if (r.legivel) evento("leu_rotulo");
+  } catch (e) {
+    if (e.status === 402) { S.rotulo = null; toast("O leitor de rótulos faz parte da assinatura."); return vai("assinar"); }
+    if (e.status === 429 && e.corpo?.causa === "limite_rotulos") {
+      S.rotulo = { estado: "limite", url: foto.url, liberaEm: e.corpo.liberaEm };
+      compras()?.precoRotulos?.(S.usuario).then((p) => { S.precoRotulos = p; if (S.tela === "rotulo") render(); }).catch(() => {});
+    } else S.rotulo = { estado: "erro", url: foto.url, msg: e.message };
+  }
+  if (S.tela === "rotulo") render();
+}
+async function compraRotulos() {
+  const loja = compras();
+  if (!loja?.comprarRotulos || S.ocupado) return;
+  S.ocupado = true; render();
+  try {
+    if (await loja.comprarRotulos(S.usuario)) {
+      evento("comprou_rotulos");
+      S.rotulo = null; toast("Pronto: 10 leituras extras. Elas não vencem.");
+    }
+  } catch (e) { toast(e?.message || "A compra não foi concluída."); }
+  S.ocupado = false; render();
+}
+const ICO_PONTO = { bom: ["good", "✓"], atencao: ["warn", "!"], evitar: ["bad", "✕"], dica: ["", "i"] };
+function vRotulo() {
+  const x = S.rotulo;
+  const voltar = `<button class="btn ghost sm" data-act="tela:produtos" style="justify-self:start">← Produtos</button>`;
+  const outra = `<button class="btn primary" data-act="rotulo-ler">${x?.estado === "ok" && x.legivel ? "Ler outro rótulo" : "Fotografar de novo"}</button>`;
+  const foto = x?.url ? `<img class="rotulo-foto" src="${x.url}" alt="Foto do rótulo">` : "";
+  if (!x) return `${voltar}<section class="card"><h2>Leitor de rótulos</h2><p class="lede">Fotografe a lista de ingredientes de um produto.</p><div class="btns">${outra}</div></section>`;
+  if (x.estado === "lendo") return `${voltar}<section class="card center">${foto}<h2>Lendo o rótulo…</h2><p class="small muted">Leva alguns segundos.</p></section>`;
+  if (x.estado === "erro") return `${voltar}<section class="card">${foto}${aviso("bad", esc(x.msg))}<div class="btns">${outra}</div></section>`;
+  if (x.estado === "limite") {
+    const quando = x.liberaEm ? new Date(x.liberaEm) : null;
+    const loja = compras();
+    return `${voltar}<section class="card"><h2>Leituras da semana usadas</h2>
+      <p>A assinatura inclui <b>5 leituras de rótulo por semana</b>.${quando ? ` A próxima fica livre em <b>${fmt(ymd(quando))} às ${pad(quando.getHours())}h${pad(quando.getMinutes())}</b>.` : ""}</p>
+      ${loja?.comprarRotulos ? `<p class="small">Precisa ler mais agora? Compre um pacote de <b>10 leituras extras</b>, que não vencem.</p>
+        <button class="btn primary block" data-act="rotulo-comprar"${S.ocupado ? " disabled" : ""}>${S.ocupado ? "Abrindo a loja…" : `Comprar 10 leituras${S.precoRotulos ? ` · ${esc(S.precoRotulos)}` : ""}`}</button>`
+        : `<p class="small muted">Pacotes de leituras extras chegam em breve neste aparelho.</p>`}</section>`;
+  }
+  const saldo = Number.isFinite(x.restam) ? `<p class="small muted">${x.restam} ${x.restam === 1 ? "leitura restante" : "leituras restantes"} nesta semana${x.extras ? ` · ${x.extras} extras` : ""}.</p>` : "";
+  if (!x.legivel) return `${voltar}<section class="card">${foto}<h2>Não consegui ler bem</h2>
+    <p>Fotografe só a lista de <b>ingredientes</b> (composição), de perto, sem reflexo e com o texto em foco. Esta tentativa não conta nas suas leituras.</p>${saldo}<div class="btns">${outra}</div></section>`;
+  const av = x.av, cor = { verde: "good", amarelo: "warn", vermelho: "bad" }[av.nivel];
+  return `${voltar}
+    <section class="card"><div class="prod-top">${foto}<div class="stack" style="gap:4px"><span class="small muted">Rótulo lido</span><span class="prod-n">${esc(x.produto || "Produto sem nome na foto")}</span></div></div>
+      ${aviso(cor, `<b>${esc(av.titulo)}</b>`, { good: "✓", warn: "!", bad: "✕" }[cor])}
+      <ul class="pontos">${av.pontos.map((pt) => `<li class="${ICO_PONTO[pt.tipo][0]}"><span class="ico">${ICO_PONTO[pt.tipo][1]}</span>${esc(pt.texto)}</li>`).join("")}</ul>
+      ${av.achados.length ? `<div class="checks">${av.achados.map((n) => `<span class="chip gold">${esc(n)}</span>`).join("")}</div>` : ""}
+      <details><summary class="small">Ingredientes que o app leu (${x.ingredientes.length})</summary><p class="small">${x.ingredientes.map(esc).join(", ")}</p></details>
+      <p class="small muted">A leitura é automática e pode errar: confira na embalagem. Avaliação cosmética, por regras fixas, com a sua pele e a sua rotina. Não substitui o dermatologista.</p>
+      ${saldo}<div class="btns">${outra}</div></section>`;
+}
+
+// ----- tom e subtom (no resultado da análise)
+function blocoTom(a) {
+  if (a.tom === undefined || !tomDisponivel()) return "";
+  const cores = a.tom && a.tom.confianca !== "baixa" && a.nivelQualidade !== "bad" ? coresDoTom(a.tom) : null;
+  if (!cores) return `<section class="card"><h3>🎨 Seu tom de pele</h3><p class="small">Não deu para avaliar o tom com segurança nesta foto: a cor da luz muda muito o resultado. Na próxima, use luz natural de janela, sem maquiagem e sem filtro.</p></section>`;
+  const conf = { alta: ["good", "Confiança alta"], media: ["gold", "Confiança média"] }[a.tom.confianca];
+  return `<section class="card"><div class="row between"><h3>🎨 Seu tom de pele</h3>${conf ? `<span class="chip ${conf[0]}">${conf[1]}</span>` : ""}</div>
+    <p>Tom <b>${esc(NOMES_TOM[a.tom.tom])}</b> · subtom <b>${esc(NOMES_SUBTOM[a.tom.subtom])}</b></p>
+    <ul class="pontos"><li class="good"><span class="ico">✓</span>${esc(cores.base)}</li><li class="good"><span class="ico">✓</span>${esc(cores.corretivo)}</li>
+      <li class="good"><span class="ico">✓</span>${esc(cores.batom)}</li><li class="warn"><span class="ico">!</span>${esc(cores.evite)}</li></ul>
+    <p class="small muted">O tom na foto muda com a luz. Antes de comprar a base, teste no maxilar com luz natural.${TOM_PUBLICO ? "" : " Recurso em teste."}</p></section>`;
 }
 
 // ----- câmera guiada: contorno do rosto e leitura da luz ao vivo; sem suporte, usa a câmera do sistema
@@ -494,11 +667,12 @@ async function analisar() {
   const d = S.rascunho; if (!d || S.ocupado) return;
   S.ocupado = true; render();
   try {
-    const r = await chama("analise", { method: "POST", headers: { "Content-Type": "image/jpeg" }, body: d.blob });
+    const r = await chama("analise", { method: "POST", headers: { "Content-Type": "image/jpeg", ...(tomAtivo() ? { "X-Tom": "1" } : {}) }, body: d.blob });
     const a = {
       id: novoId(), data: hoje(), criadoEm: new Date().toISOString(), notas: r.notas,
       skin_score: r.skin_score ?? skinScore(r.notas), confianca: r.confianca, idade_aparente: r.idade_aparente,
       modelo: r.modelo, qualidade: d.q.medidas, nivelQualidade: d.q.nivel, foto: d.blob, perfil: S.perfilAtivo,
+      ...(r.tom !== undefined ? { tom: r.tom } : {}),
     };
     await DB.salva(a);
     S.analises.push(a);
@@ -506,6 +680,7 @@ async function analisar() {
     URL.revokeObjectURL(d.url); S.rascunho = null; S.ocupado = false;
     S.detalhe = a.id; render(); window.scrollTo(0, 0);
     evento("analise"); evento("primeira_analise", "uma");
+    agendaAvisos();
     if (r.gratis) { evento("analise_gratis", "uma"); toast("Esta foi sua análise grátis. As próximas fazem parte da assinatura."); }
   } catch (e) {
     S.ocupado = false; render(); toast(e.message);
@@ -535,6 +710,7 @@ function vDetalhe() {
     ${ant ? comparaUltima(a, ant) : ""}
     ${url ? `<section class="card"><img class="photo" src="${url}" alt="Foto de ${fmt(a.data)}"></section>` : ""}
     <section class="card"><h3>As 10 notas</h3><p class="small muted">Cada aspecto da pele recebe uma nota de 0 a 100: quanto maior, melhor. Abaixo de cada nota, um resumo do que a avaliação observou na sua foto. ${explicaScore(a)}</p>${barras(a, ant)}</section>
+    ${blocoTom(a)}
     ${r.alertas.length ? aviso("bad", r.alertas.map(esc).join("<br>")) : ""}
     ${a.id === ultima()?.id ? avisoSeruns(r) : ""}
     <section class="card"><h3>Resumo e o que fazer</h3>
@@ -728,7 +904,10 @@ function vProdutos() {
   const catalogo = `<section class="card"><details><summary>Catálogo completo (${S.catalogo.length} produtos)</summary>
     <div class="stack" style="margin-top:10px"><div class="seg" role="group" aria-label="Categoria">${cats.map((k) => `<button data-act="catf:${esc(k)}" aria-pressed="${S.catFiltro === k}">${esc(k)}</button>`).join("")}</div>
     <div class="tbl-wrap"><table><thead><tr><th>Produto</th><th class="r">Preço</th></tr></thead><tbody>${itens.map((c) => `<tr><td><b>${esc(c.marca)}</b> ${esc(c.produto)}<br><span class="small muted">${esc(c.ativos)} · ${esc(c.tamanho)}</span></td><td class="r num">${preco(c)}</td></tr>`).join("")}</tbody></table></div></div></details></section>`;
-  if (!a) return `<section class="card empty"><h2>Produtos para você</h2><p class="lede">As indicações saem da sua análise.</p><button class="btn primary" data-act="tela:analisar">Nova análise</button></section>${catalogo}`;
+  const leitor = `<section class="card"><div class="row between"><h3>📷 Leitor de rótulos</h3>${S.codigo ? "" : `<span class="chip gold">assinatura</span>`}</div>
+    <p class="small">Fotografe a lista de ingredientes de um produto e veja se ele combina com a sua pele e a sua rotina.${S.codigo ? "" : " São 5 leituras por semana na assinatura."}</p>
+    <button class="btn primary" data-act="rotulo-ler">Ler um rótulo</button></section>`;
+  if (!a) return `${leitor}<section class="card empty"><h2>Produtos para você</h2><p class="lede">As indicações saem da sua análise.</p><button class="btn primary" data-act="tela:analisar">Nova análise</button></section>${catalogo}`;
   const r = rec(a), P = r.produtos;
   const kit = [P.limpeza.produto, P.hidratante.produto, P.protetor.produto, ...P.seruns.map((s) => s.produto)].filter(Boolean);
   const custo = kit.filter((p) => !S.tenho.includes(p.id)), jaTem = kit.length - custo.length;
@@ -737,6 +916,7 @@ function vProdutos() {
     <section class="card"><h2>Produtos para você</h2>
       <p class="small muted">Escolhidos por regras fixas a partir da análise de ${fmt(a.data)}, do seu tipo de pele e dos seus objetivos, sempre pela opção mais em conta que serve. ${COMISSAO}</p>
       <div class="box"><span class="small muted">${jaTem ? `Falta comprar (${custo.length} de ${kit.length} itens; você já tem ${jaTem})` : `Kit completo (${kit.length} itens)`}</span><span class="price-v">${!custo.length ? "Você já tem tudo ✓" : total("preco_min") === total("preco_max") ? brl(total("preco_min")) : `${brl(total("preco_min"))} a ${brl(total("preco_max"))}`}</span><span class="small muted">Marque "Já tenho este" nos produtos que você já usa. Comece pelo básico; os séruns entram depois.</span></div></section>
+    ${leitor}
     <h3 style="padding-inline:4px">O básico</h3>
     ${cardProduto("Protetor solar", P.protetor.produto, "Todo dia de manhã, mesmo em casa ou nublado. É o que mais previne manchas e linhas.", P.protetor.opcoes)}
     ${cardProduto("Limpeza", P.limpeza.produto, `Para pele ${TIPOS_PELE[r.pele]?.toLowerCase() || r.pele}${r.sensivel ? " e sensível" : ""}, de manhã e à noite.`, P.limpeza.opcoes)}
@@ -755,6 +935,17 @@ function vAjustes() {
       <div class="stack small"><span><b>Nome:</b> ${esc(S.perfil.nome || "—")}</span><span><b>Idade:</b> ${S.perfil.idade ? esc(S.perfil.idade) : `<span class="muted">não informada (opcional)</span>`}</span>
       <span><b>Tipo de pele:</b> ${esc(TIPOS_PELE[S.perfil.tipoPele] || "—")}</span><span><b>Fototipo:</b> ${esc(FOTOTIPOS[S.perfil.fototipo || 0])}</span>
       <span><b>Objetivos:</b> ${esc((S.perfil.objetivos || []).join(", ") || "—")}</span>${S.perfil.gestante ? `<span><b>Gestação ou amamentação:</b> sim</span>` : ""}</div>`}</section>
+    <section class="card"><h3>Lembretes e UV</h3>
+      ${temAvisos() ? `<label class="tg"><input type="checkbox" data-act="aviso:ativo"${S.lembretes.ativo ? " checked" : ""}> Lembrete da rotina</label>
+        ${S.lembretes.ativo ? `<div class="fields"><label class="f">Manhã<input type="time" data-hora="manha" value="${S.lembretes.manha}"></label><label class="f">Noite<input type="time" data-hora="noite" value="${S.lembretes.noite}"></label></div>` : ""}
+        <label class="tg"><input type="checkbox" data-act="aviso:uv"${S.lembretes.uv ? " checked" : ""}${S.cidade ? "" : " disabled"}> Alerta de UV muito alto (8 ou mais)${S.cidade ? "" : " · escolha a cidade abaixo"}</label>`
+        : `<p class="small muted">Os lembretes por notificação funcionam no app MY Skin Care da App Store e do Google Play. O UV do dia aparece na tela inicial.</p>`}
+      <div class="stack"><span class="small"><b>Sua cidade</b> (para o UV): ${S.cidade ? `${esc(S.cidade.nome)} · ${esc(S.cidade.uf)} <button class="btn sm ghost" data-act="cidade-remover">Remover</button>` : `<span class="muted">não escolhida</span>`}</span>
+        <label class="f">${S.cidade ? "Trocar cidade" : "Buscar cidade"}<input id="in-cidade" autocomplete="off" placeholder="Ex.: Foz do Iguaçu"></label><div id="cidades-res"></div>
+        <p class="small muted">A cidade fica só neste celular: o UV é calculado aqui mesmo, pela posição do sol.</p></div></section>
+    ${tomDisponivel() ? `<section class="card"><h3>Tom de pele para maquiagem</h3>
+      <p class="small">Ao ativar, as próximas análises também avaliam o <b>tom e o subtom</b> da sua pele, para sugerir cores de base, corretivo e batom. O resultado fica só neste celular, junto da análise. Você pode desligar quando quiser.${TOM_PUBLICO ? "" : " Recurso em teste."}</p>
+      <label class="tg"><input type="checkbox" data-act="tom-ok"${S.tomOk ? " checked" : ""}> Avaliar meu tom de pele nas próximas análises</label></section>` : ""}
     <section class="card"><h3>Aparência</h3>
       <p class="small">Escolha o visual que preferir; dá para trocar quando quiser.</p>
       <div class="seg" role="group" aria-label="Visual">${VISUAIS.map(([k, l]) => `<button data-act="visual:${k}" aria-pressed="${visual() === k}">${l}</button>`).join("")}</div></section>
@@ -1174,7 +1365,7 @@ async function acao(act, el) {
       set.has(v) ? set.delete(v) : set.add(v);
       S.checks[t] = [...set];
       const corte = soma(t, -60); for (const d of Object.keys(S.checks)) if (d < corte) delete S.checks[d];
-      await salvaChecks(); return render();
+      await salvaChecks(); render(); return agendaAvisos();
     }
     case "proc-form": S.procForm = !S.procForm; return render();
     case "salva-proc": {
@@ -1205,6 +1396,18 @@ async function acao(act, el) {
       await DB.limpa(); location.reload(); return;
     case "instalar": if (S.instalar) { S.instalar.prompt(); const r = await S.instalar.userChoice; S.instalar = null; if (r.outcome === "accepted") lsSet("myskin-instalar-ok", "1"); render(); } return;
     case "instalar-ok": lsSet("myskin-instalar-ok", "1"); return render();
+    case "lembretes-ativar": evento("ativou_lembretes", "uma"); return salvaLembretes({ ativo: true });
+    case "lembretes-nao": return salvaLembretes({});
+    case "aviso": if (v === "ativo" && !S.lembretes.ativo) evento("ativou_lembretes", "uma"); return salvaLembretes({ [v]: !S.lembretes[v] });
+    case "cidade": {
+      const c = S.cidades?.[Number(v)]; if (!c) return;
+      S.cidade = { nome: c[0], uf: c[1], lat: c[2], lon: c[3] }; await DB.set("cidade", S.cidade);
+      toast(`Cidade: ${c[0]}.`); await agendaAvisos(); return render();
+    }
+    case "cidade-remover": S.cidade = null; await DB.set("cidade", null); await agendaAvisos(); return render();
+    case "rotulo-ler": return $("#in-rotulo").click();
+    case "rotulo-comprar": return compraRotulos();
+    case "tom-ok": S.tomOk = !S.tomOk; await DB.set(K("tomOk"), S.tomOk); toast(S.tomOk ? "O tom de pele entra nas próximas análises." : "Tom de pele desligado."); return render();
   }
 }
 
@@ -1235,12 +1438,21 @@ document.addEventListener("change", (e) => {
   if (t.dataset.cmp) { S.cmp[t.dataset.cmp] = t.value; render(); }
   if (t.id === "in-camera" || t.id === "in-galeria") { escolheuFoto(t.files[0]); t.value = ""; }
   if (t.id === "in-backup") { importar(t.files[0]); t.value = ""; }
+  if (t.id === "in-rotulo") { leRotulo(t.files[0]); t.value = ""; }
+  if (t.dataset.hora && /^\d\d:\d\d$/.test(t.value)) salvaLembretes({ [t.dataset.hora]: t.value });
 });
 document.addEventListener("input", (e) => {
+  if (e.target.id === "in-cidade") { clearTimeout(buscaCidade.t); const v = e.target.value; buscaCidade.t = setTimeout(() => buscaCidade(v), 150); }
   if (e.target.dataset.actInput === "corte") { S.cmp.corte = Number(e.target.value); $(".compare")?.style.setProperty("--cut", S.cmp.corte + "%"); }
 });
 document.addEventListener("keydown", (e) => { if (e.key === "Enter" && e.target.id === "in-codigo") verificaCodigo(); });
-document.addEventListener("visibilitychange", () => { if (document.hidden && S.cam) { fechaCamera(); render(); } });
+document.addEventListener("visibilitychange", () => {
+  if (document.hidden && S.cam) { fechaCamera(); render(); }
+  if (!document.hidden && S.perfil) agendaAvisos(); // the day may have changed: today's reminders follow the routine
+});
+// a reminder was tapped: open the screen it is about
+const abreAviso = (x) => { if (x?.tela && S.perfil?.consentimento) { S.detalhe = null; vai(x.tela); } window.MySkinAvisoAberto = null; };
+window.addEventListener("myskin-aviso", (e) => abreAviso(e.detail));
 window.addEventListener("beforeinstallprompt", (e) => { e.preventDefault(); S.instalar = e; if (S.tela === "inicio") render(); });
 
 // ---------- início ----------
@@ -1256,6 +1468,8 @@ window.addEventListener("beforeinstallprompt", (e) => { e.preventDefault(); S.in
   if (S.perfil?.consentimento && !S.codigo && !S.perfil.semCodigo) S.onb = 2;
   render();
   evento("primeiro_acesso", "uma"); evento("abriu", "dia");
+  agendaAvisos();
+  if (window.MySkinAvisoAberto) abreAviso(window.MySkinAvisoAberto);
   if (compras()) compras().direitos(S.usuario).then(async (st) => { await guardaDireitos(st); render(); }).catch(() => {});
   // invite link opened in the browser (?convite=CODIGO): keep it until the person uses it
   const conv = new URLSearchParams(location.search).get("convite");

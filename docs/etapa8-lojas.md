@@ -224,3 +224,39 @@ arquivos de Android e iPhone com:
       --iconBackgroundColorDark '#3B2A22' --splashBackgroundColor '#F7F2EC' --splashBackgroundColorDark '#17110E'
 
 O ícone nas fichas das lojas (512×512) é `app/icones/icone-512.png`. Os apps instalados mudam no próximo build do Codemagic.
+
+## Lembretes, UV, leitor de rótulos e tom de pele (20/11/2026)
+
+Feitos no app e no servidor; pedem um **build novo** nas duas lojas (plugin de notificações) e a
+configuração abaixo. Custo de manutenção: só o leitor de rótulos e o tom usam a IA.
+
+| Recurso | Como funciona | Custo |
+|---|---|---|
+| Lembretes da rotina | Notificações locais (`@capacitor/local-notifications`), agendadas no celular para 7 dias, com os passos reais do dia; não aparecem se a rotina já foi marcada. Horários em Ajustes (padrão 8h e 21h). Só no app das lojas | Zero |
+| Alerta e cartão de UV | Calculado **no celular** (`app/uv.js`): UV de céu aberto pela posição do sol na cidade escolhida (lista do IBGE em `app/cidades.json`, licença MIT). Sem servidor, sem serviço de clima e sem enviar a cidade. Notificação nos dias de UV 8 ou mais | Zero |
+| Leitor de rótulos | `POST /rotulo`: a IA só transcreve produto e ingredientes; a avaliação é feita no celular por regras fixas (`app/rotulo.js`, de `docs/ingredientes-v1.md`). Só assinantes: **5 leituras por semana**; depois, **pacote de 10 leituras extras** (compra avulsa, não vence). Código de convite: sem cota | ~R$ 0,09 por leitura |
+| Tom e subtom | `X-Tom: 1` na análise faz uma 2ª chamada separada (o pedido validado do método não muda). Opcional, ativado por perfil em Ajustes (consentimento específico). **Por enquanto só para quem usa código de convite** (`TOM_PUBLICO = false`) | ~R$ 0,03 por análise com tom |
+
+**Lojas e RevenueCat (pacote de leituras extras):**
+
+1. App Store Connect → app → Monetização → **Compras dentro do app** → + → **Consumível**: ID
+   `myskincare_rotulos10`, nome "10 leituras de rótulo", preço sugerido **R$ 4,90** (custo de IA ~R$ 0,90 por
+   pacote). Google Play Console → Monetizar → Produtos → **Produtos no app** → mesmo ID e preço.
+2. RevenueCat → Product catalog → Products: importar `myskincare_rotulos10` das duas lojas. **Não** ligar a
+   nenhum entitlement nem offering: o app compra o produto direto e o servidor conta as compras em
+   `non_subscriptions` do cliente.
+3. A revisão da Apple pede o produto enviado junto com a versão (Compras dentro do app → selecionar na
+   versão). As notas para o revisor continuam válidas: com o código de convite o leitor não tem cota.
+
+**Declarações:** a cidade e o tom ficam só no celular; a foto do rótulo não é dado pessoal; a contagem de
+leituras usa o identificador aleatório já declarado. Na App Store, incluir em "Histórico de compras" a
+compra avulsa (já declarado). Política de Privacidade versão 8, Termos versão 6, consentimento versão 4.
+
+**Antes de ligar o tom para todos (`TOM_PUBLICO = true` em `app/app.js`):** reunir fotos de pelo menos 3
+pessoas de cada fototipo (I-II, III, IV, V, VI), com luz natural e sem maquiagem, e o tom e subtom de cada
+uma (informado por ela ou por uma maquiadora), e rodar `node scripts/tom_validacao.mjs` (instruções no
+arquivo). Critério: subtom certo em 70% ou mais e tom certo ou vizinho em 85% ou mais, em cada fototipo.
+Até lá, testadoras com código de convite usam e dão retorno.
+
+**Android:** o app não pede a permissão de alarmes exatos (restrita no Google Play); os lembretes podem
+atrasar alguns minutos. Ícone da notificação em `res/drawable/ic_stat_myskin.xml`.

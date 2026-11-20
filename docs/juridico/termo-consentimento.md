@@ -1,6 +1,6 @@
 # Termo de consentimento para tratamento de dados sensíveis — MY Skin Care
 
-Versão 3 · 19/10/2026 · Base: LGPD, art. 11, I (consentimento específico e destacado).
+Versão 4 · 20/11/2026 · Base: LGPD, art. 11, I (consentimento específico e destacado).
 O texto exibido no app (`app/app.js`, primeira tela) é o resumo deste termo e deve continuar
 equivalente a ele.
 
@@ -22,6 +22,8 @@ autorização separada, que você pode retirar quando quiser.
 1. Fazer a avaliação visual cosmética da sua pele.
 2. Mostrar a evolução ao longo do tempo, comparando suas avaliações.
 3. Montar sua rotina de cuidados e as sugestões de produtos.
+4. **Só se você ativar em Ajustes:** avaliar o tom e o subtom da sua pele para sugerir cores de maquiagem.
+   Esse uso é opcional e tem autorização própria: você ativa e desliga quando quiser.
 
 Não usamos esses dados para outras finalidades, não os vendemos e não os usamos em publicidade.
 

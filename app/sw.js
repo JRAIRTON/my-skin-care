@@ -1,6 +1,6 @@
 // Service worker: guarda os arquivos do app para abrir sem internet. A análise sempre vai à rede.
-const VERSAO = "myskin-v37";
-const ARQUIVOS = ["./", "index.html", "estilo.css", "visual-novo.css", "app.js", "recomenda.js", "afiliados.js", "nativo.js", "catalogo.json", "termos.html", "privacidade.html", "manifest.webmanifest", "icones/icone-192.png", "icones/icone-512.png", "icones/apple-touch-icon.png"];
+const VERSAO = "myskin-v38";
+const ARQUIVOS = ["./", "index.html", "estilo.css", "visual-novo.css", "app.js", "recomenda.js", "afiliados.js", "uv.js", "rotulo.js", "tom.js", "cidades.json", "nativo.js", "catalogo.json", "termos.html", "privacidade.html", "manifest.webmanifest", "icones/icone-192.png", "icones/icone-512.png", "icones/apple-touch-icon.png"];
 
 self.addEventListener("install", (e) => {
   e.waitUntil(caches.open(VERSAO).then((c) => c.addAll(ARQUIVOS)).then(() => self.skipWaiting()));
@@ -10,7 +10,7 @@ self.addEventListener("activate", (e) => {
 });
 self.addEventListener("fetch", (e) => {
   const u = new URL(e.request.url);
-  if (e.request.method !== "GET" || u.origin !== location.origin || /^\/(analise|acesso|saude|evento|metricas(\.json)?)$/.test(u.pathname)) return;
+  if (e.request.method !== "GET" || u.origin !== location.origin || /^\/(analise|acesso|rotulo|saude|evento|metricas(\.json)?)$/.test(u.pathname)) return;
   // rede primeiro, para receber atualizações; sem rede, a cópia guardada
   e.respondWith(
     fetch(e.request).then((r) => {
