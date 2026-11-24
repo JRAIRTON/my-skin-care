@@ -1,8 +1,9 @@
-// Gera as capturas de tela da App Store (docs/loja/app-store/): iPhone 6,9" em 1290x2796, com título, as mesmas
-// telas e frases das imagens do Google Play (scripts/loja_play.mjs). As telas são tiradas do app com os dados fictícios da
-// "Ana" (os mesmos do vídeo). Precisa do app em localhost:8765 (python3 -m http.server em app/), do site em
-// localhost:8787 (wrangler dev em site/, para as fontes e o estilo do logo) e do Playwright.
-//   node scripts/loja_play.mjs
+// Gera as capturas de tela da App Store (docs/loja/app-store/): iPhone 6,9" em 1320x2868 (o maior tamanho que a
+// Apple pede; ela reduz sozinha para os iPhones menores), com título. As telas são tiradas do app em 440x956 a 3x
+// (a tela do iPhone de 6,9"), com os dados fictícios da "Ana" (os mesmos do vídeo), e incluem UV, leitor de
+// rótulos e tom de pele. Precisa do app em localhost:8765 (python3 -m http.server em app/), do site em
+// localhost:8787 (python3 -m http.server em site/public, para as fontes e o estilo do logo) e do Playwright.
+//   node scripts/loja_apple.mjs FOTO_DO_ROTULO.jpg
 // Depois: python3 -c (no fim do arquivo) tira o canal alfa, que a Apple não aceita nas capturas.
 const { chromium } = await import("playwright").catch(() => import("/opt/node-tools/node_modules/playwright/index.mjs"));
 const fs = await import("node:fs");
@@ -10,8 +11,13 @@ const SAIDA = new URL("../docs/loja/app-store/", import.meta.url).pathname;
 fs.mkdirSync(SAIDA, { recursive: true });
 const b = await chromium.launch();
 
-// 1) telas do app, em 3x (1170x2532)
-const ctx = await b.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 3, colorScheme: "light" });
+// a photo of an ingredient list for the label reader screen (the reading itself is simulated below)
+const ROTULO = process.argv[2];
+if (!ROTULO) { console.error("Uso: node scripts/loja_apple.mjs FOTO_DO_ROTULO.jpg"); process.exit(1); }
+for (const f of fs.readdirSync(SAIDA)) if (/^tela-.*\.png$/.test(f)) fs.unlinkSync(SAIDA + f);
+
+// 1) telas do app, em 3x (1320x2868)
+const ctx = await b.newContext({ viewport: { width: 440, height: 956 }, deviceScaleFactor: 3, colorScheme: "light", timezoneId: "America/Sao_Paulo" });
 const p = await ctx.newPage();
 await p.goto("http://localhost:8765/"); await p.waitForTimeout(600);
 await p.evaluate(async () => {
@@ -24,31 +30,44 @@ await p.evaluate(async () => {
   const datas = [dia(62), dia(33), dia(4)];
   const { recomenda } = await import("/recomenda.js");
   const cat = await (await fetch("/catalogo.json")).json();
-  const perfil = { nome: "Ana", idade: 34, tipoPele: "mista", fototipo: 3, objetivos: ["Manchas", "Poros"] };
+  const perfil = { nome: "Ana", idade: 34, tipoPele: "mista", fototipo: 3, objetivos: ["Manchas", "Poros"],
+    tomRespostas: { veias: "verde", joias: "ouro", sol: "os_dois" } };
   const r = recomenda(perfil, mk(sets[2]), cat);
   const todos = [...r.passos.manha, ...r.passos.noite].map((x) => x.id);
   const checks = {}; for (let n = 1; n <= 12; n++) checks[dia(n)] = todos;
   checks[dia(0)] = r.passos.manha.map((x) => x.id);
   const tx = db.transaction(["kv", "analises"], "readwrite");
   tx.objectStore("kv").put({ ...perfil, consentimento: Date.now(), semCodigo: true }, "perfil");
-  sets.forEach((s, i) => { const notas = mk(s); const v = Object.values(notas).map((n) => n.nota); tx.objectStore("analises").put({ id: "a" + i, data: datas[i], criadoEm: datas[i] + "T10:00:00Z", notas, skin_score: Math.round(v.reduce((a, b) => a + b) / v.length), confianca: "alta", idade_aparente: 32, nivelQualidade: "good" }); });
+  sets.forEach((s, i) => { const notas = mk(s); const v = Object.values(notas).map((n) => n.nota); tx.objectStore("analises").put({ id: "a" + i, data: datas[i], criadoEm: datas[i] + "T10:00:00Z", notas, skin_score: Math.round(v.reduce((a, b) => a + b) / v.length), confianca: "alta", idade_aparente: 32, nivelQualidade: "good",
+    ...(i === 2 ? { tom: { avaliavel: true, tom: "medio", subtom: "quente", confianca: "alta" } } : {}) }); });
+  tx.objectStore("kv").put({ nome: "Foz do Iguaçu", uf: "PR", lat: -25.54, lon: -54.58 }, "cidade");
+  tx.objectStore("kv").put(true, "tomOk");
   tx.objectStore("kv").put(checks, "checks");
   tx.objectStore("kv").put(datas[0], "rotinaInicio");
   await new Promise((ok) => (tx.oncomplete = ok));
 });
+// the label reader screen: a real reading is simulated (the server is not called)
+await p.route("**/rotulo", (r) => r.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ legivel: true, produto: "Sérum Facial Uniformizador",
+  ingredientes: ["Aqua", "Niacinamide", "Glycerin", "Tranexamic Acid", "Sodium Hyaluronate", "Panthenol", "Phenoxyethanol"], restam: 4, extras: 0 }) }));
 await p.reload(); await p.waitForTimeout(900);
-const tela = async (nome, ir, rolar = 0) => {
+const rola = (sel) => p.evaluate((s) => { const el = [...document.querySelectorAll("section.card")].find((x) => x.querySelector("h3")?.textContent.includes(s)); el?.scrollIntoView({ block: "start" }); scrollBy(0, -90); }, sel);
+const tela = async (nome, ir, rolar = null) => {
+  if (rolar !== null) await p.evaluate(() => scrollTo(0, 0));
   await ir(); await p.waitForTimeout(700);
-  await p.evaluate((y) => scrollTo(0, y), rolar); await p.waitForTimeout(400);
+  if (rolar !== null) await p.evaluate((y) => scrollTo(0, y), rolar);
+  await p.waitForTimeout(400);
   return (await p.screenshot()).toString("base64");
 };
 const TELAS = {
   inicio: await tela("inicio", async () => {}),
-  analisar: await tela("analisar", () => p.click('[data-act="tela:analisar"]')),
+  uv: await tela("uv", () => rola("UV hoje")),
+  analisar: await tela("analisar", () => p.click('[data-act="tela:analisar"]'), 0),
   resultado: await tela("resultado", async () => { await p.click('[data-act="tela:inicio"]'); await p.waitForTimeout(500); await p.click('button:has-text("Ver detalhes")'); }, 0),
-  evolucao: await tela("evolucao", () => p.click('[data-act="tela:evolucao"]')),
-  rotina: await tela("rotina", () => p.click('[data-act="tela:rotina"]')),
-  produtos: await tela("produtos", () => p.click('[data-act="tela:produtos"]')),
+  tom: await tela("tom", () => rola("Seu tom de pele")),
+  evolucao: await tela("evolucao", () => p.click('[data-act="tela:evolucao"]'), 0),
+  rotina: await tela("rotina", () => p.click('[data-act="tela:rotina"]'), 0),
+  produtos: await tela("produtos", () => p.click('[data-act="tela:produtos"]'), 0),
+  rotulo: await tela("rotulo", async () => { await p.setInputFiles("#in-rotulo", ROTULO); await p.waitForTimeout(1200); }, 0),
 };
 await ctx.close();
 
@@ -69,10 +88,13 @@ const pagina = async (w, h, corpo, saida) => {
   await pg.close();
 };
 
-// capturas 1290x2796 (iPhone 6,9"): título em cima e o celular saindo pela borda de baixo
+// capturas 1320x2868 (iPhone 6,9"): título em cima e o celular saindo pela borda de baixo
 const CAPTURAS = [
   ["inicio", "Sua pele, acompanhada de perto", "Uma foto do rosto e você recebe o seu Skin Score"],
   ["resultado", "Notas de 0 a 100 para 10 aspectos", "Com a explicação de cada nota e o que mais ajuda"],
+  ["rotulo", "Leia o rótulo antes de comprar", "Veja se o produto combina com a sua pele e a sua rotina"],
+  ["tom", "As cores que combinam com você", "Tom e subtom da pele para base, corretivo e batom"],
+  ["uv", "UV do dia e lembretes da rotina", "Saiba a hora de reaplicar o protetor solar"],
   ["evolucao", "Veja o que melhorou mês a mês", "Gráfico da evolução e o antes e depois por aspecto"],
   ["rotina", "Rotina de manhã e de noite", "Feita para a sua pele, com os ativos entrando aos poucos"],
   ["produtos", "Produtos que cabem no bolso", "Preço de referência e alternativas mais baratas"],
@@ -80,12 +102,12 @@ const CAPTURAS = [
 ];
 let n = 1;
 for (const [chave, titulo, sub] of CAPTURAS) {
-  await pagina(1290, 2796, `<div style="width:1290px;height:2796px;background:linear-gradient(180deg,#F7F2EC 0%,#EFE4D8 100%);position:relative;overflow:hidden;text-align:center">
-    <span class="logo" style="font-size:58px;display:inline-block;margin-top:150px">${LOGO}</span>
-    <h1 style="font-family:'Cormorant Garamond',serif;font-weight:600;font-size:112px;line-height:1.02;color:#2E211B;margin:56px 90px 0">${titulo}</h1>
-    <p style="font:500 46px/1.35 Manrope,sans-serif;color:#6B5245;margin:40px 130px 0">${sub}</p>
-    <div style="position:absolute;left:150px;top:860px;width:990px;border-radius:110px;background:#1F1612;padding:28px;box-shadow:0 40px 90px rgba(59,42,34,.28)">
-      <img src="data:image/png;base64,${TELAS[chave]}" style="display:block;width:100%;border-radius:84px">
+  await pagina(1320, 2868, `<div style="width:1320px;height:2868px;background:linear-gradient(180deg,#F7F2EC 0%,#EFE4D8 100%);position:relative;overflow:hidden;text-align:center">
+    <span class="logo" style="font-size:60px;display:inline-block;margin-top:150px">${LOGO}</span>
+    <h1 style="font-family:'Cormorant Garamond',serif;font-weight:600;font-size:114px;line-height:1.02;color:#2E211B;margin:56px 90px 0">${titulo}</h1>
+    <p style="font:500 47px/1.35 Manrope,sans-serif;color:#6B5245;margin:40px 130px 0">${sub}</p>
+    <div style="position:absolute;left:150px;top:880px;width:1020px;border-radius:116px;background:#1F1612;padding:30px;box-shadow:0 40px 90px rgba(59,42,34,.28)">
+      <img src="data:image/png;base64,${TELAS[chave]}" style="display:block;width:100%;border-radius:88px">
     </div></div>`, `tela-${n++}-${chave}.png`);
 }
 await b.close();

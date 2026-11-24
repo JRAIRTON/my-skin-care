@@ -95,7 +95,7 @@ Dúvidas: myskincare.ia.sac@gmail.com
 Site: https://www.myskincareapp.com.br
 ```
 
-**Capturas de tela do iPhone 6,9"** (1290 × 2796): `tela-1-inicio.png` a `tela-6-analisar.png`, nesta
+**Capturas de tela do iPhone 6,9"** (1320 × 2868): `tela-1-inicio.png` a `tela-9-analisar.png`, nesta
 ordem. A Apple reduz sozinha para os iPhones menores. iPad: o app é só para iPhone (não enviar).
 
 ## Classificação etária

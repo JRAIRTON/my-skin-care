@@ -105,7 +105,11 @@ export function avaliaRotulo(ingredientes, ctx = {}) {
   for (const k of Object.keys(AJUDA)) {
     if (!tem(k) || (ctx.perfil?.gestante && k === "retinoide")) continue;
     const meus = AJUDA[k].filter((o) => focos.has(o));
-    if (meus.length) bom(`${nome(k)}: ajuda em ${meus.map((o) => o.toLowerCase()).join(" e ")}, ${meus.length > 1 ? "focos" : "um foco"} da sua pele.`);
+    if (meus.length) {
+      // objectives already contain "e" ("Acne e oleosidade"): list them with commas
+      const l = meus.map((o) => o.toLowerCase()), lista = l.length > 1 ? `${l.slice(0, -1).join(", ")}, e ${l.at(-1)}` : l[0];
+      bom(`${nome(k)}: ajuda em ${lista}, ${meus.length > 1 ? "focos" : "um foco"} da sua pele.`);
+    }
   }
   if (!tem("fragrancia") && ingredientes?.length) bom("Sem fragrância na lista.");
   if (!Object.keys(AJUDA).some(tem) && !tem("receita")) dica("Não encontramos ativos de tratamento: é um produto básico (limpeza, hidratação ou proteção).");
